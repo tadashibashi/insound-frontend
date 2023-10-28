@@ -6,12 +6,7 @@
  *     use UserSrv.ts functions.
  */
 import { request } from "./request";
-
-// type guards
-import { UserCreateFormData } from "app/util/schemas/user/UserCreateFormData";
-import { UserUpdateFormData } from "app/util/schemas/user/UserUpdateFormData";
-import { compile, t } from "app/util/validation";
-import { guardForm } from "app/util/validation/formdata";
+import * as t from "yup";
 
 /**
  * Wrapper around the backend User API.
@@ -28,8 +23,6 @@ export namespace UserAPI {
      * @return     {Promise}   user token string
      */
     export async function createOne(formData: FormData): Promise<string> {
-        guardForm(UserCreateFormData.Validator, formData);
-
         const res = await request(ROOT + "email", "POST", formData);
 
         if (!(res instanceof ArrayBuffer)) throw new Error("Invalid response");
@@ -56,8 +49,6 @@ export namespace UserAPI {
      * @return     {Promise}   { description_of_the_return_value }
      */
     export async function updateOne(id: string, formData: FormData) {
-        guardForm(UserUpdateFormData.Validator, formData);
-
         id = encodeURIComponent(id);
         return request(ROOT + id, "PATCH", formData);
     }
@@ -96,17 +87,15 @@ export namespace UserAPI {
         await request(ROOT + "logout", "POST");
     }
 
-    const UserCheckValidator = compile(
-        t.Object({
-            auth: t.Boolean(),
-        })
-    );
+    const UserCheck = t.object({
+            auth: t.boolean().required(),
+        });
 
     export async function checkUser(): Promise<boolean> {
         const res = await request(ROOT + "check") as any;
 
-        if (UserCheckValidator.Check(res)) {
-            return (res.auth);
+        if (UserCheck.isValidSync(res)) {
+            return res.auth;
         }
 
         throw Error("Internal Error: received invalid server response");

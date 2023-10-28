@@ -1,23 +1,34 @@
-import { Static, compile, t } from "../../validation";
+import type { InferType } from "yup";
+import * as t from "yup";
 
-const LayerSchema = t.Object({
-    _id: t.String(),
-    name: t.String(),
-    originalType: t.String(),
-    order: t.Number(),
+export const LayerToken = t.object({
+    name: t.string()
+        .required(),
+
+    originalType: t.string()
+        .required(),
+
+    order: t.number()
+        .required(),
+
 });
 
-const TrackSchema = t.Object({
-    _id: t.String(),
-    title: t.String(),
-    layers: t.Array(LayerSchema),
-    user: t.String(), // user id
-    link: t.String(), // custom slug
+export const TrackToken = t.object({
+    _id: t.string()
+        .required(),
+
+    title: t.string()
+        .required(),
+
+    layers: t.array(LayerToken)
+        .required(),
+
+    user: t.string()
+        .required(),
+
+    link: t.string()
+        .required(),
+
 });
 
-export type TrackToken = Static<typeof TrackSchema>;
-
-export const TrackToken = {
-    Validator: compile(TrackSchema),
-    Schema: TrackSchema,
-};
+export type TrackToken = InferType<typeof TrackToken>;

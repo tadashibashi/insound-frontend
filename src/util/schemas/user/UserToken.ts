@@ -3,26 +3,32 @@
  * @description
  *     Validation for user token objects.
  */
-import {compile, t} from "../../validation";
-import type {Static} from "../../validation";
+import type { InferType } from "yup";
+import * as t from "yup";
 
+export const UserToken = t.object({
+    _id: t.string()
+        .required(),
 
-const UserTokenSchema = t.Object({
-    _id: t.String(),
-    email: t.String({type: "email"}),
-    session: t.String(),
-    username: t.String(),
-    avatar: t.String(),
-    type: t.Union([t.Literal("user"), t.Literal("admin"), t.Literal("guest")]),
+    email: t.string()
+        .required(),
+
+    session: t.string()
+        .required(),
+
+    username: t.string()
+        .required(),
+
+    avatar: t.string()
+        .required(),
+
+    type: t.mixed()
+        .oneOf(["user", "admin", "guest"])
+        .required(),
 });
 
 
 /**
  * Token stored in localstorage in the frontend as a JWT
  */
-export type UserToken = Static<typeof UserTokenSchema>;
-
-export const UserToken = {
-    Validator: compile(UserTokenSchema),
-    Schema: UserTokenSchema,
-};
+export type UserToken = InferType<typeof UserToken>;

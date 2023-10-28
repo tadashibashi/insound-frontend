@@ -7,10 +7,6 @@
  */
 import { request } from "./request";
 
-import { guardForm } from "app/util/validation/formdata";
-import { TrackCreateFormData } from "app/util/schemas/track/TrackCreateFormData";
-import { TrackUpdateFormData } from "app/util/schemas/track/TrackUpdateFormData";
-
 export namespace TrackAPI {
     // endpoint root
     const ROOT = "/api/tracks/";
@@ -22,8 +18,6 @@ export namespace TrackAPI {
      * @return   promise with track data
      */
     export async function createOne(formData: FormData) {
-        guardForm(TrackCreateFormData.Validator, formData);
-
         return await request(ROOT, "POST", formData);
     }
 
@@ -45,8 +39,6 @@ export namespace TrackAPI {
      * @return     promise with updated track data
      */
     export async function updateOne(id: string, formData: FormData) {
-        guardForm(TrackUpdateFormData.Validator, formData);
-
         return await request(ROOT + id, "PATCH", formData);
     }
 

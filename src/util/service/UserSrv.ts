@@ -6,7 +6,6 @@
 import { UserToken } from "app/util/schemas/user/UserToken";
 import { UserAPI } from "../api/UserAPI";
 import { StorageName } from "app/consts";
-import { ValidationError } from "app/util/validation/errors";
 
 export namespace UserSrv {
     /**
@@ -29,7 +28,7 @@ export namespace UserSrv {
 
         // if token expired or invalid signature
         if (payload.exp * 1000 < Date.now() ||
-            !UserToken.Validator.Check(payload)) {
+            !UserToken.isValidSync(payload)) {
 
             return cleanUp();
         }
@@ -77,14 +76,8 @@ export namespace UserSrv {
         // check that token is unexpired and matches first
         const user = JSON.parse(atob(token.split(".")[1]));
 
-        // Validate the user token, in case
-        const errors = UserToken.Validator.Errors(user);
-        if (errors.First()) {
-            throw ValidationError.from(errors);
-        }
-
         if (!user || !user.exp || user.exp * 1000 < Date.now() ||
-            errors.First()) {
+            !UserToken.isValidSync(user)) {
             return null;
         }
 

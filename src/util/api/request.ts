@@ -6,8 +6,7 @@
  *
  * ========================================================================== */
 import { StorageName } from "app/consts";
-import type { TSchema, TypeCheck } from "app/util/validation";
-import { ValidationError } from "app/util/validation/errors";
+import type { Schema } from "yup";
 
 /**
  * Method name `string` that is passed to an http request.
@@ -23,26 +22,19 @@ export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
  * Server-side data type must be a JSON object response.
  * All requests to the backend
  * server should be made through this function or {@link request}
- * @param     check             The type to assert
+ * @param     schema             The type to assert
  * @param     url               URL endpoint (e.g. "/api/user/create")
  * @param     [method="GET"]    The {@link HttpMethod} name (e.g. `"POST"`).
  *                              Set to `"GET"` by default.
  * @param     [payload]         The payload. Optional.
  * @return    The expected data type from the type check
  */
-export async function requestType<T extends TSchema>(
-    check: TypeCheck<T>, url: string, method: HttpMethod = "GET", payload?: unknown) {
+export async function requestType<T extends Schema>(
+    schema: T, url: string, method: HttpMethod = "GET", payload?: unknown) {
 
     const res = await request(url, method, payload);
 
-    if (res instanceof ArrayBuffer)
-        throw Error("Typed request must return JSON data, got ArrayBuffer");
-
-    if (check.Check(res)) {
-        return res;
-    } else {
-        throw ValidationError.from(check.Errors(res));
-    }
+    return schema.validate(res, {abortEarly: false});
 }
 
 
