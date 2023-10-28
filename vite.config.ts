@@ -49,5 +49,8 @@ export default defineConfig({
                 changeOrigin: true,
             },
         },
+        headers: {
+            "content-security-policy": "script-src 'self';"
+        }
     },
 });
