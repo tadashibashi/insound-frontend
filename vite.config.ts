@@ -10,7 +10,7 @@ const isP = process.env.NODE_ENV === "production";
 export default defineConfig({
     plugins: [svelte(), tsconfigPaths(), {
         name: "dist-cleanup",
-        closeBundle: isP ? async () => {
+        closeBundle: isP ? () => {
             // Remove hash from assets
             const dir = path.resolve(__dirname, "dist/assets");
             const newDir = path.resolve(__dirname, "dist/static")
