@@ -5,6 +5,7 @@ import path from "path";
 import fs from "fs";
 
 const isP = process.env.NODE_ENV === "production";
+console.log("Vite is Production:", isP);
 
 // https://vitejs.dev/config/
 export default defineConfig({
