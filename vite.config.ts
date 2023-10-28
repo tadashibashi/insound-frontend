@@ -13,11 +13,12 @@ export default defineConfig({
         closeBundle: isP ? () => {
             // Remove hash from assets
             const dir = path.resolve(__dirname, "dist/assets");
-            const newDir = path.resolve(__dirname, "dist/static")
+            const newDir = path.resolve(__dirname, "dist/static");
             const files = fs.readdirSync(dir);
             files.forEach((file: string) => {
               // Remove hash from file name
               const newFile = file.replace(/-[a-z0-9]{8}\./, '.');
+              console.log("Move file: " + dir + "/" + file + " => " + newDir + "/" + newFile);
               fs.renameSync(path.resolve(dir, file), path.resolve(newDir, newFile));
             });
           }
