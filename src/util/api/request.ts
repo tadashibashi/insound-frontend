@@ -86,8 +86,12 @@ export async function request(url: string, method: HttpMethod = "GET", payload?:
         }
     }
 
-    if (res.headers.get("content-type")?.includes("application/json")) {
+    const contentType = res.headers.get("content-type") || "";
+
+    if (contentType.includes("application/json")) {
         return res.json();
+    } else if (contentType.includes("text/")) {
+        return res.text();
     } else {
         return res.arrayBuffer();
     }
