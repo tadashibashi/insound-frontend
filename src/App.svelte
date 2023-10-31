@@ -12,8 +12,9 @@
     let query = useConsumeQuery();
     let redirect = query.get("redirect");
     if (redirect) {
-        redirect = atob(redirect);
-        navigate(decodeURIComponent(redirect), {replace: true});
+        redirect = decodeURI(atob(redirect));
+        console.log("redirecting to:", redirect);
+        navigate(redirect, {replace: true});
     }
 
 </script>
