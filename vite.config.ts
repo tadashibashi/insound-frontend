@@ -50,7 +50,18 @@ export default defineConfig({
             },
         },
         headers: {
-            "content-security-policy": "script-src 'self';"
+            "content-security-policy": "base-uri 'self'; font-src 'self'; form-action 'self'; frame-ancestors 'self'; img-src 'self'; object-src 'none'; script-src 'nonce-0123456789'; style-src 'nonce-0123456789'",
+            "cross-origin-embedder-policy": "require-corp",
+            "cross-origin-opener-policy": "same-origin",
+            "cross-origin-resource-policy": "same-origin",
+            "cross-agent-cluster": "?1",
+            "referrer-policy": "no-referrer",
+            "x-content-type-options": "no-sniff",
+            "x-dns-prefetch-control": "off",
+            "x-download-options": "noopen",
+            "x-frame-options": "SAMEORIGIN",
+            "x-permitted-cross-domain-policies": "none",
+            "x-xss-protection": "0",
         }
     },
 });
