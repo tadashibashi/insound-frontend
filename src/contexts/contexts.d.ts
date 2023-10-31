@@ -2,7 +2,7 @@ type UserToken = import("shared/schemas/user/UserToken").UserToken;
 
 interface UserContext {
     logout: () => Promise<void>;
-    login: (email: string, password: string) => Promise<boolean>;
+    login: (email: string, password: string, password2: string) => Promise<boolean>;
     user: import("svelte/store").Readable<UserToken | null>;
 }
 

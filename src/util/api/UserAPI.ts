@@ -71,9 +71,11 @@ export namespace UserAPI {
      * @param      {string}   password  The password
      * @return     {Promise<string>}  gets a user token if successful
      */
-    export async function loginEmail(email: string, password: string): Promise<string> {
+    export async function loginEmail(email: string, password: string,
+        password2: string): Promise<string> {
+
         const buf = await request(ROOT + "login/email", "POST", {
-            email, password,
+            email, password, password2,
         });
 
         if ( !(buf instanceof ArrayBuffer) ) {

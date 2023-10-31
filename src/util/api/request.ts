@@ -49,7 +49,9 @@ export async function requestType<T extends Schema>(
  *                            be interpreted as JSON
  * @return     Response body - user must make assertions as to its type.
  */
-export async function request(url: string, method: HttpMethod = "GET", payload?: unknown): Promise<ArrayBuffer | unknown> {
+export async function request(url: string, method: HttpMethod = "GET",
+    payload?: unknown): Promise<ArrayBuffer | unknown> {
+
     // Create and send the request
     let headers: HeadersInit = {};
 
@@ -89,10 +91,13 @@ export async function request(url: string, method: HttpMethod = "GET", payload?:
     const contentType = res.headers.get("content-type") || "";
 
     if (contentType.includes("application/json")) {
+        // JSON body type
         return res.json();
     } else if (contentType.includes("text/")) {
+        // Some text type
         return res.text();
     } else {
+        // Potentially an unknown file body type
         return res.arrayBuffer();
     }
 }

@@ -52,8 +52,9 @@ export namespace UserSrv {
         await UserAPI.logout();
     }
 
-    export async function loginEmail(email: string, password: string) {
-        const token = await UserAPI.loginEmail(email, password);
+    export async function loginEmail(email: string, password: string,
+        password2: string) {
+        const token = await UserAPI.loginEmail(email, password, password2);
         return emplaceUser(token);
     }
 
