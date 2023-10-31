@@ -10,8 +10,9 @@
     UserContext.init();
 
     let query = useConsumeQuery();
-    const redirect = query.get("redirect");
+    let redirect = query.get("redirect");
     if (redirect) {
+        redirect = atob(redirect);
         navigate(decodeURIComponent(redirect), {replace: true});
     }
 
