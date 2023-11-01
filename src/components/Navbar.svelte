@@ -10,7 +10,7 @@
 <nav class="flex gap-x-4 ps-4 pe-8 items-center">
     <div class="h-16 aspect-square">
         <Link to="/">
-            <img src="/static/images/icon.svg" alt="Insound logo" class="w-full h-full"/>
+            <img src="/static/images/logo.svg" alt="Insound logo" class="w-full h-full"/>
         </Link>
     </div>
 

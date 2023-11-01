@@ -40,7 +40,7 @@
         <Icon src="{XMark}" class="h-8 w-auto text-gray-400" />
     </button>
     <div class="flex min-h-full flex-col justify-center px-6 py-12 lg:px-8">
-        <img class="mx-auto h-20 w-auto" src="/static/images/icon.svg" alt="Insound Audio">
+        <img class="mx-auto h-20 w-auto" src="/static/images/logo.svg" alt="Insound Audio">
         <Router>
             <Route path="signin" component={LoginPage}></Route>
             <Route path="signup" component={SignupPage}></Route>
