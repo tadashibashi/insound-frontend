@@ -45,7 +45,7 @@
     <div class="text-center mx-auto mt-8">
         <input type="submit" value="Sign up" class="cursor-pointer text-sm w-full h-full py-2 text-gray-100 bg-purple-600 rounded-lg px-2"/>
     </div>
-    <p class="mt-8 text-sm text-center">Already have a member?
+    <p class="mt-8 text-sm text-center">Already have an account?
         <Link to="/auth/signin" class="text-purple-600">Sign in here</Link>
     </p>
 </Form>
