@@ -15,6 +15,11 @@ export namespace UserAPI {
     const decoder = new TextDecoder();
     const ROOT = "/api/auth/";
 
+
+    const Result = t.object({
+        result: t.string().required()
+    });
+
     /**
      * Creates a user account.
      * Returns the token if creation was succesful
@@ -22,12 +27,10 @@ export namespace UserAPI {
      * @param      {FormData}  formData  The form data
      * @return     {Promise}   user token string
      */
-    export async function createOne(formData: FormData): Promise<string> {
+    export async function createOne(formData: FormData): Promise<boolean> {
         const res = await request(ROOT + "email", "POST", formData);
 
-        if (!(res instanceof ArrayBuffer)) throw new Error("Invalid response");
-
-        return decoder.decode(res);
+        return (Result.isValidSync(res) && res.result === "Success")
     }
 
     /**
@@ -74,15 +77,15 @@ export namespace UserAPI {
     export async function loginEmail(email: string, password: string,
         password2: string): Promise<string> {
 
-        const buf = await request(ROOT + "login/email", "POST", {
+        const token = await request(ROOT + "login/email", "POST", {
             email, password, password2,
         });
 
-        if ( !(buf instanceof ArrayBuffer) ) {
+        if ( typeof token !== "string" ) {
             throw Error("Invalid type in response!");
         }
 
-        return decoder.decode(buf);
+        return token;
     }
 
     export async function logout() {

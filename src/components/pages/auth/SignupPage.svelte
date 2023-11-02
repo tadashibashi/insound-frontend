@@ -1,20 +1,26 @@
-<script>
-    import { getContext } from "svelte";
+<script lang="ts">
     import {Link, navigate} from "svelte-routing";
     import Form from "app/components/Form.svelte";
-
-    const {login} = getContext("user");
+    import { UserSrv } from "app/util/service/UserSrv";
 
     let email = "";
     let password = "";
     let password2 = "";
 
-    async function handleSubmit() {
-        await login(email, password);
-        navigate("/");
+    async function handleSubmit(formData: FormData) {
+        try {
+            const res = await UserSrv.signupEmail(formData);
+
+            if (res) {
+                // Eventually redirect to a "validation email was sent" page
+                navigate("/");
+            }
+        } catch (e) {
+            // Deal with exception here, check if it is receiving the error
+            // json object from backend...
+            console.log(e);
+        }
     }
-
-
 </script>
 
 <h2 class="mt-4 text-center text-2xl font-bold leading-9 tracking-tight text-gray-900">Create a new account</h2>

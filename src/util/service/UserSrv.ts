@@ -59,8 +59,7 @@ export namespace UserSrv {
     }
 
     export async function signupEmail(data: FormData) {
-        const token = await UserAPI.createOne(data);
-        return emplaceUser(token);
+        return UserAPI.createOne(data);
     }
 
 
