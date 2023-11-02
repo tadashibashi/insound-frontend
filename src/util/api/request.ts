@@ -7,6 +7,7 @@
  * ========================================================================== */
 import { StorageName } from "app/consts";
 import type { Schema } from "yup";
+import { Cookie } from "../cookies";
 
 /**
  * Method name `string` that is passed to an http request.
@@ -58,6 +59,10 @@ export async function request(url: string, method: HttpMethod = "GET",
     // Setup the body with payload if any provided
     let body: BodyInit | undefined = undefined;
     if (payload) {
+        const csrftoken = Cookie.get("csrftoken");
+        if (csrftoken)
+            headers["X-CSRF-TOKEN"] = csrftoken;
+
         if (payload instanceof FormData) {
             body = payload;
         } else {
