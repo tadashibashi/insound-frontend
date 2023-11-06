@@ -9,6 +9,7 @@ import { StorageName } from "app/consts";
 import type { Schema } from "yup";
 import { Cookie } from "../cookies";
 import { Result, createResult, createUnknownResult } from "./Result";
+import { ServerError } from "./ServerError";
 
 /**
  * Method name `string` that is passed to an http request.
@@ -113,7 +114,15 @@ async function request<R, E>(url: string, method: HttpMethod="GET", payload?: un
             default:
                 break;
         }
+
+        // Alert program of server error
+        if (res.status >= 500 && res.status < 600)
+            throw new ServerError(res.status, res.statusText);
+
+        // Client errors should not throw here since the program logic revolves
+        // around displaying mistakes to user form input, etc.
     }
+
 
     // Parse the result
     if (bodySchema && errorSchema)

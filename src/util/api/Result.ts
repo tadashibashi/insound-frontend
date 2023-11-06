@@ -58,12 +58,12 @@ async function createUnknownResult(response: Response) {
  * or an exception will be thrown in the constructor.
  */
 export
-class Result<BodyType, ErrorType>
+class Result<Body, Err>
 {
-    private body_?: BodyType;
-    private error_?: ErrorType;
+    private body_?: Body;
+    private error_?: Err;
 
-    constructor(body?: BodyType, error?: ErrorType)
+    constructor(body?: Body, error?: Err)
     {
         this.body_ = body;
         this.error_ = error;
@@ -82,7 +82,7 @@ class Result<BodyType, ErrorType>
      * Throws an exception otherwise.
      *
      */
-    get result(): BodyType
+    get result(): Body
     {
         if (this.body_ === undefined)
             throw Error("Attempted to access body on non-ok status.");
@@ -94,7 +94,7 @@ class Result<BodyType, ErrorType>
      * Throws an exception otherwise.
      *
      */
-    get error(): ErrorType
+    get error(): Err
     {
         if (this.error_ === undefined)
             throw Error("Attempted to access error on `res.ok` status.");
