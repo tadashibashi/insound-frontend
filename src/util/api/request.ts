@@ -8,37 +8,13 @@
 import { StorageName } from "app/consts";
 import type { Schema } from "yup";
 import { Cookie } from "../cookies";
+import { Result, createResult, createUnknownResult } from "./Result";
 
 /**
  * Method name `string` that is passed to an http request.
  * Limited to the needs of this project.
  */
 export type HttpMethod = "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
-
-
-
-
-/**
- * Make a request to the server and validate the response body with a type check
- * Server-side data type must be a JSON object response.
- * All requests to the backend
- * server should be made through this function or {@link request}
- * @param     schema             The type to assert
- * @param     url               URL endpoint (e.g. "/api/user/create")
- * @param     [method="GET"]    The {@link HttpMethod} name (e.g. `"POST"`).
- *                              Set to `"GET"` by default.
- * @param     [payload]         The payload. Optional.
- * @return    The expected data type from the type check
- */
-export async function requestType<T extends Schema>(
-    schema: T, url: string, method: HttpMethod = "GET", payload?: unknown) {
-
-    const res = await request(url, method, payload);
-
-    return schema.validate(res, {abortEarly: false});
-}
-
-
 
 /**
  * Send a fetch request with optional payload. All requests to the backend
@@ -50,60 +26,103 @@ export async function requestType<T extends Schema>(
  *                            be interpreted as JSON
  * @return     Response body - user must make assertions as to its type.
  */
-export async function request(url: string, method: HttpMethod = "GET",
-    payload?: unknown): Promise<ArrayBuffer | unknown> {
+export
+async function request(url: string): Promise<Result<unknown, unknown>>;
+export
+async function request(url: string, method: HttpMethod):
+    Promise<Result<unknown, unknown>>;
+export
+async function request(url: string, method: HttpMethod, payload: unknown):
+    Promise<Result<unknown, unknown>>;
+export
+async function request<R, E>(url: string, method: HttpMethod, payload: unknown,
+    bodySchema: Schema<R>, errorSchema: Schema<E>) : Promise<Result<R, E>>;
+export
+async function request<R, E>(url: string, method: HttpMethod="GET", payload?: unknown,
+    bodySchema?: Schema<R>, errorSchema?: Schema<E>):
+    Promise<Result<R, E> | Result<unknown, unknown>>
+{
+    // Make request, and receive response
+    let res: Response;
+    {
+        // Create headers
+        let headers: HeadersInit = {};
 
-    // Create and send the request
-    let headers: HeadersInit = {};
+        // Setup the body with payload if any provided
+        let body: BodyInit | undefined = undefined;
+        if (payload)
+        {
+            // Automatically pass CSRF token
+            const csrftoken = Cookie.get("csrftoken");
+            if (csrftoken)
+                headers["X-CSRF-TOKEN"] = csrftoken;
 
-    // Setup the body with payload if any provided
-    let body: BodyInit | undefined = undefined;
-    if (payload) {
-        const csrftoken = Cookie.get("csrftoken");
-        if (csrftoken)
-            headers["X-CSRF-TOKEN"] = csrftoken;
+            if (payload instanceof FormData)
+            {
+                // FormData API will automatically set headers in fetch
+                body = payload;
+            }
+            else
+            {
+                headers["content-type"] = "application/json";
 
-        if (payload instanceof FormData) {
-            body = payload;
-        } else {
-            headers["content-type"] = "application/json";
-            body = JSON.stringify(payload);
+                try {
+                    body = JSON.stringify(payload);
+                }
+                catch(e)
+                {
+                    console.error("Error while stringifying Request payload:",
+                        e);
+                    throw e;
+                }
+            }
+        }
+
+        // Set the Authorization header from user token
+        if (localStorage.getItem(StorageName.User))
+        {
+            headers["authorization"] = "Bearer " +
+                localStorage.getItem(StorageName.User);
+        }
+
+        // Perform request
+        try {
+            res = await fetch(url, {
+                body,
+                headers,
+                method
+            });
+        }
+        catch(e)
+        {
+            console.error("Error during fetch:", e);
+            throw e;
         }
     }
 
-    // Set the authorization header if there's a user token in local storage
-    if (localStorage.getItem(StorageName.User))
-        headers["authorization"] = "Bearer " + localStorage.getItem(StorageName.User);
-
-    const res = await fetch(url, {
-        body,
-        headers,
-        method
-    });
 
     // Process response
-    if (!res.ok) {
-        switch (res.status) {
+    if (!res.ok)
+    {
+        switch (res.status)
+        {
             case 401:
+                // Any invalid access should remove user token as invalid
                 localStorage.removeItem(StorageName.User);
                 break;
             default:
-                throw Error("Problem with request, status " + res.status + ": " + res.statusText);
                 break;
         }
     }
 
-    const contentType = res.headers.get("content-type") || "";
-
-    if (contentType.includes("application/json")) {
-        // JSON body type
-        return res.json();
-    } else if (contentType.includes("text/")) {
-        // Some text type
-        return res.text();
-    } else {
-        // Potentially an unknown file body type
-        return res.arrayBuffer();
+    // Parse the result
+    if (bodySchema && errorSchema)
+    {
+        return createResult<R, E>(res, bodySchema, errorSchema);
+    }
+    else
+    {
+        return createUnknownResult(res);
     }
 }
 

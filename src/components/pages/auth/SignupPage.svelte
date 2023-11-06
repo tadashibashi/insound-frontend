@@ -1,24 +1,35 @@
 <script lang="ts">
     import {Link, navigate} from "svelte-routing";
     import Form from "app/components/Form.svelte";
-    import { UserSrv } from "app/util/service/UserSrv";
+    import { AuthSrv } from "app/util/service/AuthSrv";
 
     let email = "";
     let password = "";
     let password2 = "";
 
     async function handleSubmit(formData: FormData) {
-        try {
-            const res = await UserSrv.signupEmail(formData);
+        if (password !== password2)
+        {
+            // handle error display here
+            return;
+        }
 
-            if (res) {
+        try {
+            const res = await AuthSrv.signupEmail(formData);
+
+            if (res.ok) {
                 // Eventually redirect to a "validation email was sent" page
                 navigate("/");
+            } else {
+
+                // Handle error display here
+                console.log(res.error);
             }
         } catch (e) {
-            // Deal with exception here, check if it is receiving the error
-            // json object from backend...
+            // Deal with unknown exception here, display some generic message
             console.log(e);
+
+            throw e;
         }
     }
 </script>

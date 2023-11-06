@@ -11,7 +11,7 @@ export const LayerToken = t.object({
     order: t.number()
         .required(),
 
-});
+}).required();
 
 export const TrackToken = t.object({
     _id: t.string()
@@ -29,6 +29,6 @@ export const TrackToken = t.object({
     link: t.string()
         .required(),
 
-});
+}).required();
 
 export type TrackToken = InferType<typeof TrackToken>;

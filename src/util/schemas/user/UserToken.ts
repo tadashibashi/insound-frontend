@@ -25,7 +25,7 @@ export const UserToken = t.object({
     type: t.mixed()
         .oneOf(["user", "admin", "guest"])
         .required(),
-});
+}).required();
 
 
 /**
