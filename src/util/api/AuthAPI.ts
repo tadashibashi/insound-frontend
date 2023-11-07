@@ -41,22 +41,13 @@ export namespace AuthAPI {
         return res.ok;
     }
 
-
-    /**
-     * Type received from checkUser response
-     */
-    const UserCheck = t.object({
-            auth: t.boolean().required(),
-        }).required();
-
     /**
      * Check whether current user token is valid
      * @return whether token is valid.
      */
     export
     async function checkUser(): Promise<boolean> {
-        const res = await request(ROOT + "/check", "GET", null,
-            UserCheck, t.string().required());
+        const res = await request(ROOT + "/check");
 
         return res.ok;
     }

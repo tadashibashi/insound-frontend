@@ -31,7 +31,7 @@ export namespace UserAPI
     export
     async function createOne(formData: FormData)
     {
-        return request(ROOT + "email", "POST", formData,
+        return request(ROOT + "create/email", "POST", formData,
             t.string().required(), FormErrors);
     }
 
