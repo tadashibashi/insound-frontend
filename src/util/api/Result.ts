@@ -116,12 +116,12 @@ async function getBody<T>(res: Response, schema?: Schema<T>): Promise<T | unknow
 {
     const type = res.headers.get("Content-Type") || "";
 
-    if (type === "application/json")
+    if (type.startsWith("application/json"))
     {
         const o = await res.json();
-        return schema ? schema.validateAt("result", o) : o;
+        return schema ? schema.validate(o) : o;
     }
-    else if (type.includes("text/"))
+    else if (type.startsWith("text/"))
     {
         const s = await res.text();
         return schema ? schema.validate(s) : s;
@@ -142,12 +142,12 @@ async function getError<T>(res: Response, schema?: Schema<T>): Promise<T | unkno
 {
     const type = res.headers.get("Content-Type") || "";
 
-    if (type === "application/json")
+    if (type.startsWith("application/json"))
     {
         const o = await res.json();
-        return schema ? schema.validateAt("error", o) : o;
+        return schema ? schema.validate(o) : o;
     }
-    else if (type.includes("text/"))
+    else if (type.startsWith("text/"))
     {
         const s = await res.text();
         return schema ? schema.validate(s) : s;
