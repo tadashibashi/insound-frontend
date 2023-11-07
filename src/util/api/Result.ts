@@ -1,13 +1,18 @@
 import { Schema } from "yup";
 
+export
+type SchemaLike<T> = {
+    validate: (obj: any) => Promise<T>;
+};
+
 /**
  * Create a result from a response. Decoupled from constructor to allow for
  * asynchronous creation, and treat the Result class as a simple data container
  *
  */
 export
-async function createResult<R, E>(response: Response, bodyType?: Schema<R>,
-    errorType?: Schema<E>)
+async function createResult<R, E>(response: Response, bodyType?: SchemaLike<R>,
+    errorType?: SchemaLike<E>)
 {
     let result: Result<R, E>;
     if (response.ok)
@@ -16,7 +21,7 @@ async function createResult<R, E>(response: Response, bodyType?: Schema<R>,
     }
     else
     {
-        result = new Result<R, E>(undefined, await getError(response, errorType) as E);
+        result = new Result<R, E>(undefined, await getBody(response, errorType) as E);
     }
 
     return result;
@@ -38,7 +43,7 @@ async function createUnknownResult(response: Response) {
     else
     {
         result = new Result<unknown, unknown>(
-            undefined, await getError(response) as unknown);
+            undefined, await getBody(response) as unknown);
     }
 
     return result;
@@ -104,6 +109,7 @@ class Result<Body, Err>
 
 // ===== Helper functions =====================================================
 
+
 /**
  * Parses the response for the body depending on content type.
  * If JSON, it will search for a field called "result", and validate that
@@ -112,33 +118,7 @@ class Result<Body, Err>
  * Assumes that `res.ok` is `true`.
  *
  */
-async function getBody<T>(res: Response, schema?: Schema<T>): Promise<T | unknown>
-{
-    const type = res.headers.get("Content-Type") || "";
-
-    if (type.startsWith("application/json"))
-    {
-        const o = await res.json();
-        return schema ? schema.validate(o) : o;
-    }
-    else if (type.startsWith("text/"))
-    {
-        const s = await res.text();
-        return schema ? schema.validate(s) : s;
-    }
-    else
-    {
-        const buf = await res.arrayBuffer();
-        return schema ? schema.validate(buf) : buf;
-    }
-}
-
-/**
- * Get an error from a response.
- *
- * Assumes that `res.ok` is `false`.
- */
-async function getError<T>(res: Response, schema?: Schema<T>): Promise<T | unknown>
+async function getBody<T>(res: Response, schema?: SchemaLike<T>): Promise<T | unknown>
 {
     const type = res.headers.get("Content-Type") || "";
 

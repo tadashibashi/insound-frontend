@@ -8,7 +8,7 @@
 import { StorageName } from "app/consts";
 import type { Schema } from "yup";
 import { Cookie } from "../cookies";
-import { Result, createResult, createUnknownResult } from "./Result";
+import { Result, createResult, createUnknownResult, type SchemaLike } from "./Result";
 import { ServerError } from "./ServerError";
 
 /**
@@ -37,10 +37,10 @@ async function request(url: string, method: HttpMethod, payload: unknown):
     Promise<Result<unknown, unknown>>;
 export
 async function request<R, E>(url: string, method: HttpMethod, payload: unknown,
-    bodySchema: Schema<R>, errorSchema: Schema<E>) : Promise<Result<R, E>>;
+    bodySchema: SchemaLike<R>, errorSchema: SchemaLike<E>) : Promise<Result<R, E>>;
 export
 async function request<R, E>(url: string, method: HttpMethod="GET", payload?: unknown,
-    bodySchema?: Schema<R>, errorSchema?: Schema<E>):
+    bodySchema?: SchemaLike<R>, errorSchema?: SchemaLike<E>):
     Promise<Result<R, E> | Result<unknown, unknown>>
 {
     // Make request, and receive response
