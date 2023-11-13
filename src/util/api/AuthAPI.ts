@@ -56,9 +56,9 @@ export namespace AuthAPI {
      * Verify account via token received in email
      */
     export
-    async function verifyEmail(token: string): Promise<boolean>
+    async function activate(token: string): Promise<boolean>
     {
-        const res = await request(ROOT + "/verify", "POST", {
+        const res = await request(ROOT + "/activate", "POST", {
             token,
         },
         t.string().required(), t.string().required());
