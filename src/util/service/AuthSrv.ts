@@ -95,7 +95,7 @@ export namespace AuthSrv {
     export
     async function verifyEmail(token: string)
     {
-        await AuthAPI.verifyEmail(token);
+        await AuthAPI.activate(token);
     }
 
 

@@ -1,5 +1,3 @@
-import { Schema } from "yup";
-
 export
 type SchemaLike<T> = {
     validate: (obj: any) => Promise<T>;

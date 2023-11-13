@@ -25,6 +25,6 @@ class FormErrors {
             }
         }
 
-        return errors;
+        return new Promise(resolve => resolve(errors));
     }
 }
