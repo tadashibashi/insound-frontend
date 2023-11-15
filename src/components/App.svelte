@@ -1,11 +1,12 @@
 <script lang="ts">
     import {Router, Route, useLocation, useHistory, navigate} from "svelte-routing";
-    import NotFoundPage from "./components/pages/NotFoundPage.svelte";
-    import LandingPage from "./components/pages/LandingPage.svelte";
-    import AuthLayout from "./components/pages/auth/AuthLayout.svelte";
-    import { UserContext } from "./contexts/UserContext";
-    import CreateTrackPage from "./components/pages/tracks/CreateTrackPage.svelte";
-    import { useConsumeQuery } from "./hooks/useQuery";
+    import NotFoundPage from "app/components/pages/NotFoundPage.svelte";
+    import LandingPage from "app/components/pages/LandingPage.svelte";
+    import AuthLayout from "app/components/pages/auth/AuthLayout.svelte";
+    import { UserContext } from "app/contexts/UserContext";
+    import CreateTrackPage from "app/components/pages/tracks/CreateTrackPage.svelte";
+    import { useConsumeQuery } from "app/hooks/useQuery";
+    import TestPage from "app/components/pages/test/TestPage.svelte";
 
     UserContext.init();
 
@@ -24,6 +25,7 @@
     <Route path="/auth/*" component={AuthLayout} />
     <Route path="/*" component={NotFoundPage} />
     <Route path="/tracks/create" component={CreateTrackPage} />
+    <Route path="/test" component={TestPage} />
 <main>
 
 

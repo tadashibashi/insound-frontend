@@ -114,7 +114,7 @@ export namespace AuthSrv {
     {
         // check that token is unexpired and matches first
         const user = JSON.parse(atob(token.split(".")[1]));
-
+        console.log(UserToken.validateSync(user));
         if (!user || !user.exp || user.exp * 1000 < Date.now() ||
             !UserToken.isValidSync(user)) {
             return null;

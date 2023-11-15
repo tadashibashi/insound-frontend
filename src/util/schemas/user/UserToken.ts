@@ -7,23 +7,23 @@ import type { InferType } from "yup";
 import * as t from "yup";
 
 export const UserToken = t.object({
-    _id: t.string()
-        .required(),
+    iat: t.number().required(),
+    exp: t.number().required(),
 
     email: t.string()
         .required(),
 
-    session: t.string()
+    fingerprint: t.string()
         .required(),
 
-    username: t.string()
-        .required(),
+    username: t.string(),
 
-    avatar: t.string()
-        .required(),
+    displayName: t.string(),
+
+    avatar: t.string(), // add this from the backend
 
     type: t.mixed()
-        .oneOf(["user", "admin", "guest"])
+        .oneOf(["user", "admin", "guest", "unverified", "staff"])
         .required(),
 }).required();
 
