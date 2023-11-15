@@ -1,0 +1,3 @@
+[submodule "lib/audio"]
+	path = lib/audio
+	url = https://github.com/tadashibashi/insound-audio
