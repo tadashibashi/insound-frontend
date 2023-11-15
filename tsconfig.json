@@ -15,7 +15,8 @@
     "checkJs": true,
     "isolatedModules": true,
     "paths": {
-        "app/*": ["./src/*"]
+        "app/*": ["./src/*"],
+        "audio/*": ["./src/audio/src/ts/*"]
     }
   },
   "include": [
