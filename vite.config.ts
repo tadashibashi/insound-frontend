@@ -52,8 +52,8 @@ export default defineConfig({
         headers: {
             "content-security-policy": "base-uri 'self'; font-src 'self'; form-action 'self'; frame-ancestors 'self'; img-src 'self'; object-src 'none'; script-src 'self' 'wasm-unsafe-eval' blob:; style-src 'self' 'unsafe-inline'",
             "cross-origin-embedder-policy": "require-corp",
-            "cross-origin-opener-policy": "same-site",
-            "cross-origin-resource-policy": "same-site",
+            "cross-origin-opener-policy": "same-origin",
+            "cross-origin-resource-policy": "same-origin",
             "cross-agent-cluster": "?1",
             "referrer-policy": "no-referrer",
             "x-content-type-options": "no-sniff",
