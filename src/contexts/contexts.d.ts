@@ -6,8 +6,13 @@ interface UserContext {
     user: import("svelte/store").Readable<UserToken | null>;
 }
 
+type AudioCtx = import("svelte/store").Readable<import("audio/AudioEngine").AudioEngine | null>;
+
+
 // App-wide contexts
 declare module "svelte" {
     declare function setContext(key: "user", context: UserContext): UserContext;
+    declare function setContext(key: "audio", context: AudioContext): AudioContext;
     declare function getContext(key: "user"): UserContext;
+    declare function getContext(key: "audio"): AudioCtx;
 }

@@ -4,11 +4,13 @@
     import LandingPage from "app/components/pages/LandingPage.svelte";
     import AuthLayout from "app/components/pages/auth/AuthLayout.svelte";
     import { UserContext } from "app/contexts/UserContext";
+    import { AudioContext } from "app/contexts/AudioContext";
     import CreateTrackPage from "app/components/pages/tracks/CreateTrackPage.svelte";
     import { useConsumeQuery } from "app/hooks/useQuery";
     import TestPage from "app/components/pages/test/TestPage.svelte";
 
     UserContext.init();
+    AudioContext.init();
 
     let query = useConsumeQuery();
     let redirect = query.get("redirect");
@@ -17,7 +19,6 @@
         console.log("redirecting to:", redirect);
         navigate(redirect, {replace: true});
     }
-
 </script>
 
 <Router>
