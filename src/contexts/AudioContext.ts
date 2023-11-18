@@ -5,24 +5,28 @@ import { get, writable } from "svelte/store";
 export namespace AudioContext {
     export function init() {
         const audio = writable<AudioEngine | null>(null);
+        let interval: NodeJS.Timeout | null = null;
 
-        function audioUpdate(time: number) {
-            const handle = requestAnimationFrame(audioUpdate);
+        function audioUpdate() {
             const engine = get(audio);
             if (engine)
+            {
+                if (engine.updateHandler)
+                    engine.updateHandler();
                 engine.update();
-            else
-                cancelAnimationFrame(handle);
+            }
         }
 
         onMount(() => {
             initAudio()
                 .then(() => {
                     audio.set(new AudioEngine);
-                    audioUpdate(0);
+                    interval = setInterval(audioUpdate, 10);
                 });
 
             return () => {
+                if (interval)
+                    clearInterval(interval);
                 const engine = get(audio);
                 engine?.release();
             };
