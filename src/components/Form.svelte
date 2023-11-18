@@ -7,6 +7,7 @@
     import { request } from "app/util/api/request";
     import debounce from "../util/debounce";
     import type { HttpMethod } from "app/util/api/request";
+    import type { Result } from "app/util/api/Result";
 
     // ===== Attributes ========================================================
 
@@ -42,7 +43,7 @@
      * an endpoint string, or the awaited value in the return value of the
      * action, if `action` was a callback.
      */
-    export let onThen: ((body: unknown) => void) | null = null;
+    export let onThen: ((result: Result<unknown, unknown>) => void) | null = null;
 
     /**
      * Optional.
