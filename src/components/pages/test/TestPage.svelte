@@ -6,13 +6,14 @@
 
     let numInputs = 1;
     let isPlaying = false;
+    let isLoaded = false;
     const audio = getContext("audio");
 
     let currentTime = 0;
     let maxTime = 0;
-    let playInterval: NodeJS.Timeout | null = null;
     let playhead: HTMLDivElement;
     let numChannels = 0;
+
 
     function timeDisplay(seconds: number) {
         seconds = Math.floor(seconds);
@@ -37,11 +38,23 @@
         maxTime = $audio.length || 0;
         isPlaying = false;
         numChannels = $audio.trackCount;
+        isLoaded = true;
+
+        updatePlayheadPosition();
+    }
+
+    function updatePlayheadPosition()
+    {
+        if (!playhead) return;
+
+        const width = playhead.parentElement?.getBoundingClientRect().width || 0;
+        playhead.style.transform = `translate(${currentTime/maxTime*width}px, -25%)`;
     }
 
     function onSeek(ev: MouseEvent) {
         if (!$audio) return;
         if (!playhead) return;
+        if (!isLoaded) return;
 
         const rect = playhead.parentElement?.getBoundingClientRect();
         if (!rect) return;
@@ -50,15 +63,22 @@
 
         $audio.seek(newTime);
         currentTime = newTime;
-        playhead.style.transform = `translate(${currentTime/maxTime*rect.width}px, -25%)`;
+        updatePlayheadPosition();
     }
 
     function onPlayInterval() {
-        const width = playhead.parentElement?.getBoundingClientRect().width || 0;
+        if (!isPlaying) return;
+
         currentTime = $audio?.position || 0;
-        if (playhead)
-            playhead.style.transform = `translate(${currentTime/maxTime*width}px, -25%)`;
+        updatePlayheadPosition();
     }
+
+    $: {
+        if ($audio)
+        {
+            $audio.onUpdate(onPlayInterval);
+        }
+    };
 
     function onSliderInput(evt: Event)
     {
@@ -82,22 +102,6 @@
         const newPaused = !$audio.paused;
         $audio.setPause(newPaused);
         isPlaying = !newPaused;
-
-        if (isPlaying)
-        {
-            if (playInterval !== null)
-                clearInterval(playInterval);
-            playInterval = setInterval(onPlayInterval, 50);
-        }
-        else
-        {
-            if (playInterval !== null)
-            {
-                clearInterval(playInterval);
-                playInterval = null;
-            }
-
-        }
     }
 
     function onMainSliderInput(evt: Event) {
@@ -148,7 +152,6 @@
     {/each}
     </div>
 
-
     <button
         class="border border-gray-200 rounded-md py-1 px-2 my-4 mx-auto block bg-violet-400 text-white"
         type="submit">
@@ -160,9 +163,9 @@
 <div class="relative max-w-[512px] mx-auto mt-12 border border-gray-100 shadow-md">
     <button class="drop-shadow-sm w-8 border border-gray-100 rounded-full p-2 box-content m-2" on:click={onPressPlay}>
     {#if isPlaying}
-        <Icon src="{Pause}" />
+        <Icon class="drop-shadow-sm" src="{Pause}" />
     {:else}
-        <Icon src="{Play}" />
+        <Icon class="drop-shadow-sm" src="{Play}" />
     {/if}
     </button>
 
@@ -173,7 +176,9 @@
 
     <!-- Playhead -->
     <button class="relative w-full h-1 bg-gray-300 mt-1" on:click={onSeek}>
-        <div bind:this={playhead} class="w-1 h-2 rounded bg-gray-500 -translate-y-1/4"></div>
+        {#if isLoaded}
+            <div bind:this={playhead} class="w-1 h-2 rounded bg-gray-500 -translate-y-1/4"></div>
+        {/if}
     </button>
 
     <!-- Volume sliders -->
