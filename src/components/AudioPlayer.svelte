@@ -59,11 +59,14 @@
     {
         if(!audio)
             throw Error("AudioEngine was not initialized.");
+
+        audio.suspend();
         audio.loadTrack(data);
         currentTime = 0;
         maxTime = audio.length;
         numChannels = audio.trackCount;
         isLoaded = true;
+        isPlaying = false;
 
         updatePlayheadPosition(playhead, bar, currentTime,
             maxTime);
