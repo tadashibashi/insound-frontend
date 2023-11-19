@@ -1,11 +1,9 @@
 <script lang="ts">
-    export let onload: Delegate<void, [ArrayBuffer]>;
-
     import type { Delegate } from "app/util/delegate";
     import { getContext, onMount } from "svelte";
     import { Icon, Pause, Play } from "svelte-hero-icons";
 
-
+    export let onload: Delegate<void, [ArrayBuffer]>;
 
     let audioContext = getContext("audio");
     let currentTime = 0;
@@ -48,7 +46,6 @@
     function updatePlayheadPosition(playhead: HTMLElement, bar: HTMLElement,
         currentTime: number, maxTime: number): void
     {
-        console.log(playhead, bar);
         if (!playhead || !bar) return;
 
         const width = bar.getBoundingClientRect().width;
