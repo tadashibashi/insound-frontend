@@ -24,7 +24,8 @@
     "tslib": "^2.6.0",
     "typescript": "^5.0.2",
     "vite": "^4.4.5",
-    "vite-tsconfig-paths": "^4.2.1"
+    "vite-tsconfig-paths": "^4.2.1",
+    "bun-types": "latest"
   },
   "dependencies": {
     "svelte-routing": "^2.5.0",
