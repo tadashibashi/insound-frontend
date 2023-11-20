@@ -110,4 +110,74 @@ describe("Delegate can invoke callbacks", () => {
         expect(delegate.invoke()).toBe(9999);
     });
 
+    it("receives invoked args", () => {
+        const delegate = new Delegate<void, [number, string, {val: number}]>;
+        const TheNumber = 12345;
+        const TheString = "67890";
+        const TheObject = {
+            val: 98765
+        };
+
+        let callCount = 0;
+        const func0 = (n: number, s: string, o: {val: number}) => {
+            ++callCount;
+            expect(n).toBe(TheNumber);
+            expect(s).toBe(TheString);
+            expect(o).toEqual(TheObject);
+        };
+        const func1 = (n: number, s: string, o: {val: number}) => {
+            ++callCount;
+            expect(n).toBe(TheNumber);
+            expect(s).toBe(TheString);
+            expect(o).toEqual(TheObject);
+        }
+
+        delegate.subscribe(func0);
+        delegate.subscribe(func1);
+        delegate.invoke(TheNumber, TheString, TheObject);
+
+        expect(callCount).toBe(2);
+    });
+});
+
+describe("Delegate behavior while invoking", () => {
+    it("throws if recursively invoking", () => {
+        const delegate = new Delegate<void, []>;
+
+        const func = () => {
+            delegate.invoke();
+        };
+        delegate.subscribe(func);
+        expect(() => delegate.invoke()).toThrow();
+    });
+
+    it("processes removal after after invoking, if currently invoking", () => {
+        const delegate = new Delegate<void, []>;
+
+        const func = () => {
+            delegate.unsubscribe(func);
+            expect(delegate.handleCount).toBeGreaterThan(0);
+        };
+
+        delegate.subscribe(func);
+        expect(delegate.handleCount).toBe(1);
+        delegate.invoke();
+        expect(delegate.handleCount).toBe(0);
+    });
+
+    it("processes add after after invoking, if currently invoking", () => {
+        const delegate = new Delegate<void, []>;
+
+        const otherFunc = () => { };
+        const func = () => {
+            const count = delegate.handleCount;
+            delegate.subscribe(otherFunc);
+            expect(delegate.handleCount).toBe(count);
+        };
+
+        delegate.subscribe(func);
+        expect(delegate.handleCount).toBe(1);
+        delegate.invoke();
+        expect(delegate.handleCount).toBe(2);
+    });
 });
