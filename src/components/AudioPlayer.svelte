@@ -3,7 +3,7 @@
     import { getContext, onMount } from "svelte";
     import { Icon, Pause, Play } from "svelte-hero-icons";
 
-    export let onload: Delegate<void, [ArrayBuffer]>;
+    export let onload: Delegate<void, [ArrayBuffer, string[]]>;
 
     let audioContext = getContext("audio");
     let currentTime = 0;
@@ -13,6 +13,7 @@
     let isPlaying = false;
     let isLoaded = false;
     let numChannels = 0;
+    let layerNames: string[] = [];
 
     $: audio = $audioContext;
     $: {
@@ -30,7 +31,9 @@
     });
 
 
-    // Convert number of seconds into hh:mm format
+    /**
+     * Convert number of seconds into hh:mm format
+     */
     function toDigitalTime(timeInSeconds: number): string
     {
         timeInSeconds = Math.floor(timeInSeconds);
@@ -55,25 +58,26 @@
 
 
     // Callback fired when audio is loaded
-    function onLoadAudio(data: ArrayBuffer)
+    function onLoadAudio(pData: ArrayBuffer, pLayerNames: string[])
     {
         if(!audio)
             throw Error("AudioEngine was not initialized.");
 
-        audio.suspend();
-        audio.loadTrack(data);
+        //audio.suspend();
+        audio.loadTrack(pData);
         currentTime = 0;
         maxTime = audio.length;
         numChannels = audio.trackCount;
         isLoaded = true;
         isPlaying = false;
+        layerNames = pLayerNames;
 
         updatePlayheadPosition(playhead, bar, currentTime,
             maxTime);
     }
 
 
-    function onSeek(evt: MouseEvent)
+    function onSeek(evt: MouseEvent): void
     {
         if (!audio) throw Error("AudioEngine was not initialized.");
 
@@ -95,7 +99,7 @@
     // Called 60+ times a second
     function onPlayerUpdate()
     {
-        if (!audio || audio.paused) return;
+        if (!audio) return;
         currentTime = audio.position;
 
         updatePlayheadPosition(playhead, bar, currentTime, maxTime);
@@ -106,13 +110,17 @@
     {
         if (!audio || !audio.isTrackLoaded()) return;
         const newPause = !audio.paused;
-        audio.setPause(newPause);
+
+        if (!newPause)
+            audio.setPause(newPause, 0);
+        else
+            audio.setPause(newPause, .1);
         isPlaying = !newPause;
 
-        if (newPause)
-            audio.suspend();
-        else
-            audio.resume();
+        // if (newPause)
+        //     audio.suspend();
+        // else
+        //     audio.resume();
     }
 
 
@@ -142,7 +150,10 @@
 <!-- Player Container -->
 <div class="relative">
     <!-- Play/Pause Button -->
-    <button class="drop-shadow-sm w-8 border border-gray-100 rounded-full p-2 box-content m-2" on:click={onPressPlay}>
+    <button
+        class="drop-shadow-sm w-8 border border-gray-100 rounded-full p-2 box-content m-2"
+        on:click={onPressPlay}
+        >
         {#if isPlaying}
             <Icon class="drop-shadow-sm" src="{Pause}" />
         {:else}
@@ -186,7 +197,9 @@
                     data-chan="{i}"
                     on:input={onVolumeInput}
                     />
-                <label class="text-center" for={"vol-slider-"+i}>Layer {i + 1}</label>
+                <label class="text-center" for={"vol-slider-"+i}>
+                    { layerNames.length > i ? layerNames[i] : "Layer " + (i + 1) }
+                </label>
             </div>
         {/each}
     </div>

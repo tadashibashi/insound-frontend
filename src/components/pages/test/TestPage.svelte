@@ -7,7 +7,7 @@
 
     let numInputs = 1;
 
-    const onload = new Delegate<void, [ArrayBuffer]>;
+    const onload = new Delegate<void, [ArrayBuffer, string[]]>;
 
     function onLoadAudio(payload: Result<unknown, unknown>) {
         if (!payload.ok)
@@ -15,7 +15,7 @@
         if (!(payload.result instanceof ArrayBuffer))
             throw Error("Wrong data type received from request.");
 
-        onload.invoke(payload.result);
+        onload.invoke(payload.result, []); // todo: add layer names in array
     }
 
 
