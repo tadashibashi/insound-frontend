@@ -14,12 +14,13 @@ export namespace UserContext {
 
         async function login(email: string, password: string, password2: string)
         {
-            return AuthSrv.loginEmail(email, password, password2);
+            user.set(AuthSrv.loginEmail(email, password, password2));
         }
 
         async function logout() {
-            user.set(null);
-            return AuthSrv.logout();
+            if (await AuthSrv.logout())
+                user.set(null);
+
         }
     }
 }
