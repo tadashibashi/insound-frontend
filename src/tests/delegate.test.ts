@@ -1,4 +1,4 @@
-import {it, describe, expect} from "bun:test";
+import {describe, it, expect} from ".";
 import { Delegate } from "app/util/delegate";
 
 describe("Delegate can subscribe & unsubscribe callbacks", () => {
