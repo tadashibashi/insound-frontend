@@ -25,6 +25,6 @@
   ],
   "exclude": [
     "src/audio/scripts", "src/audio/images", "src/audio/node_modules",
-    "src/audio/lib", "src/audio/public"
+    "src/audio/lib", "src/audio/public", "src/tests/**/*"
   ]
 }
