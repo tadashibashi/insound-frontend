@@ -36,7 +36,7 @@ export namespace AuthAPI {
         const res = await request(ROOT + "/logout",
             "POST",
             null,
-            t.string().required(), t.string().required());
+            t.boolean().required(), t.string().required());
 
         return res.ok;
     }

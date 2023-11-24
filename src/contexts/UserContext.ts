@@ -1,6 +1,6 @@
 import { AuthSrv } from "app/util/service/AuthSrv";
 import { onMount, setContext } from "svelte";
-import { writable } from "svelte/store";
+import { get, writable } from "svelte/store";
 
 export namespace UserContext {
     export function init() {
@@ -14,7 +14,9 @@ export namespace UserContext {
 
         async function login(email: string, password: string, password2: string)
         {
-            user.set(AuthSrv.loginEmail(email, password, password2));
+            const res = await AuthSrv.loginEmail(email, password, password2);
+            user.set(res);
+            return res !== null;
         }
 
         async function logout() {

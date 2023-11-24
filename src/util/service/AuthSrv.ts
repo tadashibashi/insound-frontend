@@ -37,9 +37,9 @@ export namespace AuthSrv {
         const result = await AuthAPI.loginEmail(email, password, password2);
 
         if (result.ok)
-            emplaceUser(result.result);
+            return emplaceUser(result.result);
 
-        return result;
+        return null;
     }
 
     /**
@@ -114,7 +114,6 @@ export namespace AuthSrv {
     {
         // check that token is unexpired and matches first
         const user = JSON.parse(atob(token.split(".")[1]));
-        console.log(UserToken.validateSync(user));
         if (!user || !user.exp || user.exp * 1000 < Date.now() ||
             !UserToken.isValidSync(user)) {
             return null;
