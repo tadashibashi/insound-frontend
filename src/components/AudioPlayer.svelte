@@ -65,6 +65,13 @@
 
         //audio.suspend();
         audio.loadTrack(pData);
+        audio.setSyncPointCallback((label, seconds) => {
+            console.log("SyncPoint: \"" + label + "\": at " + seconds);
+        });
+        audio.setEndCallback(() => {
+            console.log("End reached!");
+        });
+
         currentTime = 0;
         maxTime = audio.length;
         numChannels = audio.trackCount;
