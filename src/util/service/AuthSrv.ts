@@ -93,10 +93,40 @@ export namespace AuthSrv {
     }
 
     export
-    async function verifyEmail(token: string)
-    {
-        await AuthAPI.activate(token);
+    enum VerificationState {
+        None,
+        Failed,
+        Verified,
+        AlreadyVerified,
+        Timeout,
+    };
+
+    export
+    async function activate(token: string) {
+        return new Promise<VerificationState>(async (resolve, reject) => {
+
+            const timeout = setTimeout(() => reject(VerificationState.Timeout),
+                15_000);
+
+            const res = await AuthAPI.activate(token);
+            if (!res.ok)
+            {
+                clearTimeout(timeout);
+                return reject(VerificationState.Failed);
+            }
+
+            if (res.result.startsWith("User already verified."))
+            {
+                clearTimeout(timeout);
+                return resolve(VerificationState.AlreadyVerified);
+            }
+
+            clearTimeout(timeout);
+            resolve(VerificationState.Verified);
+        });
     }
+
+
 
 
     // ===== Helper functions =================================================

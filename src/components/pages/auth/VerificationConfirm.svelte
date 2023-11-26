@@ -1,21 +1,30 @@
-<script>
+<script lang="ts">
     import { useConsumeQuery } from "app/hooks/useQuery";
-    import { AuthAPI } from "app/util/api/AuthAPI";
+    import { AuthSrv } from "app/util/service/AuthSrv";
     import { onMount } from "svelte";
 
-    let verified = false;
+    type VerificationState = AuthSrv.VerificationState;
+    const VerificationState = AuthSrv.VerificationState;
+
+    let verifiedState: VerificationState = VerificationState.None;
 
     onMount(() => {
         const query = useConsumeQuery();
         const token = query.get("token") || "";
 
-        if (!token) return;
+        if (!token) {
+            verifiedState = VerificationState.Failed;
+            return;
+        }
 
-        AuthAPI.verifyEmail(token);
-
+        AuthSrv.activate(token)
+            .then(res => verifiedState = res)
+            .catch(err => {
+                verifiedState = err;
+            });
     });
-
-
-
 </script>
 
+<div>
+    
+</div>

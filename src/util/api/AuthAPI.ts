@@ -52,17 +52,16 @@ export namespace AuthAPI {
         return res.ok;
     }
 
+
     /**
      * Verify account via token received in email
      */
     export
-    async function activate(token: string): Promise<boolean>
+    async function activate(token: string)
     {
-        const res = await request(ROOT + "/activate", "POST", {
+        return request(ROOT + "/activate", "POST", {
             token,
         },
         t.string().required(), t.string().required());
-
-        return res.ok;
     }
 }
