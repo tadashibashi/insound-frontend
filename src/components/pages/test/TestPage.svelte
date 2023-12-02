@@ -4,10 +4,14 @@
     import { Icon, Minus, Pause, Play, Plus } from "svelte-hero-icons";
     import { Delegate } from "app/util/delegate";
     import AudioPlayer from "app/components/AudioPlayer.svelte";
+    import TextEditor from "app/components/TextEditor/TextEditor.svelte";
+
 
     let numInputs = 1;
+    let scriptText = "";
 
-    const onload = new Delegate<void, [ArrayBuffer, string[]]>;
+    const onload = new Delegate<void, [ArrayBuffer, string[], string]>;
+    const onRequestText = new Delegate<string, []>;
 
     function onLoadAudio(payload: Result<unknown, unknown>) {
         if (!payload.ok)
@@ -15,7 +19,13 @@
         if (!(payload.result instanceof ArrayBuffer))
             throw Error("Wrong data type received from request.");
 
-        onload.invoke(payload.result, []); // todo: add layer names in array
+        let text = "";
+        if (onRequestText.handleCount)
+        {
+            text = onRequestText.invoke();
+        }
+
+        onload.invoke(payload.result, [], text); // todo: add layer names in array
     }
 
 
@@ -67,4 +77,12 @@
     </button>
 </Form>
 
-<AudioPlayer onload={onload} />
+<AudioPlayer onload={onload} scriptText={scriptText}/>
+
+<h2 class="text-xl mb-3 ml-2">Script</h2>
+<TextEditor
+    onRequestText={onRequestText}
+    onSetText={(text) =>  scriptText = text}
+    onSave={()=> console.log("saved.")}
+/>
+
