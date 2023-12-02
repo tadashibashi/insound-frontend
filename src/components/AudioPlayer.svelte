@@ -63,14 +63,13 @@
         if(!audio)
             throw Error("AudioEngine was not initialized.");
 
-        audio.loadTrack(pData);
+        audio.loadTrack(pData, scriptText);
         audio.setSyncPointCallback((label, seconds) => {
             console.log("SyncPoint: \"" + label + "\": at " + seconds);
         });
         audio.setEndCallback(() => {
             console.log("End reached!");
         });
-        audio.loadScript(scriptText);
 
         currentTime = 0;
         maxTime = audio.length;

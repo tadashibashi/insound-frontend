@@ -82,7 +82,6 @@
 <h2 class="text-xl mb-3 ml-2">Script</h2>
 <TextEditor
     onRequestText={onRequestText}
-    onSetText={(text) =>  scriptText = text}
     onSave={()=> console.log("saved.")}
 />
 
