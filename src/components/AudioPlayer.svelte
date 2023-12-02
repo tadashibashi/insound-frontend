@@ -3,7 +3,7 @@
     import { getContext, onMount } from "svelte";
     import { Icon, Pause, Play } from "svelte-hero-icons";
 
-    export let onload: Delegate<void, [ArrayBuffer, string[]]>;
+    export let onload: Delegate<void, [ArrayBuffer, string[], string]>;
 
     let audioContext = getContext("audio");
     let currentTime = 0;
@@ -20,7 +20,6 @@
         if ($audioContext)
            $audioContext.onUpdate(onPlayerUpdate);
     }
-
 
     onMount(() => {
         onload.subscribe(onLoadAudio);
@@ -58,12 +57,12 @@
 
 
     // Callback fired when audio is loaded
-    function onLoadAudio(pData: ArrayBuffer, pLayerNames: string[])
+    function onLoadAudio(pData: ArrayBuffer, pLayerNames: string[],
+        scriptText: string)
     {
         if(!audio)
             throw Error("AudioEngine was not initialized.");
 
-        //audio.suspend();
         audio.loadTrack(pData);
         audio.setSyncPointCallback((label, seconds) => {
             console.log("SyncPoint: \"" + label + "\": at " + seconds);
@@ -71,6 +70,7 @@
         audio.setEndCallback(() => {
             console.log("End reached!");
         });
+        audio.loadScript(scriptText);
 
         currentTime = 0;
         maxTime = audio.length;
