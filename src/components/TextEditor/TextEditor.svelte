@@ -1,0 +1,86 @@
+<script lang="ts">
+    import debounce from "app/util/debounce";
+    import type { Delegate } from "app/util/delegate";
+
+    import {basicSetup, EditorView} from "codemirror";
+    import {autocompletion} from "@codemirror/autocomplete";
+    import {indentWithTab, copyLineDown} from "@codemirror/commands"
+    import {StreamLanguage, indentUnit} from "@codemirror/language";
+    import {lua} from "@codemirror/legacy-modes/mode/lua";
+    import {keymap, dropCursor} from "@codemirror/view";
+    import {EditorState} from "@codemirror/state";
+    import { onMount } from "svelte";
+
+    export let onRequestText: Delegate<string, []>;
+    export let onSave: () => void = () => {};
+    export let value: string =
+`-- Lua Script
+function on_init()
+    print("script initialized")
+end
+
+function on_load()
+    print("loaded")
+end
+
+-- Occurs when a parameter is set
+function on_paramset(name, value)
+    print("param set: "..name..": "..value)
+end
+`;
+
+    let viewEl: HTMLDivElement;
+    let view: EditorView;
+
+    function setEditorText(view: EditorView, text: string)
+    {
+        view.setState(EditorState.create({
+            doc: text,
+            extensions: [
+                basicSetup,
+                StreamLanguage.define(lua),
+                dropCursor(),
+                autocompletion({
+
+                }),
+                indentUnit.of("    "),
+                keymap.of([
+                    indentWithTab,
+                    {
+                        key: "Mod-Shift-d",
+                        run() { return copyLineDown(view); }
+                    },
+                    {
+                        key: "Mod-s",
+                        run() {
+                            onSave();
+                            return true;
+                        }
+                    }
+                ]),
+            ]
+        }));
+    }
+
+    onMount(() => {
+        onSave = debounce(onSave, 1000);
+        const requestTextHandler = () => {
+            return view.state.doc.toString();
+        };
+
+        onRequestText.subscribe(requestTextHandler);
+        view = new EditorView({
+            parent: viewEl,
+        });
+        setEditorText(view, value);
+
+        return () => {
+            onRequestText.unsubscribe(requestTextHandler);
+        };
+    });
+
+</script>
+
+<div bind:this={viewEl} class="w-full">
+
+</div>
