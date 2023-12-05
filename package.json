@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "src/audio/run build Release && vite build --mode production && cp src/audio/build/insound-audio.{js,wasm} dist/static",
+    "build": "src/audio/run build Release && vite build --mode production && cp src/audio/build/src/insound-audio.{js,wasm} dist/static",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ./tsconfig.json"
   },
