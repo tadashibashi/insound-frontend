@@ -81,6 +81,8 @@ end
 
 </script>
 
-<div bind:this={viewEl} class="w-full">
+<div  class="box-border w-full p-2">
+    <div bind:this={viewEl} class="border border-gray-100 rounded-2xl overflow-clip shadow-2xl">
 
+    </div>
 </div>
