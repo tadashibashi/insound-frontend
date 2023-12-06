@@ -1,9 +1,12 @@
 <script lang="ts">
-    import type { Delegate } from "app/util/delegate";
+    import type { ParameterMgr } from "audio/params/ParameterMgr";
+    import { Delegate } from "app/util/delegate";
     import { getContext, onMount } from "svelte";
     import { Icon, Pause, Play } from "svelte-hero-icons";
 
     export let onload: Delegate<void, [ArrayBuffer, string[], string]>;
+
+    const onloadparams: Delegate<void, [ParameterMgr]> = new Delegate;
 
     let audioContext = getContext("audio");
     let currentTime = 0;
