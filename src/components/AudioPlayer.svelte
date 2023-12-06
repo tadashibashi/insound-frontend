@@ -73,7 +73,7 @@
 
         currentTime = 0;
         maxTime = audio.length;
-        numChannels = audio.trackCount;
+        numChannels = audio.channelCount;
         isLoaded = true;
         isPlaying = false;
         layerNames = pLayerNames;
