@@ -20,7 +20,30 @@ function on_init()
 end
 
 function on_load()
-    print("loaded")
+    -- init params
+    snd.param.add_float("f", 0, 1, .01, .5)
+
+    print("Marker count: "..snd.marker.count())
+
+    for i=1, snd.marker.count() do
+        local marker = snd.marker.get(i)
+        print(marker.name..": "..marker.seconds)
+    end
+end
+
+--Occurs every audio update - about once every 10 milliseconds
+--@param delta number - number of milliseconds since last frame
+--@param total number - total number of milliseconds since last frame
+function on_update(delta, total)
+
+end
+
+function on_marker(name, offset)
+    print("Marker: "..name..", "..offset)
+    if name == "LoopStart" then
+        snd.param.set("f", math.random() )
+        print("f set to: "..snd.param.get("f"))
+    end
 end
 
 -- Occurs when a parameter is set
