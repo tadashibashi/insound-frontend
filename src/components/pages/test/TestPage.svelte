@@ -77,7 +77,7 @@
     </button>
 </Form>
 
-<AudioPlayer onload={onload} scriptText={scriptText}/>
+<AudioPlayer onload={onload} />
 
 <h2 class="text-xl mb-3 ml-2">Script</h2>
 <TextEditor
