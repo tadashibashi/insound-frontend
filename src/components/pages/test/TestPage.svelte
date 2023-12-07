@@ -32,7 +32,7 @@
 </script>
 
 <KnobWidget class="m-16 w-16"
-    param={new NumberParameter("acorn", 0, 0, 10, 1, 1, false, (name, val) => {})}/>
+    param={new NumberParameter("acorn", 0, 0, 10, .0125, 1, false, (name, val) => {})}/>
 
 <Form
     class="max-w-[512px] mx-auto border border-gray-100 mt-4 rounded-md shadow-sm"
