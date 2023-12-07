@@ -5,15 +5,15 @@
     import { Delegate } from "app/util/delegate";
     import AudioPlayer from "app/components/AudioPlayer.svelte";
     import TextEditor from "app/components/TextEditor/TextEditor.svelte";
-
+    import KnobWidget from "app/components/widgets/KnobWidget.svelte";
+    import { NumberParameter } from "audio/params/types/NumberParameter";
 
     let numInputs = 1;
-    let scriptText = "";
 
     const onload = new Delegate<void, [ArrayBuffer, string[], string]>;
     const onRequestText = new Delegate<string, []>;
 
-    function onLoadAudio(payload: Result<unknown, unknown>) {
+    function loadAudioHandler(payload: Result<unknown, unknown>) {
         if (!payload.ok)
             throw Error("Request error.");
         if (!(payload.result instanceof ArrayBuffer))
@@ -31,10 +31,13 @@
 
 </script>
 
+<KnobWidget class="m-16 w-16"
+    param={new NumberParameter("acorn", 0, 0, 10, 1, 1, false, (name, val) => {})}/>
+
 <Form
     class="max-w-[512px] mx-auto border border-gray-100 mt-4 rounded-md shadow-sm"
     action="/api/test/make-fsb"
-    method="POST" onThen={onLoadAudio}
+    method="POST" onThen={loadAudioHandler}
     >
     <div class="relative w-full h-12">
         <p class="absolute top-1 left-3 text-2xl">Load Audio</p>
