@@ -18,7 +18,6 @@
     function inputValueHandler(evt: Event)
     {
         const target = evt.currentTarget as HTMLInputElement;
-
         const value = Number(target.value);
         if (isNaN(value))
         {
@@ -37,6 +36,16 @@
         }
     }
 
+    function dblclickHandler(evt: MouseEvent)
+    {
+        if (evt.metaKey)
+        {
+            param.value = param.defaultValue;
+            if (param.wasUpdated)
+                rotation = valueToAngle(param.value);
+        }
+    }
+
     function mousedownHandler(evt: MouseEvent)
     {
         isDragging = true;
@@ -52,7 +61,6 @@
         if (!isDragging) return;
 
         let angle = posToAngle(evt.x, evt.y);
-
         if (angle > AngleMax && angle < AngleMin)
         {
             if (Math.abs(angle - AngleMin) < Math.abs(angle - AngleMax))
@@ -65,7 +73,6 @@
         if (param.wasUpdated)
         {
             rotation = angle;
-            console.log(param.value);
         }
     }
 
@@ -130,12 +137,17 @@
                     style={`transform: rotate(${AngleMin}deg);`}>
                     <div class="h-[1px] w-1 bg-gray-200 -mr-2"></div>
                 </div>
+                <div class="absolute flex items-center justify-end w-full aspect-square"
+                    style={`transform: rotate(${valueToAngle(param.defaultValue)}deg);`}>
+                    <div class="h-[1px] w-1 bg-[#efefef] -mr-1"></div>
+                </div>
             </div>
 
             <button
                 class={"rounded-full w-full border border-gray-50 aspect-square flex items-center justify-end"}
                 bind:this={button}
                 on:mousedown={mousedownHandler}
+                on:dblclick={dblclickHandler}
                 style={`transform: rotate(${rotation}deg);`}
                 aria-roledescription=""
                 >
@@ -145,7 +157,7 @@
 
         </div>
         <div class="w-full">
-            <input type="number" step={param.step} class="w-full text-xs text-center text-gray-200 font-bold" value={param.value} on:input={inputValueHandler} />
+            <input type="number" step={param.step} class="w-full text-xs text-center text-gray-200 font-bold" value={param.value} on:change={inputValueHandler} />
         </div>
     </div>
 </div>
