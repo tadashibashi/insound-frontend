@@ -18,13 +18,22 @@
     function inputValueHandler(evt: Event)
     {
         const target = evt.currentTarget as HTMLInputElement;
-        const angle = valueToAngle(param.value);
 
-        param.value = Number(target.value);
+        const value = Number(target.value);
+        if (isNaN(value))
+        {
+            target.value = param.value.toString();
+            return;
+        }
+
+        param.value = value;
         if (param.wasUpdated)
         {
-            rotation = angle;
-            console.log(param.value);
+            rotation = valueToAngle(param.value);
+        }
+        else
+        {
+            target.value = param.value.toString();
         }
     }
 
@@ -136,7 +145,7 @@
 
         </div>
         <div class="w-full">
-            <input class="w-full text-xs text-center text-gray-200 font-bold" value={param.value} on:input={inputValueHandler} />
+            <input type="number" step={param.step} class="w-full text-xs text-center text-gray-200 font-bold" value={param.value} on:input={inputValueHandler} />
         </div>
     </div>
 </div>
