@@ -1,6 +1,10 @@
 <script lang="ts">
+    import WidgetLabel from "./WidgetLabel.svelte";
+    import NumberInput from "./NumberInput.svelte";
     import { NumberParameter } from "audio/params/types/NumberParameter";
+
     import { onMount } from "svelte";
+
 
     export let param: NumberParameter;
 
@@ -15,7 +19,7 @@
             AngleMax + 360 - AngleMin :
             AngleMax - AngleMin;
 
-    function inputValueHandler(evt: Event)
+    function inputChangeHandler(evt: Event)
     {
         const target = evt.currentTarget as HTMLInputElement;
         const value = Number(target.value);
@@ -122,10 +126,13 @@
 
 <div class={$$props.class}>
     <div>
-        <p class="text-center text-gray-200">{param.name}</p>
+        <WidgetLabel name={param.name} />
+
+        <!-- Dial -->
         <div class="relative">
             <!-- Shadows -->
             <div class="shadow-top absolute rounded-full w-full shadow-md aspect-square -z-10"></div>
+            <div class="absolute rounded-full w-full shadow aspect-square -z-10"></div>
             <div class="absolute rounded-full w-full shadow-md aspect-square -z-10"></div>
             <!-- Tick Marks -->
             <div>
@@ -137,28 +144,30 @@
                     style={`transform: rotate(${AngleMin}deg);`}>
                     <div class="h-[1px] w-1 bg-gray-200 -mr-2"></div>
                 </div>
+                <!-- default value mark -->
                 <div class="absolute flex items-center justify-end w-full aspect-square"
                     style={`transform: rotate(${valueToAngle(param.defaultValue)}deg);`}>
-                    <div class="h-[1px] w-1 bg-[#efefef] -mr-1"></div>
+                    <div class="arrow-right -mr-2" style="transform: scale(.8)"></div>
                 </div>
             </div>
 
+            <!-- Main knob -->
             <button
-                class={"rounded-full w-full border border-gray-50 aspect-square flex items-center justify-end"}
+                class={"rounded-full w-full border border-gray-50 aspect-square flex items-center justify-end ring-inset ring-2 ring-gray-50"}
                 bind:this={button}
                 on:mousedown={mousedownHandler}
                 on:dblclick={dblclickHandler}
                 style={`transform: rotate(${rotation}deg);`}
                 aria-roledescription=""
                 >
-                <!-- Arrow Mark -->
+                <!-- Arrow mark -->
                 <div class="arrow-right w-2 h-2 mr-1 drop-shadow-sm"></div>
             </button>
 
         </div>
-        <div class="w-full">
-            <input type="number" step={param.step} class="w-full text-xs text-center text-gray-200 font-bold" value={param.value} on:change={inputValueHandler} />
-        </div>
+
+        <!-- Input text box -->
+        <NumberInput value={param.value} step={param.step} onchange={inputChangeHandler} />
     </div>
 </div>
 
@@ -175,4 +184,5 @@
 
         border-left: 6px solid #eee;
     }
+
 </style>
