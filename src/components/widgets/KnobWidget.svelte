@@ -160,22 +160,25 @@
     });
 </script>
 
-<!-- svelte-ignore a11y-no-static-element-interactions -->
-<div class={$$props.class}
+<div class={$$props.class || "" + "select-none"}
+    role="group"
     on:mouseenter={mouseEnterHandler}
     on:mouseleave={mouseLeaveHandler}
+    on:dblclick={dblclickHandler}
 >
     <WidgetLabel name={param.name} />
 
     <!-- Dial -->
     <div class="relative">
         <!-- Shadows -->
-        <div class="shadow-top absolute rounded-full w-full shadow-md aspect-square -z-10"></div>
-        <div class="absolute rounded-full w-full shadow aspect-square -z-10"></div>
-        <div class="absolute rounded-full w-full shadow-md aspect-square -z-10"></div>
+        <div class="shadow-top absolute rounded-full w-full shadow-md aspect-square"></div>
+        <div class="absolute rounded-full w-full shadow aspect-square"></div>
+        <div class="absolute rounded-full w-full shadow-lg aspect-square"></div>
+
         <!-- Tick Marks -->
         <div>
-            <div class="absolute flex items-center justify-end w-full aspect-square"
+            <div
+                class="absolute flex items-center justify-end w-full aspect-square"
                 style={`transform: rotate(${AngleMax}deg);`}>
                 <div class="h-[1px] w-1 bg-gray-200 -mr-2"></div>
             </div>
@@ -192,10 +195,9 @@
 
         <!-- Main knob -->
         <button
-            class={"rounded-full w-full border border-gray-50 aspect-square flex items-center justify-end ring-inset ring-2 ring-gray-50"}
+            class={"rounded-full w-full border border-gray-200 aspect-square flex items-center justify-end ring-inset ring-2 ring-gray-100 z-10"}
             bind:this={button}
             on:mousedown={mousedownHandler}
-            on:dblclick={dblclickHandler}
             style={`transform: rotate(${rotation}deg);`}
             >
             <!-- Arrow mark -->
@@ -222,6 +224,10 @@
         border-bottom: 3px solid transparent;
 
         border-left: 6px solid #eee;
+    }
+
+    button {
+        background: radial-gradient(ellipse,#f8f9fa 0%, #ffffff 100%);
     }
 
 </style>
