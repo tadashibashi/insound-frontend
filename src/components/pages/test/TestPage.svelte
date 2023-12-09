@@ -10,23 +10,27 @@
     import { NumberParameter } from "audio/params/types/NumberParameter";
 
     let numInputs = 1;
+    let channelNames = [];
 
     const onload = new Delegate<void, [ArrayBuffer, string[], string]>;
     const onRequestText = new Delegate<string, []>;
 
-    function loadAudioHandler(payload: Result<unknown, unknown>) {
+    function loadAudioHandler(payload: Result<unknown, unknown>,
+        data: FormData)
+    {
         if (!payload.ok)
             throw Error("Request error.");
         if (!(payload.result instanceof ArrayBuffer))
             throw Error("Wrong data type received from request.");
 
         let text = "";
+        const names = data.getAll("name").map(val => val.toString());
         if (onRequestText.handleCount)
         {
             text = onRequestText.invoke();
         }
 
-        onload.invoke(payload.result, [], text); // todo: add layer names in array
+        onload.invoke(payload.result, names, text); // todo: add layer names in array
     }
 
 
@@ -69,7 +73,8 @@
     <div class="w-full">
     {#each Array(numInputs) as _, i ("input_" + i)}
         <div>
-            <label class="text-xs font-bold block pl-4" for={"Layer_" + (i + 1)}>Layer {i + 1}</label>
+            <input class="text-xs font-bold block pl-4" type="text" value="Layer {i + 1}" name="name" />
+            <!-- <label class="text-xs font-bold block pl-4" for={"Layer_" + (i + 1)}>Layer {i + 1}</label> -->
             <input
                 class="block pl-4 mt-1 mb-2"
                 id={"Layer_" + (i + 1)}

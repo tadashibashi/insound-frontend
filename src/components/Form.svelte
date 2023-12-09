@@ -9,7 +9,7 @@
     import type { HttpMethod } from "app/util/api/request";
     import type { Result } from "app/util/api/Result";
 
-    // ===== Attributes ========================================================
+    // ===== Attributes =======================================================
 
     /**
      * Required.
@@ -17,7 +17,7 @@
      * A string server endpoint or callback receiving the collected FormData
      * on submit –– callbacks must send its own requests and side-effects, etc.
      */
-    export let action: string | ((formData: FormData) => Promise<any>);
+    export let action: string | ((formData: FormData) => Promise<Result<unknown, unknown>>);
 
     /**
      * Optional.
@@ -42,8 +42,10 @@
      * Typical handler that acts on the body from the request if action was
      * an endpoint string, or the awaited value in the return value of the
      * action, if `action` was a callback.
+     *
+     * `data` contains the form data that was sent to the request endpoint
      */
-    export let onThen: ((result: Result<unknown, unknown>) => void) | null = null;
+    export let onThen: ((result: Result<unknown, unknown>, data: FormData) => void) | null = null;
 
     /**
      * Optional.
@@ -57,14 +59,15 @@
 
 
     let sendRequest = function(formEl: HTMLFormElement) {
+        const data = new FormData(formEl);
         if (typeof action === "function") {
-            action(new FormData(formEl))
+            action(data)
                 .catch(onCatch)
-                .then(onThen);
+                .then((res) => (onThen && res ? onThen(res, data) : null));
         } else {
-            request(action, method, new FormData(formEl))
+            request(action, method, data)
                 .catch(onCatch)
-                .then(onThen);
+                .then((res) => onThen && res ? onThen(res, data) : null);
         }
     }
 
