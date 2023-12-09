@@ -198,7 +198,6 @@
             on:mousedown={mousedownHandler}
             on:dblclick={dblclickHandler}
             style={`transform: rotate(${rotation}deg);`}
-            aria-roledescription=""
             >
             <!-- Arrow mark -->
             <div class="arrow-right w-2 h-2 mr-1 drop-shadow-sm"></div>
