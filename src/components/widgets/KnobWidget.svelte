@@ -19,24 +19,17 @@
             AngleMax + 360 - AngleMin :
             AngleMax - AngleMin;
 
-    function inputChangeHandler(evt: Event)
+    function inputChangeHandler(value: number)
     {
-        const target = evt.currentTarget as HTMLInputElement;
-        const value = Number(target.value);
-        if (isNaN(value))
-        {
-            target.value = param.value.toString();
-            return;
-        }
-
         param.value = value;
         if (param.wasUpdated)
         {
             rotation = valueToAngle(param.value);
+            return true;
         }
         else
         {
-            target.value = param.value.toString();
+            return false;
         }
     }
 
@@ -73,7 +66,7 @@
                 angle = AngleMax;
         }
 
-        param.value = getValue(angle);
+        param.value = angleToValue(angle);
         if (param.wasUpdated)
         {
             rotation = angle;
@@ -85,15 +78,13 @@
         const rect = button.getBoundingClientRect();
         const centerX = rect.x + (rect.width / 2);
         const centerY = rect.y + (rect.height / 2);
-        const x = clickX - centerX;
-        const y = clickY - centerY;
 
-        const angle = Math.atan2(y, x);
+        const angle = Math.atan2(clickY - centerY, clickX - centerX);
         const deg = angle * 180 / Math.PI;
-        return (deg + 720) % 360;
+        return (deg + 720) % 360; // bring degrees into positive range
     }
 
-    function getValue(angle: number)
+    function angleToValue(angle: number)
     {
         if (angle < AngleMin)
             angle += 360;
@@ -125,50 +116,50 @@
 </script>
 
 <div class={$$props.class}>
-    <div>
-        <WidgetLabel name={param.name} />
+    <WidgetLabel name={param.name} />
 
-        <!-- Dial -->
-        <div class="relative">
-            <!-- Shadows -->
-            <div class="shadow-top absolute rounded-full w-full shadow-md aspect-square -z-10"></div>
-            <div class="absolute rounded-full w-full shadow aspect-square -z-10"></div>
-            <div class="absolute rounded-full w-full shadow-md aspect-square -z-10"></div>
-            <!-- Tick Marks -->
-            <div>
-                <div class="absolute flex items-center justify-end w-full aspect-square"
-                    style={`transform: rotate(${AngleMax}deg);`}>
-                    <div class="h-[1px] w-1 bg-gray-200 -mr-2"></div>
-                </div>
-                <div class="absolute flex items-center justify-end w-full aspect-square"
-                    style={`transform: rotate(${AngleMin}deg);`}>
-                    <div class="h-[1px] w-1 bg-gray-200 -mr-2"></div>
-                </div>
-                <!-- default value mark -->
-                <div class="absolute flex items-center justify-end w-full aspect-square"
-                    style={`transform: rotate(${valueToAngle(param.defaultValue)}deg);`}>
-                    <div class="arrow-right -mr-2" style="transform: scale(.8)"></div>
-                </div>
+    <!-- Dial -->
+    <div class="relative">
+        <!-- Shadows -->
+        <div class="shadow-top absolute rounded-full w-full shadow-md aspect-square -z-10"></div>
+        <div class="absolute rounded-full w-full shadow aspect-square -z-10"></div>
+        <div class="absolute rounded-full w-full shadow-md aspect-square -z-10"></div>
+        <!-- Tick Marks -->
+        <div>
+            <div class="absolute flex items-center justify-end w-full aspect-square"
+                style={`transform: rotate(${AngleMax}deg);`}>
+                <div class="h-[1px] w-1 bg-gray-200 -mr-2"></div>
             </div>
-
-            <!-- Main knob -->
-            <button
-                class={"rounded-full w-full border border-gray-50 aspect-square flex items-center justify-end ring-inset ring-2 ring-gray-50"}
-                bind:this={button}
-                on:mousedown={mousedownHandler}
-                on:dblclick={dblclickHandler}
-                style={`transform: rotate(${rotation}deg);`}
-                aria-roledescription=""
-                >
-                <!-- Arrow mark -->
-                <div class="arrow-right w-2 h-2 mr-1 drop-shadow-sm"></div>
-            </button>
-
+            <div class="absolute flex items-center justify-end w-full aspect-square"
+                style={`transform: rotate(${AngleMin}deg);`}>
+                <div class="h-[1px] w-1 bg-gray-200 -mr-2"></div>
+            </div>
+            <!-- default value mark -->
+            <div class="absolute flex items-center justify-end w-full aspect-square"
+                style={`transform: rotate(${valueToAngle(param.defaultValue)}deg);`}>
+                <div class="arrow-right -mr-2" style="transform: scale(.8)"></div>
+            </div>
         </div>
 
-        <!-- Input text box -->
-        <NumberInput value={param.value} step={param.step} onchange={inputChangeHandler} />
+        <!-- Main knob -->
+        <button
+            class={"rounded-full w-full border border-gray-50 aspect-square flex items-center justify-end ring-inset ring-2 ring-gray-50"}
+            bind:this={button}
+            on:mousedown={mousedownHandler}
+            on:dblclick={dblclickHandler}
+            style={`transform: rotate(${rotation}deg);`}
+            aria-roledescription=""
+            >
+            <!-- Arrow mark -->
+            <div class="arrow-right w-2 h-2 mr-1 drop-shadow-sm"></div>
+        </button>
+
     </div>
+
+    <!-- Input text box -->
+    <NumberInput value={param.value} min={param.min} max={param.max}
+        step={param.step}
+        onchange={inputChangeHandler} />
 </div>
 
 
