@@ -6,7 +6,6 @@
 
     export let param: NumberParameter;
 
-    let fader: HTMLButtonElement;
     let trackLine: HTMLDivElement;
 
     let isDragging: boolean = false;
@@ -20,7 +19,7 @@
         if (param.wasUpdated)
         {
             // do something
-
+            positionY = valueToPosition(param.value);
             return true;
         }
         else
@@ -33,13 +32,21 @@
     function positionToValue(y: number)
     {
         const rect = trackLine.getBoundingClientRect();
-        const faderRect = fader.getBoundingClientRect();
-        return (y-rect.top) / (rect.height);
+        let percentage = 1 - y / rect.height;
+        if (percentage > 1) percentage = 1;
+        if (percentage < 0) percentage = 0;
+
+        return (param.max - param.min) * percentage + param.min;
     }
 
     function valueToPosition(value: number)
     {
+        const rect = trackLine.getBoundingClientRect();
+        let percentage = 1 - (value - param.min) / (param.max - param.min);
+        if (percentage > 1) percentage = 1;
+        if (percentage < 0) percentage = 0;
 
+        return percentage * rect.height;
     }
 
     function mouseupHandler(evt: Event)
@@ -57,11 +64,11 @@
         if (!isDragging) return;
 
         const rect = trackLine.getBoundingClientRect();
-        const faderRect = fader.getBoundingClientRect();
 
         // alter position and value
         positionY = Math.min(Math.max(evt.y-rect.top, 0),
             rect.height);
+        param.value = positionToValue(positionY);
     }
 
     function faderMouseDownHandler(evt: Event)
@@ -79,9 +86,20 @@
         isHovering = false;
     }
 
+    function containerDblClickHandler(evt: MouseEvent)
+    {
+        if (evt.metaKey)
+        {
+            param.value = param.defaultValue;
+            positionY = valueToPosition(param.value);
+        }
+    }
+
     onMount(() => {
         document.addEventListener("mouseup", mouseupHandler);
         document.addEventListener("mousemove", mousemoveHandler);
+
+        positionY = valueToPosition(param.value);
 
         // cleanup
         return () => {
@@ -92,28 +110,30 @@
 </script>
 
 
-<!-- svelte-ignore a11y-no-static-element-interactions -->
 <div class={$$props.class}
+    role="group" aria-roledescription="houses a ui slider"
     on:mouseenter={containerMouseEnterHandler}
     on:mouseleave={containerMouseLeaveHandler}
+    on:dblclick={containerDblClickHandler}
 >
-    <div class="flex flex-col items-center justify-center h-full w-full">
+    <div class="flex flex-col items-center justify-center h-full w-full select-none">
        <div class="w-full justify-center">
 
             <WidgetLabel name={param.name} />
 
             <!-- Slider -->
-            <div class="w-full h-[100px] relative py-1">
+            <div aria-roledescription="slider" class="w-full h-[100px] relative py-1">
                 <!-- Track line -->
                 <div class="rounded-full mx-auto w-1 h-full bg-gray-200 border border-l-gray-300 border-t-gray-300 border-r-gray-100 border-b-gray-100" bind:this={trackLine}>
                     <!-- Fader -->
                     <button
-                        bind:this={fader}
-                        class="block rounded-sm w-8 -mx-4 h-3 -my-2 ring-inset ring-[2px] ring-gray-50 bg-white shadow-md"
+                        role="slider"
+                        aria-valuenow={param.value}
+
+                        class="fader block rounded-sm w-8 -mx-4 h-3 -my-2 shadow-lg shadow-gray-400"
                         style={`transform: translateY(${positionY}px);`}
-                        on:mousedown={faderMouseDownHandler}
-                        >
-                    </button>
+
+                        on:mousedown={faderMouseDownHandler} />
                 </div>
             </div>
 
@@ -126,5 +146,9 @@
 </div>
 
 <style>
-
+    .fader {
+        background: linear-gradient(90deg, #ffffffff, #f8f9faff);
+        border-top:  1px solid rgb(255, 255, 255);
+        border-bottom: 3px solid rgb(230, 230, 230);
+    }
 </style>
