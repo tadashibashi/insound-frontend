@@ -72,6 +72,12 @@
     input[type="number"] {
         font-size: .6rem;
         margin:  0;
+        appearance:  textfield;
+        -moz-appearance: textfield;
+    }
+    input[type="number"].hovered {
+        appearance: auto;
+        -moz-apperance: auto;
     }
     input::-webkit-outer-spin-button,
     input::-webkit-inner-spin-button {
@@ -82,7 +88,6 @@
         -webkit-appearance: auto;
     }
 
-/*     input[type="number"].hovered {
-        -moz-apperance:  textfield;
-    } */
+
+
 </style>
