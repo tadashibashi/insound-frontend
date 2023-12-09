@@ -32,9 +32,14 @@
     {
         const target = evt.currentTarget as HTMLInputElement | null;
         if (!target) return;
+        if (target.value === "") // number box behavior when NaN value
+        {
+            target.value = value.toString();
+            return;
+        }
 
         const val = Number(target.value);
-        if (isNaN(val))
+        if (isNaN(val)) // extra NaN check just in case
         {
             target.value = value.toString();
             return;
