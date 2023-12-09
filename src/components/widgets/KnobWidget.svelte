@@ -195,7 +195,7 @@
 
         <!-- Main knob -->
         <button
-            class={"rounded-full w-full border border-gray-200 aspect-square flex items-center justify-end ring-inset ring-2 ring-gray-100 z-10"}
+            class={"rounded-full w-full border border-gray-200 bg-[#fcfcfc] aspect-square flex items-center justify-end ring-inset ring-2 ring-gray-100 z-10"}
             bind:this={button}
             on:mousedown={mousedownHandler}
             style={`transform: rotate(${rotation}deg);`}
@@ -226,8 +226,6 @@
         border-left: 6px solid #eee;
     }
 
-    button {
-        background: radial-gradient(ellipse,#f8f9fa 0%, #ffffff 100%);
-    }
+
 
 </style>
