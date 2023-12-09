@@ -10,7 +10,6 @@
     import { NumberParameter } from "audio/params/types/NumberParameter";
 
     let numInputs = 1;
-    let channelNames = [];
 
     const onload = new Delegate<void, [ArrayBuffer, string[], string]>;
     const onRequestText = new Delegate<string, []>;
@@ -30,17 +29,17 @@
             text = onRequestText.invoke();
         }
 
-        onload.invoke(payload.result, names, text); // todo: add layer names in array
+        onload.invoke(payload.result, names, text);
     }
 
 
 </script>
 
-<div class="w-full flex justify-evenly">
-    <KnobWidget class="m-16 w-16"
+<div class="w-full flex justify-evenly p-8">
+    <KnobWidget class="my-auto w-16"
     param={new NumberParameter("reverb", 0, 0, 10, .0125, 0, false, (name, val) => {})}/>
 
-    <VSlider class="w-16 h-full"
+    <VSlider class="w-16 h-full my-auto"
     param={new NumberParameter("volume", 0, 0, 10, .0125, 0, false, (name, val) => {})} />
 </div>
 
