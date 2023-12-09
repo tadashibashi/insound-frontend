@@ -188,8 +188,7 @@
 
         <!-- Playhead -->
         <div
-            class="w-1 h-2 rounded bg-gray-500 -translate-y-1/4"
-            style={isLoaded ? "" : "visibility:hidden;"}
+            class={"w-1 h-2 rounded bg-gray-500 -translate-y-1/4 " + (isLoaded ? "visible" : "invisible")}
             bind:this={playhead}></div>
 
     </button>
