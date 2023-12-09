@@ -6,6 +6,7 @@
     import AudioPlayer from "app/components/AudioPlayer.svelte";
     import TextEditor from "app/components/TextEditor/TextEditor.svelte";
     import KnobWidget from "app/components/widgets/KnobWidget.svelte";
+    import VSlider from "app/components/widgets/VSlider.svelte";
     import { NumberParameter } from "audio/params/types/NumberParameter";
 
     let numInputs = 1;
@@ -31,8 +32,14 @@
 
 </script>
 
-<KnobWidget class="m-16 w-16"
-    param={new NumberParameter("acorn", 0, 0, 10, .0125, 1, false, (name, val) => {})}/>
+<div class="w-full flex justify-evenly">
+    <KnobWidget class="m-16 w-16"
+    param={new NumberParameter("reverb", 0, 0, 10, .0125, 0, false, (name, val) => {})}/>
+
+    <VSlider class="w-16 h-full"
+    param={new NumberParameter("volume", 0, 0, 10, .0125, 0, false, (name, val) => {})} />
+</div>
+
 
 <Form
     class="max-w-[512px] mx-auto border border-gray-100 mt-4 rounded-md shadow-sm"
