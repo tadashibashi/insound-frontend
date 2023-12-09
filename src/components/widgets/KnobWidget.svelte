@@ -9,7 +9,6 @@
 
     let rotation: number = 0;
 
-    let container: HTMLDivElement;
     let button: HTMLButtonElement;
     let isDragging: boolean = false;
     let isHovering: boolean = false;
@@ -149,8 +148,6 @@
     onMount(() => {
         document.addEventListener("mousemove", mousemoveHandler);
         document.addEventListener("mouseup", mouseupHandler);
-        container.addEventListener("mouseenter", mouseEnterHandler);
-        container.addEventListener("mouseleave", mouseLeaveHandler);
 
         rotation = valueToAngle(param.value);
 
@@ -159,13 +156,15 @@
                 clearTimeout(hideNumberTimeout);
             document.removeEventListener("mousemove", mousemoveHandler);
             document.removeEventListener("mouseup", mouseupHandler);
-            container.removeEventListener("mouseenter", mouseEnterHandler);
-            container.removeEventListener("mouseleave", mouseLeaveHandler);
         };
     });
 </script>
 
-<div class={$$props.class} bind:this={container}>
+<!-- svelte-ignore a11y-no-static-element-interactions -->
+<div class={$$props.class}
+    on:mouseenter={mouseEnterHandler}
+    on:mouseleave={mouseLeaveHandler}
+>
     <WidgetLabel name={param.name} />
 
     <!-- Dial -->
