@@ -5,19 +5,44 @@
 
     import { onMount } from "svelte";
 
-
     export let param: NumberParameter;
 
     let rotation: number = 0;
 
+    let container: HTMLDivElement;
     let button: HTMLButtonElement;
     let isDragging: boolean = false;
+    let isHovering: boolean = false;
+
+    let showNumberInput = false;
+    let hideNumberTimeout: NodeJS.Timeout | null = null;
 
     let AngleMax = 35;
     let AngleMin = 145;
     $: AngleDistance = (AngleMax < AngleMin) ?
             AngleMax + 360 - AngleMin :
             AngleMax - AngleMin;
+
+    function doShowNumberInput()
+    {
+        if (hideNumberTimeout)
+        {
+            clearTimeout(hideNumberTimeout);
+            hideNumberTimeout = null;
+        }
+
+        showNumberInput = true;
+    }
+
+    function doHideNumberInput()
+    {
+        if (hideNumberTimeout)
+            clearTimeout(hideNumberTimeout);
+        hideNumberTimeout = setTimeout(() => {
+            showNumberInput = false;
+            hideNumberTimeout = null;
+        }, 500);
+    }
 
     function inputChangeHandler(value: number)
     {
@@ -31,6 +56,19 @@
         {
             return false;
         }
+    }
+
+    function mouseEnterHandler()
+    {
+        isHovering = true;
+        doShowNumberInput();
+    }
+
+    function mouseLeaveHandler()
+    {
+        isHovering = false;
+        if (!isDragging)
+            doHideNumberInput();
     }
 
     function dblclickHandler(evt: MouseEvent)
@@ -50,7 +88,13 @@
 
     function mouseupHandler(evt: MouseEvent)
     {
-        isDragging = false;
+        if (isDragging)
+        {
+            isDragging = false;
+            if (!isHovering && showNumberInput)
+                doHideNumberInput();
+        }
+
     }
 
     function mousemoveHandler(evt: MouseEvent)
@@ -105,17 +149,23 @@
     onMount(() => {
         document.addEventListener("mousemove", mousemoveHandler);
         document.addEventListener("mouseup", mouseupHandler);
+        container.addEventListener("mouseenter", mouseEnterHandler);
+        container.addEventListener("mouseleave", mouseLeaveHandler);
 
         rotation = valueToAngle(param.value);
 
         return () => {
+            if (hideNumberTimeout)
+                clearTimeout(hideNumberTimeout);
             document.removeEventListener("mousemove", mousemoveHandler);
             document.removeEventListener("mouseup", mouseupHandler);
+            container.removeEventListener("mouseenter", mouseEnterHandler);
+            container.removeEventListener("mouseleave", mouseLeaveHandler);
         };
     });
 </script>
 
-<div class={$$props.class}>
+<div class={$$props.class} bind:this={container}>
     <WidgetLabel name={param.name} />
 
     <!-- Dial -->
@@ -159,7 +209,7 @@
     <!-- Input text box -->
     <NumberInput value={param.value} min={param.min} max={param.max}
         step={param.step}
-        onchange={inputChangeHandler} />
+        onchange={inputChangeHandler} show={showNumberInput} />
 </div>
 
 

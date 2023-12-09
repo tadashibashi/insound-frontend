@@ -1,4 +1,6 @@
 <script lang="ts">
+    import { onMount } from "svelte";
+
     // Minimum input value
     export let min: number | undefined = undefined;
 
@@ -11,9 +13,16 @@
     // Current value of the parameter
     export let value: number;
 
+    // Show/hide
+    export let show: boolean = true;
+
+    let focused: boolean = false;
+    let hovered: boolean = false;
+
     // Callback handles input number changes, return if value was applied.
     // If `true`, displayed number updates, otherwise it will not.
     export let onchange: (value: number) => boolean;
+
 
     /**
      * Handles input changes, and applies user-provided callback if a valid
@@ -37,16 +46,43 @@
             target.value = value.toString();
         }
     }
+
 </script>
 
-<div class="w-full">
+<div class={($$props.class || "") + (show || focused ? "visible" : "invisible")
+    + " select-none"}>
     <input
-        class="w-full text-xs text-center text-gray-200 font-bold pl-4"
+        class={"w-full text-center text-gray-200 " +
+            (hovered || focused ? "hovered" : "") +
+            (focused ? (" font-bold") : " font-light")}
         min={min}
         max={max}
         step={step}
         type="number"
         value={value}
         on:change={changeHandler}
+        on:focus={() => focused = true}
+        on:blur={() => focused = false}
+        on:mouseenter={() => hovered = true}
+        on:mouseleave={() => hovered = false}
         />
 </div>
+
+<style>
+    input[type="number"] {
+        font-size: .6rem;
+        margin:  0;
+    }
+    input::-webkit-outer-spin-button,
+    input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+    }
+    input.hovered::-webkit-outer-spin-button,
+    input.hovered::-webkit-inner-spin-button {
+        -webkit-appearance: auto;
+    }
+
+/*     input[type="number"].hovered {
+        -moz-apperance:  textfield;
+    } */
+</style>
