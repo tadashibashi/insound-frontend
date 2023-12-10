@@ -16,13 +16,47 @@
     // Show/hide
     export let show: boolean = true;
 
-    let focused: boolean = false;
-    let hovered: boolean = false;
+    // Time to delay triggering shift from show -> hide
+    export let delayHide: number = 0;
 
     // Callback handles input number changes, return if value was applied.
     // If `true`, displayed number updates, otherwise it will not.
     export let onchange: (value: number) => boolean;
 
+    let focused: boolean = false;
+
+    let hideTimeout: NodeJS.Timeout | null = null;
+
+    let isShowing: boolean = show;
+
+    $: if (show || focused)
+    {
+        if (hideTimeout)
+        {
+            clearTimeout(hideTimeout);
+        }
+
+        isShowing = true;
+    }
+    else
+    {
+        if (hideTimeout)
+        {
+            clearTimeout(hideTimeout);
+        }
+
+        if (delayHide)
+        {
+            hideTimeout = setTimeout(() => {
+                isShowing = false;
+                hideTimeout = null;
+            }, delayHide);
+        }
+        else
+        {
+            isShowing = false;
+        }
+    }
 
     /**
      * Handles input changes, and applies user-provided callback if a valid
@@ -54,12 +88,13 @@
 
 </script>
 
-<div class={($$props.class || "") + (show || focused ? "visible" : "invisible")
+<div class={($$props.class || "") +
+    (isShowing ? "visible" : "invisible")
     + " select-none"}>
+
     <input
-        class={"w-full text-center text-gray-200 " +
-            (hovered || focused ? "hovered" : "") +
-            (focused ? (" font-bold") : " font-light")}
+        class={"w-full text-center font-light text-gray-200 " +
+            (focused ? "focused" : "")}
         min={min}
         max={max}
         step={step}
@@ -68,9 +103,8 @@
         on:change={changeHandler}
         on:focus={() => focused = true}
         on:blur={() => focused = false}
-        on:mouseenter={() => hovered = true}
-        on:mouseleave={() => hovered = false}
         />
+
 </div>
 
 <style>
@@ -79,8 +113,10 @@
         margin:  0;
         appearance:  textfield;
         -moz-appearance: textfield;
+        padding: 1px 0px;
+        border-radius: 4px;
     }
-    input[type="number"].hovered {
+    input[type="number"].focused {
         appearance: auto;
         -moz-appearance: auto;
     }
@@ -88,8 +124,8 @@
     input::-webkit-inner-spin-button {
         -webkit-appearance: none;
     }
-    input.hovered::-webkit-outer-spin-button,
-    input.hovered::-webkit-inner-spin-button {
+    input.focused::-webkit-outer-spin-button,
+    input.focused::-webkit-inner-spin-button {
         -webkit-appearance: auto;
     }
 

@@ -14,7 +14,6 @@
     let isHovering: boolean = false;
 
     let showNumberInput = false;
-    let hideNumberTimeout: NodeJS.Timeout | null = null;
 
     let AngleMax = 35;
     let AngleMin = 145;
@@ -22,26 +21,6 @@
             AngleMax + 360 - AngleMin :
             AngleMax - AngleMin;
 
-    function doShowNumberInput()
-    {
-        if (hideNumberTimeout)
-        {
-            clearTimeout(hideNumberTimeout);
-            hideNumberTimeout = null;
-        }
-
-        showNumberInput = true;
-    }
-
-    function doHideNumberInput()
-    {
-        if (hideNumberTimeout)
-            clearTimeout(hideNumberTimeout);
-        hideNumberTimeout = setTimeout(() => {
-            showNumberInput = false;
-            hideNumberTimeout = null;
-        }, 500);
-    }
 
     function inputChangeHandler(value: number)
     {
@@ -60,14 +39,14 @@
     function mouseEnterHandler()
     {
         isHovering = true;
-        doShowNumberInput();
+        showNumberInput = true;
     }
 
     function mouseLeaveHandler()
     {
         isHovering = false;
         if (!isDragging)
-            doHideNumberInput();
+            showNumberInput = false;
     }
 
     function dblclickHandler(evt: MouseEvent)
@@ -91,7 +70,7 @@
         {
             isDragging = false;
             if (!isHovering && showNumberInput)
-                doHideNumberInput();
+                showNumberInput = false;
         }
 
     }
@@ -152,8 +131,6 @@
         rotation = valueToAngle(param.value);
 
         return () => {
-            if (hideNumberTimeout)
-                clearTimeout(hideNumberTimeout);
             document.removeEventListener("mousemove", mousemoveHandler);
             document.removeEventListener("mouseup", mouseupHandler);
         };
@@ -209,7 +186,7 @@
     <!-- Input text box -->
     <NumberInput value={param.value} min={param.min} max={param.max}
         step={param.step}
-        onchange={inputChangeHandler} show={showNumberInput} />
+        onchange={inputChangeHandler} show={showNumberInput} delayHide={500} />
 </div>
 
 
