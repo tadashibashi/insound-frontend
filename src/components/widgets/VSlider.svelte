@@ -5,6 +5,7 @@
     import { onMount } from "svelte";
 
     export let param: NumberParameter;
+    export let height: string = "100px";
 
     let trackLine: HTMLDivElement;
 
@@ -12,6 +13,9 @@
     let isHovering: boolean = false;
 
     let positionY: number = 0;
+
+    let defaultPositionY: number = 0;
+
 
     // Fires when number box's input changes
     function inputChangeHandler(value: number) {
@@ -100,6 +104,8 @@
         document.addEventListener("mousemove", mousemoveHandler);
 
         positionY = valueToPosition(param.value);
+        defaultPositionY = valueToPosition(param.defaultValue);
+        console.log(defaultPositionY);
 
         // cleanup
         return () => {
@@ -122,18 +128,22 @@
             <WidgetLabel name={param.name} />
 
             <!-- Slider -->
-            <div aria-roledescription="slider" class="w-full h-[100px] relative py-1">
+            <div aria-roledescription="slider" class="w-full relative py-1 mb-1"
+                style={`height: ${height};`}>
                 <!-- Track line -->
-                <div class="rounded-full mx-auto w-1 h-full bg-gray-200 border border-l-gray-300 border-t-gray-300 border-r-gray-100 border-b-gray-100" bind:this={trackLine}>
+                <div class="relative rounded-full mx-auto w-1 h-full bg-gray-200 border border-l-gray-300 border-t-gray-300 border-r-gray-100 border-b-gray-100" bind:this={trackLine}>
                     <!-- Fader -->
                     <button
                         role="slider"
                         aria-valuenow={param.value}
 
-                        class="fader block rounded-sm w-8 -mx-4 h-3 -my-2 shadow-lg shadow-gray-400"
+                        class="absolute fader block rounded-sm w-8 -mx-4 h-3 -my-2 shadow-lg shadow-gray-400"
                         style={`transform: translateY(${positionY}px);`}
 
                         on:mousedown={faderMouseDownHandler} />
+                    <div
+                        class="absolute arrow-left ml-1 pointer-events-none -z-10"
+                        style={`transform: translateY(${defaultPositionY}px);`}/>
                 </div>
             </div>
 
@@ -148,7 +158,15 @@
 <style>
     .fader {
         background: linear-gradient(90deg, #ffffffff, #f8f9faff);
-        border-top:  1px solid rgb(255, 255, 255);
+        border-top:  2px solid rgb(255, 255, 255);
         border-bottom: 3px solid rgb(230, 230, 230);
+    }
+    .arrow-left {
+        width: 0;
+        height: 0;
+        border-top: 2px solid transparent;
+        border-bottom: 2px solid transparent;
+
+        border-right: 6px solid #eee;
     }
 </style>
