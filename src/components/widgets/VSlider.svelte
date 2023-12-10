@@ -3,6 +3,7 @@
     import NumberInput from "./NumberInput.svelte";
     import { NumberParameter } from "audio/params/types/NumberParameter";
     import { onMount } from "svelte";
+    import { util } from "app/util";
 
     export let param: NumberParameter;
     export let height: string = "100px";
@@ -16,6 +17,7 @@
 
     let defaultPositionY: number = 0;
 
+    const id: string = "param-" + param.name + '-' + util.genRandHex(6);
 
     // Fires when number box's input changes
     function inputChangeHandler(value: number) {
@@ -125,7 +127,7 @@
     <div class="flex flex-col items-center justify-center h-full w-full select-none">
        <div class="w-full justify-center">
 
-            <WidgetLabel name={param.name} />
+            <WidgetLabel name={param.name} for={id} />
 
             <!-- Slider -->
             <div aria-roledescription="slider" class="w-full relative py-1 mb-1"
@@ -147,12 +149,10 @@
                 </div>
             </div>
 
-            <NumberInput min={param.min} max={param.max} value={param.value}
+            <NumberInput id={id} min={param.min} max={param.max} value={param.value}
                 step={param.step} onchange={inputChangeHandler} />
         </div>
     </div>
-
-
 </div>
 
 <style>

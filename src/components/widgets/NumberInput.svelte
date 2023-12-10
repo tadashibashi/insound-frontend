@@ -1,6 +1,4 @@
 <script lang="ts">
-    import { onMount } from "svelte";
-
     // Minimum input value
     export let min: number | undefined = undefined;
 
@@ -22,6 +20,8 @@
     // Callback handles input number changes, return if value was applied.
     // If `true`, displayed number updates, otherwise it will not.
     export let onchange: (value: number) => boolean;
+
+    export let id: string | undefined = undefined;
 
     let focused: boolean = false;
 
@@ -93,6 +93,7 @@
     + " select-none"}>
 
     <input
+        id={id}
         class={"w-full text-center font-light text-gray-200 " +
             (focused ? "focused" : "")}
         min={min}

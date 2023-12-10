@@ -4,6 +4,7 @@
     import { NumberParameter } from "audio/params/types/NumberParameter";
 
     import { onMount } from "svelte";
+    import { util } from "app/util";
 
     export let param: NumberParameter;
 
@@ -20,6 +21,9 @@
     $: AngleDistance = (AngleMax < AngleMin) ?
             AngleMax + 360 - AngleMin :
             AngleMax - AngleMin;
+
+    const id: string = "param-" + param.name + '-' + util.genRandHex(6);
+
 
 
     function inputChangeHandler(value: number)
@@ -143,7 +147,7 @@
     on:mouseleave={mouseLeaveHandler}
     on:dblclick={dblclickHandler}
 >
-    <WidgetLabel name={param.name} />
+    <WidgetLabel for={id} name={param.name} />
 
     <!-- Dial -->
     <div class="relative">
@@ -184,7 +188,7 @@
     </div>
 
     <!-- Input text box -->
-    <NumberInput value={param.value} min={param.min} max={param.max}
+    <NumberInput id={id} value={param.value} min={param.min} max={param.max}
         step={param.step}
         onchange={inputChangeHandler} show={showNumberInput} delayHide={500} />
 </div>
