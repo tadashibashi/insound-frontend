@@ -3,6 +3,9 @@
     import { Delegate } from "app/util/delegate";
     import { getContext, onMount } from "svelte";
     import { Icon, Pause, Play } from "svelte-hero-icons";
+    import { NumberParameter } from "app/audio/src/ts/params/types/NumberParameter";
+    import VSlider from "./widgets/VSlider.svelte";
+    import type { Readable } from "svelte/store";
 
     export let onload: Delegate<void, [ArrayBuffer, string[], string]>;
 
@@ -31,6 +34,11 @@
             onload.unsubscribe(onLoadAudio);
         };
     });
+
+    let volume = new NumberParameter("Main Volume", 0, 0, 1.25, .01, 1, false,
+        (i, val) => audio?.setMainVolume(val));
+
+    let volumes: NumberParameter[] = [];
 
 
     /**
@@ -73,6 +81,23 @@
         audio.setEndCallback(() => {
             console.log("End reached!");
         });
+
+        const chVolumes: NumberParameter[] = [];
+        for (let i = 0; i < pLayerNames.length; ++i)
+        {
+            chVolumes.push(new NumberParameter(pLayerNames[i], i, 0, 1.25, .01,
+                1, false, (index, value) => {
+                    audio?.setChannelVolume(index, value);
+                }));
+        }
+
+        // clear any potential volume transitions
+        for (let i = 0; i < volumes.length; ++i)
+        {
+            volumes[i].clear();
+        }
+
+        volumes = chVolumes;
 
         currentTime = 0;
         maxTime = audio.length;
@@ -125,11 +150,6 @@
         else
             audio.setPause(newPause, .1);
         isPlaying = !newPause;
-
-        // if (newPause)
-        //     audio.suspend();
-        // else
-        //     audio.resume();
     }
 
 
@@ -194,22 +214,12 @@
     </button>
 
     <!-- Volume Sliders -->
-    <div class="h-[200px] w-full flex justify-evenly items-center">
-        {#each Array(numChannels + 1) as _, i}
-            <div class="h-full pt-4 flex flex-col min-w-0">
-                <input
-                    id={"vol-slider-" + i}
-                    style="appearance: slider-vertical;"
-                    type="range"
-                    value="1" min="0" max="2" step=".001"
-                    data-chan="{i}"
-                    on:input={onVolumeInput}
-                    />
-                <label class="text-center" for={"vol-slider-"+i}>
-                    { layerNames.length > i ? layerNames[i] : "Layer " + (i + 1) }
-                </label>
-            </div>
+    <div class="h-[240px] w-full flex justify-evenly items-center overflow-hidden">
+        {#each Array(numChannels) as _, i}
+            <VSlider param={volumes[i]} height="120px" />
         {/each}
+        <VSlider class="h-full my-auto"
+            param={volume} height="120px" />
     </div>
 
 </div>
