@@ -5,7 +5,7 @@
     import { Icon, Pause, Play } from "svelte-hero-icons";
     import { NumberParameter } from "app/audio/src/ts/params/types/NumberParameter";
     import VSlider from "./widgets/VSlider.svelte";
-    import type { Readable } from "svelte/store";
+    import KnobWidget from "./widgets/KnobWidget.svelte";
 
     export let onload: Delegate<void, [ArrayBuffer, string[], string]>;
 
@@ -19,7 +19,6 @@
     let isPlaying = false;
     let isLoaded = false;
     let numChannels = 0;
-    let layerNames: string[] = [];
 
     $: audio = $audioContext;
     $: {
@@ -40,6 +39,8 @@
 
     let volumes: NumberParameter[] = [];
 
+    let reverb = new NumberParameter("Reverb", 0, 0, 2, .01, 0, false,
+        (i, val) => audio?.setMainReverbLevel(val));
 
     /**
      * Convert number of seconds into hh:mm format
@@ -104,7 +105,6 @@
         numChannels = audio.channelCount;
         isLoaded = true;
         isPlaying = false;
-        layerNames = pLayerNames;
 
         updatePlayheadPosition(playhead, bar, currentTime,
             maxTime);
@@ -220,6 +220,8 @@
         {/each}
         <VSlider class="h-full my-auto"
             param={volume} height="120px" />
+        <KnobWidget class=""
+            param={reverb} />
     </div>
 
 </div>
