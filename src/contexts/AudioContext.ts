@@ -1,4 +1,5 @@
-import { AudioEngine, initAudio } from "audio/AudioEngine";
+import { initAudioModule } from "app/audio/src/ts/emaudio/AudioModule";
+import { AudioEngine } from "audio/AudioEngine";
 import { onMount, setContext } from "svelte";
 import { get, writable } from "svelte/store";
 
@@ -18,7 +19,7 @@ export namespace AudioContext {
         }
 
         onMount(() => {
-            initAudio()
+            initAudioModule()
                 .then(() => {
                     audio.set(new AudioEngine);
                     interval = setInterval(audioUpdate, 10);

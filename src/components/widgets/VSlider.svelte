@@ -107,7 +107,6 @@
 
         positionY = valueToPosition(param.value);
         defaultPositionY = valueToPosition(param.defaultValue);
-        console.log(defaultPositionY);
 
         // cleanup
         return () => {
