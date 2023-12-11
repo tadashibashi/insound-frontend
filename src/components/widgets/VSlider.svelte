@@ -1,6 +1,7 @@
 <script lang="ts">
     import WidgetLabel from "./WidgetLabel.svelte";
     import NumberInput from "./NumberInput.svelte";
+
     import { NumberParameter } from "audio/params/types/NumberParameter";
     import { onMount } from "svelte";
     import { util } from "app/util";
@@ -12,6 +13,7 @@
 
     let isDragging: boolean = false;
     let isHovering: boolean = false;
+    let showNumberInput: boolean = false;
 
     let positionY: number = 0;
 
@@ -20,7 +22,8 @@
     const id: string = "param-" + param.name + '-' + util.genRandHex(6);
 
     // Fires when number box's input changes
-    function inputChangeHandler(value: number) {
+    function inputChangeHandler(value: number)
+    {
         param.value = value;
         if (param.wasUpdated)
         {
@@ -45,6 +48,7 @@
         return (param.max - param.min) * percentage + param.min;
     }
 
+    // Convert value to vertical slider position
     function valueToPosition(value: number)
     {
         const rect = trackLine.getBoundingClientRect();
@@ -59,9 +63,9 @@
     {
         if (isDragging)
         {
-            // do stuff
-
             isDragging = false;
+            if (!isHovering && showNumberInput)
+                showNumberInput = false;
         }
     }
 
@@ -85,11 +89,14 @@
     function containerMouseEnterHandler(evt: Event)
     {
         isHovering = true;
+        showNumberInput = true;
     }
 
     function containerMouseLeaveHandler(evt: Event)
     {
         isHovering = false;
+        if (!isDragging)
+            showNumberInput = false;
     }
 
     function containerDblClickHandler(evt: MouseEvent)
@@ -149,7 +156,8 @@
             </div>
 
             <NumberInput id={id} min={param.min} max={param.max} value={param.value}
-                step={param.step} onchange={inputChangeHandler} />
+                step={param.step} onchange={inputChangeHandler}
+                show={showNumberInput} delayHide={500}/>
         </div>
     </div>
 </div>

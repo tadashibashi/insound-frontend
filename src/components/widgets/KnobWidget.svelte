@@ -25,7 +25,6 @@
     const id: string = "param-" + param.name + '-' + util.genRandHex(6);
 
 
-
     function inputChangeHandler(value: number)
     {
         param.value = value;
