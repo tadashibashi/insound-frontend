@@ -5,12 +5,8 @@
     import { Delegate } from "app/util/delegate";
     import AudioPlayer from "app/components/AudioPlayer.svelte";
     import TextEditor from "app/components/TextEditor/TextEditor.svelte";
-    import KnobWidget from "app/components/widgets/KnobWidget.svelte";
-    import VSlider from "app/components/widgets/VSlider.svelte";
-    import { NumberParameter } from "audio/params/types/NumberParameter";
 
     let numInputs = 1;
-
 
     const onload = new Delegate<void, [ArrayBuffer, string[], string]>;
     const onRequestText = new Delegate<string, []>;
@@ -35,12 +31,6 @@
 
 
 </script>
-
-<div class="w-full flex justify-evenly p-8">
-    <KnobWidget class="my-auto w-16"
-    param={new NumberParameter("reverb", 0, 0, 10, .0125, 0, false, (name, val) => {})}/>
-</div>
-
 
 <Form
     class="max-w-[512px] mx-auto border border-gray-100 mt-4 rounded-md shadow-sm"

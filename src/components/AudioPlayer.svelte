@@ -13,9 +13,6 @@
 
     const onloadparams: Delegate<void, [ParameterMgr]> = new Delegate;
 
-    let playheadEl: HTMLElement;
-    let barEl: HTMLElement;
-
     let audioContext = getContext("audio");
 
     let isPlaying = false;
@@ -48,30 +45,6 @@
     let reverb = new NumberParameter("Reverb", 0, 0, 2, .01, 0, false,
         (i, val) => audio?.setMainReverbLevel(val));
 
-    /**
-     * Convert number of seconds into hh:mm format
-     */
-    function toDigitalTime(timeInSeconds: number): string
-    {
-        timeInSeconds = Math.floor(timeInSeconds);
-
-        const ss = timeInSeconds % 60;
-        const mm = Math.floor(timeInSeconds / 60);
-
-        return `${mm}:${ss.toString().padStart(2, '0')}`;
-    }
-
-
-    // Move playhead to the proper position within a bar
-    function updatePlayheadPosition(playhead: HTMLElement, bar: HTMLElement,
-        currentTime: number, maxTime: number): void
-    {
-        if (!playhead || !bar) return;
-
-        const width = bar.getBoundingClientRect().width;
-        playhead.style.transform =
-            `translate(${currentTime/maxTime*width}px, -25%)`;
-    }
 
 
     // Callback fired when audio is loaded
@@ -112,28 +85,6 @@
 
         time.max = audio.length;
         time.current = 0;
-
-        updatePlayheadPosition(playheadEl, barEl, time.current,
-            time.max);
-    }
-
-
-    function onSeek(evt: MouseEvent): void
-    {
-        if (!audio) throw Error("AudioEngine was not initialized.");
-
-        const newTime = calculateSeek(evt.x, barEl, time.max);
-
-        audio.seek(newTime);
-        time.current = newTime;
-        updatePlayheadPosition(playheadEl, barEl, time.current, time.max);
-
-        function calculateSeek(mouseX: number, bar: HTMLElement,
-            maxTime: number): number
-        {
-            const rect = bar.getBoundingClientRect();
-            return (mouseX - rect.x) / rect.width * maxTime;
-        }
     }
 
 
@@ -142,9 +93,8 @@
     {
         if (!audio) return;
 
-        time.current = audio.position;
-
-        updatePlayheadPosition(playheadEl, barEl, time.current, time.max);
+        if (!audio.paused)
+            time.current = audio.position;
     }
 
 
@@ -201,28 +151,30 @@
     <!-- Time -->
     <div class="absolute top-[48px] right-1">
         <p class="text-gray-400">
-            <span>{toDigitalTime(time.current)}</span>
+            <span>{time.toString()}</span>
             <span> / </span>
-            <span>{toDigitalTime(time.max)}</span>
+            <span>{time.toString(time.max)}</span>
         </p>
     </div>
 
-    <Playbar class="w-full px-2" active={isLoaded}  time={time} onchange={(cur) => {
-        audio?.seek(cur)
-        if (wasPlayingBeforeSeek)
-        {
-            audio?.setPause(false);
-            isPlaying = true;
-            wasPlayingBeforeSeek = false;
-        }
-    }}
-    onstartseek={() => {
-        if (!audio) return;
-        if (!audio.paused)
-            wasPlayingBeforeSeek = true;
-        audio.setPause(true);
-        isPlaying = false;
-    }}/>
+    <Playbar class="w-full px-2" active={isLoaded}  time={time}
+        onchange={(cur) => {
+            audio?.seek(cur);
+            if (wasPlayingBeforeSeek)
+            {
+                audio?.setPause(false, .1);
+                isPlaying = true;
+                wasPlayingBeforeSeek = false;
+            }
+        }}
+        onstartseek={() => {
+            if (!audio) return;
+            if (!audio.paused)
+                wasPlayingBeforeSeek = true;
+            audio.setPause(true);
+            isPlaying = false;
+        }}
+        onseek={(val) => time.current = val} />
 
     <!-- Volume Sliders -->
     <div class="h-[240px] w-full flex justify-evenly items-center overflow-hidden">

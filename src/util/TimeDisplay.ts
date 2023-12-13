@@ -55,9 +55,12 @@ export class TimeDisplay
     /**
      * Returns digital display as string with format hh:mm
      */
-    toString(): string
+    toString(val?: number): string
     {
-        return toDigitalTime(this.m_current);
+        if (val !== undefined)
+            return toDigitalTime(val);
+        else
+            return toDigitalTime(this.m_current);
     }
 
     /**

@@ -19,6 +19,8 @@
     // Called when user clicks bar to start seeking
     export let onstartseek: (value: number) => void = () => {};
 
+    export let onseek: (value: number) => void = () => {};
+
 
     // ----- Bindings ---------------------------------------------------------
 
@@ -43,21 +45,15 @@
     function positionToValue(posX: number): number
     {
         const rect = barEl.getBoundingClientRect();
-        return rect.width === 0 ? 0 : posX / rect.width;
-    }
-
-    // Get relative x position for value
-    function valueToPosition(value: number): number
-    {
-        const rect = barEl.getBoundingClientRect();
-        const percentage = time.max === 0 ? 0 : value / time.max;
-        return rect.width * percentage;
+        return rect.width === 0 ? 0 : (posX-10) / rect.width; // 8px offset to match pointer
     }
 
     // ----- Event Handlers ---------------------------------------------------
 
     function handlePointerEnterBar()
     {
+        if (!active) return;
+
         isHovering = true;
     }
 
@@ -68,6 +64,8 @@
 
     function handlePointerDownBar(evt: PointerEvent)
     {
+        if (!active) return;
+
         isDragging = true;
 
         const prog = Math.min(Math.max(positionToValue(evt.x), 0), 1);
@@ -87,7 +85,12 @@
                 isDragging = false;
             }, 20);
 
-            onchange(progress * time.max);
+            if (active)
+            {
+                const seconds = progress * time.max;
+                onseek(seconds);
+                onchange(seconds);
+            }
         }
     }
 
@@ -98,6 +101,9 @@
             const prog = Math.min(Math.max(positionToValue(evt.x), 0), 1);
             if (!isNaN(prog))
                 progress = prog;
+
+            if (active)
+                onseek(prog * time.max);
         }
     }
 
@@ -122,25 +128,41 @@
     >
         <!-- Playhead -->
         <div
-            class={"Playhead absolute w-[12px] aspect-square rounded-full z-10 " + (active ? "visible": "invisible")}
-            style={`background: ${buttonColor}; border: 1px solid ${bgColor}; transform: translateY(-33%) scaleY(${((isHovering || isDragging) && active) ? 100 : 0}%) translateX(calc(${progress * (barEl?.getBoundingClientRect().width || 0)}px - 50%));`}
+            class={"Playhead absolute w-[12px] aspect-square rounded-full z-10 shadow-md shadow-gray-200 " + (active ? "visible": "invisible")}
+            style={
+                `background: ${buttonColor};
+                transform: translateY(-33%) translateX(calc(${progress *
+                    (barEl?.getBoundingClientRect().width || 0)}px - 50%));
+                opacity: ${(isHovering || isDragging) && active ? 100 : 0}%;`
+            }
         />
 
         <!-- Bar -->
         <div bind:this={barEl}
-                class="ProgressBar absolute block w-full"
-                style={`background: ${bgColor}; height: ${height}; transform: scaleY(${(isHovering || isDragging) && active ? 200 : 100}%);`}
-            >
+            class="ProgressBar absolute block w-full"
+            style={
+                `background: ${bgColor};
+                height: ${height};
+                transform: scaleY(${(isHovering || isDragging) && active ?
+                    200 : 100}%);`
+            }>
+
             <!-- Progress -->
-            <div class="h-full" style={`width: ${progress * 100}%; background: ${barColor};`}>
-
-            </div>
-
+            <div class="h-full"
+                style={`width: ${progress * 100}%; background: ${barColor};`}
+            />
         </div>
-
+        <!-- Shadow -->
+        <div class="ProgressBarShadow absolute block w-full shadow-sm"
+            style={
+                `opacity: ${(isHovering || isDragging) && active ?
+                    100 : 0}%
+                background: ${bgColor};
+                height: ${height};
+                transform: scaleY(${(isHovering || isDragging) && active ?
+                    200 : 100}%);`}
+        />
     </div>
-
-
 </div>
 
 <style>
@@ -148,7 +170,11 @@
         transition: transform .25s ease-out;
     }
 
-/*     .Playhead {
-        transition:  transform .25s ease-out;
-    } */
+    .ProgressBarShadow {
+        transition: opacity .15s ease-out;
+    }
+
+    .Playhead {
+        transition: opacity .15s ease-out;
+    }
 </style>
