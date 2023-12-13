@@ -6,19 +6,25 @@
     import { NumberParameter } from "app/audio/src/ts/params/types/NumberParameter";
     import VSlider from "./widgets/VSlider.svelte";
     import KnobWidget from "./widgets/KnobWidget.svelte";
+    import Playbar from "./widgets/Playbar.svelte";
+    import { TimeDisplay } from "app/util/TimeDisplay";
 
     export let onload: Delegate<void, [ArrayBuffer, string[], string]>;
 
     const onloadparams: Delegate<void, [ParameterMgr]> = new Delegate;
 
+    let playheadEl: HTMLElement;
+    let barEl: HTMLElement;
+
     let audioContext = getContext("audio");
-    let currentTime = 0;
-    let maxTime = 0;
-    let playhead: HTMLElement;
-    let bar: HTMLElement;
+
     let isPlaying = false;
     let isLoaded = false;
     let numChannels = 0;
+
+    let wasPlayingBeforeSeek = false;
+
+    let time: TimeDisplay = new TimeDisplay;
 
     $: audio = $audioContext;
     $: {
@@ -100,14 +106,15 @@
 
         volumes = chVolumes;
 
-        currentTime = 0;
-        maxTime = audio.length;
         numChannels = audio.channelCount;
         isLoaded = true;
         isPlaying = false;
 
-        updatePlayheadPosition(playhead, bar, currentTime,
-            maxTime);
+        time.max = audio.length;
+        time.current = 0;
+
+        updatePlayheadPosition(playheadEl, barEl, time.current,
+            time.max);
     }
 
 
@@ -115,11 +122,11 @@
     {
         if (!audio) throw Error("AudioEngine was not initialized.");
 
-        const newTime = calculateSeek(evt.x, bar, maxTime);
+        const newTime = calculateSeek(evt.x, barEl, time.max);
 
         audio.seek(newTime);
-        currentTime = newTime;
-        updatePlayheadPosition(playhead, bar, currentTime, maxTime);
+        time.current = newTime;
+        updatePlayheadPosition(playheadEl, barEl, time.current, time.max);
 
         function calculateSeek(mouseX: number, bar: HTMLElement,
             maxTime: number): number
@@ -134,9 +141,10 @@
     function onPlayerUpdate()
     {
         if (!audio) return;
-        currentTime = audio.position;
 
-        updatePlayheadPosition(playhead, bar, currentTime, maxTime);
+        time.current = audio.position;
+
+        updatePlayheadPosition(playheadEl, barEl, time.current, time.max);
     }
 
 
@@ -177,7 +185,7 @@
 </script>
 
 <!-- Player Container -->
-<div class="relative">
+<div class="relative select-none">
     <!-- Play/Pause Button -->
     <button
         class="drop-shadow-sm w-8 border border-gray-100 rounded-full p-2 box-content m-2"
@@ -193,25 +201,28 @@
     <!-- Time -->
     <div class="absolute top-[48px] right-1">
         <p class="text-gray-400">
-            <span>{toDigitalTime(currentTime)}</span>
+            <span>{toDigitalTime(time.current)}</span>
             <span> / </span>
-            <span>{toDigitalTime(maxTime)}</span>
+            <span>{toDigitalTime(time.max)}</span>
         </p>
     </div>
 
-    <!-- Play Bar -->
-    <button
-        class="relative w-full h-1 bg-gray-300 mt-1"
-        bind:this={bar}
-        on:click={onSeek}
-        >
-
-        <!-- Playhead -->
-        <div
-            class={"w-1 h-2 rounded bg-gray-500 -translate-y-1/4 " + (isLoaded ? "visible" : "invisible")}
-            bind:this={playhead}></div>
-
-    </button>
+    <Playbar class="w-full px-2" active={isLoaded}  time={time} onchange={(cur) => {
+        audio?.seek(cur)
+        if (wasPlayingBeforeSeek)
+        {
+            audio?.setPause(false);
+            isPlaying = true;
+            wasPlayingBeforeSeek = false;
+        }
+    }}
+    onstartseek={() => {
+        if (!audio) return;
+        if (!audio.paused)
+            wasPlayingBeforeSeek = true;
+        audio.setPause(true);
+        isPlaying = false;
+    }}/>
 
     <!-- Volume Sliders -->
     <div class="h-[240px] w-full flex justify-evenly items-center overflow-hidden">
