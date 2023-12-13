@@ -6,8 +6,20 @@
     import { onMount } from "svelte";
     import { util } from "app/util";
 
+    // ----- Attributes -------------------------------------------------------
+
+    /**
+     * Parameter that this slider controls and represents
+     */
     export let param: NumberParameter;
+
+    /**
+     * Height of the slider portion
+     */
     export let height: string = "100px";
+
+
+    // ----- State ------------------------------------------------------------
 
     let trackLine: HTMLDivElement;
 
@@ -20,6 +32,34 @@
     let defaultPositionY: number = 0;
 
     const id: string = "param-" + param.name + '-' + util.genRandHex(6);
+
+
+    // ----- Helper functions -------------------------------------------------
+
+    // Utility to calculate value of a position
+    function positionToValue(y: number)
+    {
+        const rect = trackLine.getBoundingClientRect();
+        let percentage = 1 - y / rect.height;
+        if (percentage > 1) percentage = 1;
+        if (percentage < 0) percentage = 0;
+
+        return (param.max - param.min) * percentage + param.min;
+    }
+
+
+    // ----- Event handlers ---------------------------------------------------
+
+    // Convert value to vertical slider position
+    function valueToPosition(value: number)
+    {
+        const rect = trackLine.getBoundingClientRect();
+        let percentage = 1 - (value - param.min) / (param.max - param.min);
+        if (percentage > 1) percentage = 1;
+        if (percentage < 0) percentage = 0;
+
+        return percentage * rect.height;
+    }
 
     // Fires when number box's input changes
     function inputChangeHandler(value: number)
@@ -35,28 +75,6 @@
         {
             return false;
         }
-    }
-
-    // Utility to calculate value of a position
-    function positionToValue(y: number)
-    {
-        const rect = trackLine.getBoundingClientRect();
-        let percentage = 1 - y / rect.height;
-        if (percentage > 1) percentage = 1;
-        if (percentage < 0) percentage = 0;
-
-        return (param.max - param.min) * percentage + param.min;
-    }
-
-    // Convert value to vertical slider position
-    function valueToPosition(value: number)
-    {
-        const rect = trackLine.getBoundingClientRect();
-        let percentage = 1 - (value - param.min) / (param.max - param.min);
-        if (percentage > 1) percentage = 1;
-        if (percentage < 0) percentage = 0;
-
-        return percentage * rect.height;
     }
 
     function mouseupHandler(evt: Event)
