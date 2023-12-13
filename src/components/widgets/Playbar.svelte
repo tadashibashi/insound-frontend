@@ -4,6 +4,7 @@
 
     // ----- Attributes -------------------------------------------------------
     export const height: string = "4px";
+    export const deactiveBgColor: string = "#fafafa";
     export const barColor: string = "#888";
     export const buttonColor: string = "#888";
     export const bgColor: string = "#ddd";
@@ -37,6 +38,8 @@
     {
         progress = time.progress;
     }
+
+    $: isEngaged = (isHovering || isDragging) && active;
 
 
     // ----- Helpers ----------------------------------------------------------
@@ -133,7 +136,7 @@
                 `background: ${buttonColor};
                 transform: translateY(-33%) translateX(calc(${progress *
                     (barEl?.getBoundingClientRect().width || 0)}px - 50%));
-                opacity: ${(isHovering || isDragging) && active ? 100 : 0}%;`
+                opacity: ${isEngaged ? 100 : 0}%;`
             }
         />
 
@@ -141,26 +144,23 @@
         <div bind:this={barEl}
             class="ProgressBar absolute block w-full"
             style={
-                `background: ${bgColor};
+                `background: ${active ? bgColor : deactiveBgColor};
                 height: ${height};
-                transform: scaleY(${(isHovering || isDragging) && active ?
-                    200 : 100}%);`
+                transform: scaleY(${isEngaged ? 200 : 100}%);`
             }>
 
             <!-- Progress -->
-            <div class="h-full"
+            <div class="h-full shadow-sm"
                 style={`width: ${progress * 100}%; background: ${barColor};`}
             />
         </div>
         <!-- Shadow -->
         <div class="ProgressBarShadow absolute block w-full shadow-sm"
             style={
-                `opacity: ${(isHovering || isDragging) && active ?
-                    100 : 0}%
+                `opacity: ${isEngaged ? 100 : 0}%
                 background: ${bgColor};
                 height: ${height};
-                transform: scaleY(${(isHovering || isDragging) && active ?
-                    200 : 100}%);`}
+                transform: scaleY(${isEngaged ? 200 : 100}%);`}
         />
     </div>
 </div>
@@ -171,7 +171,7 @@
     }
 
     .ProgressBarShadow {
-        transition: opacity .15s ease-out;
+        transition: opacity .25s ease-out, transform .25s ease-out;
     }
 
     .Playhead {
