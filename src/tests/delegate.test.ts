@@ -1,8 +1,7 @@
 import {describe, it, expect} from ".";
-import { Delegate } from "app/util/delegate";
+import { Delegate } from "../util/delegate";
 
 describe("Delegate can subscribe & unsubscribe callbacks", () => {
-
     it("works on non-member functions", () => {
         const delegate = new Delegate<number, []>;
 
@@ -82,7 +81,6 @@ describe("Delegate can subscribe & unsubscribe callbacks", () => {
 });
 
 describe("Delegate can invoke callbacks", () => {
-
     it("throws if there is no callback subscribed", () => {
         const delegate = new Delegate<void, []>;
         expect(() => delegate.invoke()).toThrow();
