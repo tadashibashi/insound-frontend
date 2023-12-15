@@ -3,24 +3,26 @@
     import { onMount } from "svelte";
 
     // ----- Attributes -------------------------------------------------------
+    /** Bar height when not engaged with. Grows to  */
     export const height: string = "4px";
     export const deactiveBgColor: string = "#fafafa";
     export const barColor: string = "#888";
     export const buttonColor: string = "#888";
     export const bgColor: string = "#ddd";
 
-    // Active state: show playhead + allow movement
+    /** Active state: show playhead + allow movement */
     export let active: boolean = false;
 
-    // Time display info object
+    /** Time to represent in the bar */
     export let time: TimeDisplay;
 
-    // Called when input value changes
+    /** Called when input value changes and should be applied to target */
     export let onchange: (value: number) => void = () => {};
-    // Called when user clicks bar to start seeking
-    export let onstartseek: (value: number) => void = () => {};
 
-    export let onseek: (value: number) => void = () => {};
+    /** Called when user clicks bar to start seeking */
+    export let onstartseek: (value: number) => void = () => {};
+    /** Called when user drags pointer after clicking the bar */
+    export let onseeking: (value: number) => void = () => {};
 
 
     // ----- Bindings ---------------------------------------------------------
@@ -91,7 +93,7 @@
             if (active)
             {
                 const seconds = progress * time.max;
-                onseek(seconds);
+                onseeking(seconds);
                 onchange(seconds);
             }
         }
@@ -106,7 +108,7 @@
                 progress = prog;
 
             if (active)
-                onseek(prog * time.max);
+                onseeking(prog * time.max);
         }
     }
 
@@ -167,7 +169,7 @@
 
 <style>
     .ProgressBar {
-        transition: transform .25s ease-out;
+        transition: transform .25s ease-out, background .25s ease-out;
     }
 
     .ProgressBarShadow {
