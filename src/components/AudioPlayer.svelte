@@ -174,7 +174,7 @@
             audio.setPause(true);
             isPlaying = false;
         }}
-        onseek={(val) => time.current = val} />
+        onseeking={(val) => time.current = val} />
 
     <!-- Volume Sliders -->
     <div class="h-[240px] w-full flex justify-evenly items-center overflow-hidden">
