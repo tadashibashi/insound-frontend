@@ -8,6 +8,7 @@
     import KnobWidget from "./widgets/KnobWidget.svelte";
     import Playbar from "./widgets/Playbar.svelte";
     import { TimeDisplay } from "app/util/TimeDisplay";
+    import type { SyncPoint } from "audio/SyncPointMgr";
 
     export let onload: Delegate<void, [ArrayBuffer, string[], string]>;
 
@@ -19,15 +20,19 @@
     let isLoaded = false;
     let numChannels = 0;
 
+    let points: SyncPoint[] = [];
+    let currentPoints: SyncPoint[] = [];
+
     let wasPlayingBeforeSeek = false;
 
     let time: TimeDisplay = new TimeDisplay;
 
     $: audio = $audioContext;
-    $: {
-        if ($audioContext)
-           $audioContext.onUpdate(onPlayerUpdate);
+    $: if ($audioContext) {
+       $audioContext.onUpdate(onPlayerUpdate);
     }
+
+    let loopend: number = 0;
 
     onMount(() => {
         onload.subscribe(onLoadAudio);
@@ -54,9 +59,11 @@
         if(!audio)
             throw Error("AudioEngine was not initialized.");
 
-        audio.loadTrack(pData, scriptText);
-        audio.setSyncPointCallback((label, seconds) => {
-            console.log("SyncPoint: \"" + label + "\": at " + seconds);
+        audio.loadTrack(pData, {
+            script: scriptText
+        });
+        audio.setSyncPointCallback((label, seconds, index) => {
+            currentPoints.push(points[index]);
         });
         audio.setEndCallback(() => {
             console.log("End reached!");
@@ -85,6 +92,10 @@
 
         time.max = audio.length;
         time.current = 0;
+
+        points = audio.points.points;
+
+        loopend = audio.engine.getLoopSeconds().loopend;
     }
 
 
@@ -94,9 +105,12 @@
         if (!audio) return;
 
         if (!audio.paused)
+        {
             time.current = audio.position;
-    }
+        }
 
+        currentPoints.length = 0;
+    }
 
     function onPressPlay()
     {
@@ -157,12 +171,16 @@
         </p>
     </div>
 
-    <Playbar class="w-full px-2" active={isLoaded}  time={time}
+    <Playbar class="w-full px-2" active={isLoaded} time={time} markers={points}
+        loopend={loopend} currentPoints={currentPoints}
         onchange={(cur) => {
-            audio?.seek(cur);
+            if (!audio) return;
+
+            audio.seek(Math.max(Math.min(cur, audio.length-.001), 0));
+
             if (wasPlayingBeforeSeek)
             {
-                audio?.setPause(false, .1);
+                audio.setPause(false, .1);
                 isPlaying = true;
                 wasPlayingBeforeSeek = false;
             }

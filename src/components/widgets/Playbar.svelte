@@ -1,20 +1,29 @@
 <script lang="ts">
     import type { TimeDisplay } from "app/util/TimeDisplay";
+    import type { SyncPoint } from "audio/SyncPointMgr";
     import { onMount } from "svelte";
+    import TrackMarker from "./TrackMarker.svelte";
 
     // ----- Attributes -------------------------------------------------------
     /** Bar height when not engaged with. Grows to  */
-    export const height: string = "4px";
-    export const deactiveBgColor: string = "#fafafa";
-    export const barColor: string = "#888";
-    export const buttonColor: string = "#888";
-    export const bgColor: string = "#ddd";
+    export let height: string = "4px";
+    export let deactiveBgColor: string = "#fafafa";
+    export let barColor: string = "#888";
+    export let buttonColor: string = "#888";
+    export let bgColor: string = "#ddd";
+
+    export let markers: SyncPoint[] = [];
+
+    export let currentPoints: SyncPoint[] = [];
+
 
     /** Active state: show playhead + allow movement */
     export let active: boolean = false;
 
     /** Time to represent in the bar */
     export let time: TimeDisplay;
+    /** Current loop end in seconds */
+    export let loopend: number;
 
     /** Called when input value changes and should be applied to target */
     export let onchange: (value: number) => void = () => {};
@@ -29,7 +38,6 @@
 
     let barEl: HTMLElement;
 
-
     // ----- State ------------------------------------------------------------
     let isDragging: boolean = false;
     let isHovering: boolean = false;
@@ -42,7 +50,6 @@
     }
 
     $: isEngaged = (isHovering || isDragging) && active;
-
 
     // ----- Helpers ----------------------------------------------------------
 
@@ -74,8 +81,12 @@
         isDragging = true;
 
         const prog = Math.min(Math.max(positionToValue(evt.x), 0), 1);
-        if (!isNaN(prog))
-            progress = prog;
+        if (isNaN(prog)) return;
+
+        const seconds = prog * time.max;
+        if (seconds > loopend) return;
+
+        progress = prog;
         onstartseek(prog * time.max);
     }
 
@@ -92,7 +103,9 @@
 
             if (active)
             {
-                const seconds = progress * time.max;
+                let seconds = Math.min(Math.max(progress * time.max, 0),
+                    loopend);
+
                 onseeking(seconds);
                 onchange(seconds);
             }
@@ -103,9 +116,11 @@
     {
         if (isDragging)
         {
-            const prog = Math.min(Math.max(positionToValue(evt.x), 0), 1);
-            if (!isNaN(prog))
-                progress = prog;
+            const progMax = Math.min(1, loopend / time.max);
+            const prog = Math.min(Math.max(positionToValue(evt.x), 0), progMax);
+            if (isNaN(prog)) return;
+
+            progress = prog;
 
             if (active)
                 onseeking(prog * time.max);
@@ -142,6 +157,19 @@
             }
         />
 
+        <div class="absolute">
+            {#each markers as m (m.text+m.offset+"-overlay")}
+                <TrackMarker x={m.offset/time.max*(barEl?.getBoundingClientRect().width || 0)}
+                    y={-38}
+                    time={m.offset}
+                    text={m.text}
+                    show={currentPoints.includes(m)}
+                    delayHide={3000}
+                />
+            {/each}
+        </div>
+
+
         <!-- Bar -->
         <div bind:this={barEl}
             class="ProgressBar absolute block w-full"
@@ -151,10 +179,45 @@
                 transform: scaleY(${isEngaged ? 200 : 100}%);`
             }>
 
+            <!-- Marker ticks -->
+            <div class="w-full absolute z-50"
+                style={
+                    `height: ${height};`
+                }>
+                {#each markers as {text, offset} (text+offset)}
+                    {#if text === "LoopStart" || text === "LoopEnd"}
+                        <div class="absolute w-1 h-full bg-blue-400"
+                            style={
+                                `transform: translateX(calc(${offset/time.max*(barEl?.getBoundingClientRect().width || 0)}px - 50%));`
+                            }/>
+                    {:else}
+                        <div class="absolute w-1 h-full bg-black"
+                            style={
+                                `transform: translateX(calc(${offset/time.max*(barEl?.getBoundingClientRect().width || 0)}px - 50%));`
+                            }/>
+                    {/if}
+                {/each}
+            </div>
+
+
+
             <!-- Progress -->
-            <div class="h-full shadow-sm"
+            <div class="h-full shadow-sm absolute"
                 style={`width: ${progress * 100}%; background: ${barColor};`}
             />
+
+            <!-- Blocker if loopend is less than length -->
+            {#if loopend < time.max }
+                <div class="flex flex-row justify-end w-full h-full absolute z-40 cursor-default"
+                >
+                    <div class="h-full"
+                        style={
+                            `width: ${(time.max - loopend) / time.max * 100}%;
+                            background: ${deactiveBgColor};`
+                        }/>
+                </div>
+
+            {/if}
         </div>
         <!-- Shadow -->
         <div class="ProgressBarShadow absolute block w-full shadow-sm"
