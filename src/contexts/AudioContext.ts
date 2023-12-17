@@ -22,7 +22,7 @@ export namespace AudioContext {
             initAudioModule()
                 .then(() => {
                     audio.set(new AudioEngine);
-                    interval = setInterval(audioUpdate, 10);
+                    interval = setInterval(audioUpdate, 5);
                 });
 
             return () => {
