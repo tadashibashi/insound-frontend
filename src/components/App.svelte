@@ -21,15 +21,12 @@
     }
 </script>
 
-<Router>
-    <Route path="/" component={LandingPage} />
-    <Route path="/auth/*" component={AuthLayout} />
-    <Route path="/*" component={NotFoundPage} />
-    <Route path="/tracks/create" component={CreateTrackPage} />
-    <Route path="/test" component={TestPage} />
-<main>
-
-
+<main class="overflow-hidden">
+    <Router>
+        <Route path="/" component={LandingPage} />
+        <Route path="/auth/*" component={AuthLayout} />
+        <Route path="/*" component={NotFoundPage} />
+        <Route path="/tracks/create" component={CreateTrackPage} />
+        <Route path="/test" component={TestPage} />
+    </Router>
 </main>
-
-</Router>
