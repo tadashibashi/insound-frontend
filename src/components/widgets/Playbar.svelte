@@ -12,6 +12,7 @@
     export let buttonColor: string = "#888";
     export let bgColor: string = "#ddd";
 
+    export let showMarkers: boolean = true;
     export let markers: SyncPoint[] = [];
 
     export let currentPoints: SyncPoint[] = [];
@@ -157,14 +158,15 @@
             }
         />
 
+        <!-- Hovering Markers -->
         <div class="absolute">
             {#each markers as m (m.text+m.offset+"-overlay")}
                 <TrackMarker x={m.offset/time.max*(barEl?.getBoundingClientRect().width || 0)}
                     y={-38}
                     time={m.offset}
                     text={m.text}
-                    show={currentPoints.includes(m)}
-                    delayHide={3000}
+                    show={showMarkers && currentPoints.includes(m)}
+                    delayHide={showMarkers ? 3000 : 0}
                 />
             {/each}
         </div>

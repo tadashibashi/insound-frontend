@@ -27,6 +27,8 @@
 
     let time: TimeDisplay = new TimeDisplay;
 
+    let showSyncPoints: boolean = true;
+
     $: audio = $audioContext;
     $: if ($audioContext) {
        $audioContext.onUpdate(onPlayerUpdate);
@@ -150,6 +152,11 @@
 
 <!-- Player Container -->
 <div class="relative select-none">
+    <label class="text-xs font-bold">
+        Show Markers
+        <input type="checkbox" bind:checked={showSyncPoints} />
+    </label>
+
     <!-- Play/Pause Button -->
     <button
         class="drop-shadow-sm w-8 border border-gray-100 rounded-full p-2 box-content m-2"
@@ -172,7 +179,7 @@
     </div>
 
     <Playbar class="w-full px-2" active={isLoaded} time={time} markers={points}
-        loopend={loopend} currentPoints={currentPoints}
+        loopend={loopend} currentPoints={currentPoints} showMarkers={showSyncPoints}
         onchange={(cur) => {
             if (!audio) return;
 
