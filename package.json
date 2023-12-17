@@ -24,7 +24,7 @@
     "typescript": "^5.0.2",
     "vite": "^4.4.5",
     "vite-tsconfig-paths": "^4.2.1",
-    "bun-types": "latest"
+    "bun-types": "^1.0.18"
   },
   "dependencies": {
     "@codemirror/legacy-modes": "^6.3.3",
