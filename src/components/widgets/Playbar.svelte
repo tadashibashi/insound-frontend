@@ -162,8 +162,8 @@
 
         <!-- Hovering Markers -->
         <div class="absolute z-10">
-            {#if looping}
             {#each markers as m (m.text+m.offset+"-overlay")}
+                {#if !(m.text === "LoopStart" || m.text === "LoopEnd") || looping}
                 <TrackMarker x={m.offset/time.max*(barEl?.getBoundingClientRect().width || 0)}
                     y={-38}
                     time={m.offset}
@@ -171,8 +171,8 @@
                     show={showMarkers && currentPoints.includes(m)}
                     delayHide={showMarkers ? 3000 : 0}
                 />
+                {/if}
             {/each}
-            {/if}
         </div>
 
 
@@ -185,6 +185,7 @@
                 transform: scaleY(${isEngaged ? 200 : 100}%);`
             }>
 
+            {#if showMarkers}
             <!-- Marker ticks -->
             <div class="w-full absolute z-50"
                 style={
@@ -206,6 +207,7 @@
                     {/if}
                 {/each}
             </div>
+            {/if}
 
 
 
