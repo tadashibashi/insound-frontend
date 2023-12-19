@@ -26,6 +26,8 @@
     /** Current loop end in seconds */
     export let loopend: number;
 
+    export let looping: boolean = true;
+
     /** Called when input value changes and should be applied to target */
     export let onchange: (value: number) => void = () => {};
 
@@ -149,7 +151,7 @@
     >
         <!-- Playhead -->
         <div
-            class={"Playhead absolute w-[12px] aspect-square rounded-full z-10 shadow-md shadow-gray-200 " + (active ? "visible": "invisible")}
+            class={"Playhead absolute w-[12px] aspect-square rounded-full z-40 shadow-md shadow-gray-200 " + (active ? "visible": "invisible")}
             style={
                 `background: ${buttonColor};
                 transform: translateY(-33%) translateX(calc(${progress *
@@ -159,7 +161,8 @@
         />
 
         <!-- Hovering Markers -->
-        <div class="absolute">
+        <div class="absolute z-10">
+            {#if looping}
             {#each markers as m (m.text+m.offset+"-overlay")}
                 <TrackMarker x={m.offset/time.max*(barEl?.getBoundingClientRect().width || 0)}
                     y={-38}
@@ -169,12 +172,13 @@
                     delayHide={showMarkers ? 3000 : 0}
                 />
             {/each}
+            {/if}
         </div>
 
 
         <!-- Bar -->
         <div bind:this={barEl}
-            class="ProgressBar absolute block w-full"
+            class="ProgressBar absolute block w-full z-30"
             style={
                 `background: ${active ? bgColor : deactiveBgColor};
                 height: ${height};
@@ -188,10 +192,12 @@
                 }>
                 {#each markers as {text, offset} (text+offset)}
                     {#if text === "LoopStart" || text === "LoopEnd"}
-                        <div class="absolute w-1 h-full bg-blue-400"
-                            style={
-                                `transform: translateX(calc(${offset/time.max*(barEl?.getBoundingClientRect().width || 0)}px - 50%));`
-                            }/>
+                        {#if looping}
+                            <div class="absolute w-1 h-full bg-blue-400"
+                                style={
+                                    `transform: translateX(calc(${offset/time.max*(barEl?.getBoundingClientRect().width || 0)}px - 50%));`
+                                }/>
+                        {/if}
                     {:else}
                         <div class="absolute w-1 h-full bg-black"
                             style={

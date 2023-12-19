@@ -9,6 +9,8 @@
     import Playbar from "./widgets/Playbar.svelte";
     import { TimeDisplay } from "app/util/TimeDisplay";
     import type { SyncPoint } from "audio/SyncPointMgr";
+    import ChoiceMenu from "./widgets/ChoiceMenu.svelte";
+    import type { MixPreset } from "app/audio/src/ts/MixPresetMgr";
 
     export let onload: Delegate<void, [ArrayBuffer, string[], string]>;
 
@@ -28,11 +30,27 @@
     let time: TimeDisplay = new TimeDisplay;
 
     let showSyncPoints: boolean = true;
+    let isLooping: boolean = true;
+
+    let mixPresets: MixPreset[] = [];
+
+    let transitionTime: number = 1;
 
     $: audio = $audioContext;
     $: if ($audioContext) {
        $audioContext.onUpdate(onPlayerUpdate);
     }
+
+    $: if (isLooping) {
+        if ($audioContext && $audioContext.isTrackLoaded()) {
+            $audioContext.setLooping(isLooping);
+        }
+    }  else {
+        if ($audioContext && $audioContext.isTrackLoaded()) {
+            $audioContext.setLooping(isLooping);
+        }
+    }
+
 
     let loopend: number = 0;
 
@@ -65,6 +83,10 @@
             script: scriptText
         });
         audio.setSyncPointCallback((label, seconds, index) => {
+            if (label === "LoopEnd" && !isLooping) {
+                audio?.setPause(true);
+                isPlaying = false;
+            }
             currentPoints.push(points[index]);
         });
         audio.setEndCallback(() => {
@@ -98,6 +120,8 @@
         points = audio.points.points;
 
         loopend = audio.engine.getLoopSeconds().loopend;
+        mixPresets = audio.presets.presets;
+        audio.setLooping(isLooping);
     }
 
 
@@ -148,14 +172,83 @@
             audio.setChannelVolume(channel, volume);
         }
     }
+
+    function testMainMix()
+    {
+        if (!audio || !audio.isTrackLoaded()) return;
+        const mainMix = [.5, .75, .1];
+        const chanCount = Math.min(audio.channelCount, mainMix.length);
+
+        for (let i = 0; i < chanCount; ++i)
+        {
+            volumes[i].transitionTo(mainMix[i], transitionTime);
+        }
+    }
+
+    function testDefaultMix()
+    {
+        if (!audio || !audio.isTrackLoaded()) return;
+        const chanCount = audio.channelCount;
+
+        for (let i = 0; i < chanCount; ++i)
+        {
+            volumes[i].transitionTo(1, transitionTime);
+        }
+    }
 </script>
 
 <!-- Player Container -->
 <div class="relative select-none">
-    <label class="text-xs font-bold">
-        Show Markers
-        <input type="checkbox" bind:checked={showSyncPoints} />
-    </label>
+    <!-- Mix preset options -->
+    <ChoiceMenu class="absolute right-0" choices={mixPresets.map(preset => preset.name)} onchoose={value => console.log(value)}/>
+
+    <!-- options -->
+    <table>
+        <tbody>
+            <tr>
+                <td class="p-1">
+                    <label for="show-markers-input" class="block text-xs font-bold">
+                        Show Markers
+                    </label>
+                </td>
+                <td>
+                    <input id="show-markers-input" type="checkbox" bind:checked={showSyncPoints} />
+                </td>
+            </tr>
+
+            <tr>
+                <td class="p-1">
+                    <label for="is-looping-input" class="block text-xs font-bold">
+                        Looping
+                    </label>
+                </td>
+                <td>
+                    <input id="is-looping-input" type="checkbox" bind:checked={isLooping} />
+                </td>
+            </tr>
+
+            <tr>
+                <td class="p-1">
+                    <label for="transition-time" class="block text-xs font-bold">
+                        Transition Time (s)
+                    </label>
+                </td>
+                <td>
+                    <input id="transition-time" type="number" min="0" max="10" step=".1" bind:value={transitionTime} class="pl-2 border border-gray-100"/>
+                </td>
+            </tr>
+            <tr>
+                <button class="block border border-gray-100 rounded p-1" on:click={testMainMix}>Main Mix</button>
+                <button class="block border border-gray-100 rounded p-1" on:click={testDefaultMix}>Reset Mix</button>
+            </tr>
+        </tbody>
+    </table>
+
+
+
+
+
+
 
     <!-- Play/Pause Button -->
     <button
@@ -179,7 +272,7 @@
     </div>
 
     <Playbar class="w-full px-2" active={isLoaded} time={time} markers={points}
-        loopend={loopend} currentPoints={currentPoints} showMarkers={showSyncPoints}
+        loopend={loopend} looping={isLooping} currentPoints={currentPoints} showMarkers={showSyncPoints}
         onchange={(cur) => {
             if (!audio) return;
 
@@ -203,7 +296,7 @@
 
     <!-- Volume Sliders -->
     <div class="h-[240px] w-full flex justify-evenly items-center overflow-hidden">
-        {#each Array(numChannels) as _, i}
+        {#each Array(numChannels) as _, i (volumes[i])}
             <VSlider param={volumes[i]} height="120px" />
         {/each}
         <VSlider class="h-full my-auto"
