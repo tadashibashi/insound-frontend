@@ -6,7 +6,7 @@ import { get, writable } from "svelte/store";
 export namespace AudioContext {
     export function init() {
         const audio = writable<AudioEngine | null>(null);
-        let interval: NodeJS.Timeout | null = null;
+        let interval: number | null = null;
 
         function audioUpdate() {
             const engine = get(audio);
