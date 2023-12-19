@@ -53,6 +53,7 @@
     // Convert value to vertical slider position
     function valueToPosition(value: number)
     {
+        if (!trackLine) return 0;
         const rect = trackLine.getBoundingClientRect();
         let percentage = 1 - (value - param.min) / (param.max - param.min);
         if (percentage > 1) percentage = 1;
@@ -126,6 +127,12 @@
         }
     }
 
+    function handleSetCallback(index: number, value: number)
+    {
+        positionY = valueToPosition(value);
+        param = param;
+    }
+
     onMount(() => {
         document.addEventListener("mouseup", mouseupHandler);
         document.addEventListener("mousemove", mousemoveHandler);
@@ -133,10 +140,13 @@
         positionY = valueToPosition(param.value);
         defaultPositionY = valueToPosition(param.defaultValue);
 
+        param.addSetCallback(handleSetCallback);
         // cleanup
         return () => {
             document.removeEventListener("mouseup", mouseupHandler);
             document.removeEventListener("mousemove", mousemoveHandler);
+
+            param.removeSetCallback(handleSetCallback);
         };
     });
 </script>
