@@ -107,7 +107,7 @@
     style={`transform: translate(${x}px, ${y}px);`}
 >
     <!-- Bubble portion -->
-    <div class="w-full h-full text-gray-200 py-[2px] px-3 shadow-md z-0 overflow-hidden whitespace-nowrap"
+    <div class="w-full h-full text-gray-200 py-[2px] px-3 shadow-lg shadow-white z-0 overflow-hidden whitespace-nowrap"
         on:pointerenter={handlePointerEnterBubble}
         on:pointerleave={handlePointerLeaveBubble}
         bind:this={bubbleDiv}
@@ -121,19 +121,20 @@
 
     <!-- Stem portion -->
     <div class="relative">
-        <div class="absolute"
+        <div class="absolute z-20"
             style={
                 `width: 0; height: 0;
                 border-top: 12px solid ${bgColor};
                 border-right: 8px solid transparent;`
             }
         />
-        <div class="absolute w-full z-10"
+        <div class="absolute w-full z-10 bg-white"
             style={
                 `transform: translateX(${bubbleXOffset}px);`
                 }>
-            <p class="TextShadow text-gray-400 ml-3">
-                {toDigitalTime(time)}
+            <p class="TextShadow text-gray-400 ml-3 shadow-lg">
+                <span>{toDigitalTime(time)}</span>
+
             </p>
         </div>
 
@@ -151,5 +152,6 @@
     .TextShadow {
         text-shadow: 0 3px 2px #00000011;
         font-size: 10px;
+
     }
 </style>
