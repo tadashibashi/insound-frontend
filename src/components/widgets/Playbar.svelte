@@ -241,11 +241,11 @@
 
 <style>
     .ProgressBar {
-        transition: transform .25s ease-out, background .25s ease-out;
+        transition: transform .15s ease-out, background .15s ease-out;
     }
 
     .ProgressBarShadow {
-        transition: opacity .25s ease-out, transform .25s ease-out;
+        transition: opacity .15s ease-out, transform .15s ease-out;
     }
 
     .Playhead {
