@@ -158,16 +158,20 @@
     on:mouseleave={containerMouseLeaveHandler}
     on:dblclick={containerDblClickHandler}
 >
-    <div class="flex flex-col items-center justify-center h-full w-full select-none">
+    <div class="flex flex-col items-center justify-center h-full w-24 select-none">
        <div class="w-full justify-center">
+            <div class="overflow-visible">
+                <WidgetLabel name={param.name} for={id} />
+            </div>
 
-            <WidgetLabel name={param.name} for={id} />
 
             <!-- Slider -->
             <div aria-roledescription="slider" class="w-full relative py-1 mb-1"
                 style={`height: ${height};`}>
                 <!-- Track line -->
-                <div class="relative rounded-full mx-auto w-1 h-full bg-gray-200 border border-l-gray-300 border-t-gray-300 border-r-gray-100 border-b-gray-100" bind:this={trackLine}>
+                <div class="relative rounded-full mx-auto w-1 h-full bg-gray-200 border border-l-gray-300 border-t-gray-300 border-r-gray-100 border-b-gray-100"
+                    bind:this={trackLine}
+                >
                     <!-- Fader -->
                     <button
                         role="slider"
@@ -182,10 +186,12 @@
                         style={`transform: translateY(${defaultPositionY}px);`}/>
                 </div>
             </div>
-
-            <NumberInput id={id} min={param.min} max={param.max} value={param.value}
+            <div class="overflow-visible">
+               <NumberInput id={id} min={param.min} max={param.max} value={param.value}
                 step={param.step} onchange={inputChangeHandler}
                 show={showNumberInput} delayHide={500}/>
+            </div>
+
         </div>
     </div>
 </div>
