@@ -7,8 +7,10 @@
     import TextEditor from "app/components/TextEditor/TextEditor.svelte";
 
     let numInputs = 1;
+    let fileInputs: HTMLInputElement[] = [];
 
-    const onload = new Delegate<void, [ArrayBuffer, string[], string]>;
+    const onload = new Delegate<void, [ArrayBuffer | ArrayBuffer[], string[],
+        string]>;
     const onRequestText = new Delegate<string, []>;
 
     function loadAudioHandler(payload: Result<unknown, unknown>,
@@ -29,13 +31,68 @@
         onload.invoke(payload.result, names, text);
     }
 
+    async function testLoadAudioHandler(data: FormData): Promise<Result<ArrayBuffer[], unknown>>
+    {
+        const files: File[] = [];
+
+        for (let i = 0; i < numInputs; ++i)
+        {
+            const fileInput = fileInputs[i]
+            if (!fileInput || !fileInput.files || !fileInput.files.item(0))
+                continue;
+            files.push(
+                fileInput.files.item(0) as File );
+        }
+
+        const promises: Promise<ArrayBuffer>[] = [];
+        for (let i = 0; i < files.length; ++i)
+        {
+            promises.push(files[i].arrayBuffer());
+        }
+
+        try {
+            const result = await Promise.all(promises)
+            return new Result(result);
+        }
+        catch(err)
+        {
+            console.error(err);
+            return new Result([], err);
+        }
+    }
+
+    function isArrayBufferArray(testObj: any): testObj is ArrayBuffer[]
+    {
+        return Array.isArray(testObj) &&
+            (testObj.length === 0 || testObj[0] instanceof ArrayBuffer);
+    }
+
+    function testLoadAudioHandlerHandler(payload: Result<unknown, unknown>,
+        data: FormData)
+    {
+        if (!payload.ok)
+            throw Error("Request error.");
+        const result = payload.result;
+        if (!isArrayBufferArray(result))
+            throw Error("Wrong data type received from request.");
+
+        let text = "";
+        const names = data.getAll("name").map(val => val.toString());
+        if (onRequestText.handleCount)
+        {
+            text = onRequestText.invoke();
+        }
+
+        onload.invoke(result, names, text);
+    }
+
 
 </script>
-
+    <!-- action="/api/test/make-fsb" -->
 <Form
     class="max-w-[512px] mx-auto border border-gray-100 mt-4 rounded-md shadow-sm"
-    action="/api/test/make-fsb"
-    method="POST" onThen={loadAudioHandler}
+    action={testLoadAudioHandler}
+    method="POST" onThen={testLoadAudioHandlerHandler}
     >
     <div class="relative w-full h-12">
         <p class="absolute top-1 left-3 text-2xl">Load Audio</p>
@@ -63,6 +120,7 @@
             <input class="text-xs font-bold block pl-4" type="text" value="Layer {i + 1}" name="name" />
             <!-- <label class="text-xs font-bold block pl-4" for={"Layer_" + (i + 1)}>Layer {i + 1}</label> -->
             <input
+                bind:this={fileInputs[i]}
                 class="block pl-4 mt-1 mb-2"
                 id={"Layer_" + (i + 1)}
                 name={"Layer " + (i+1)}
