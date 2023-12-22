@@ -13,10 +13,7 @@
     export let bgColor: string = "#ddd";
 
     export let showMarkers: boolean = true;
-    export let markers: SyncPoint[] = [];
-
-    export let currentPoints: SyncPoint[] = [];
-
+    export let markers: (SyncPoint & {isActive: boolean})[] = [];
 
     /** Active state: show playhead + allow movement */
     export let active: boolean = false;
@@ -162,13 +159,15 @@
 
         <!-- Hovering Markers -->
         <div class="absolute z-10">
-            {#each markers as m (m.text+m.offset+"-overlay")}
+            {#each markers as m, i (m.text+m.offset+"-overlay")}
                 {#if !(m.text === "LoopStart" || m.text === "LoopEnd") || looping}
                 <TrackMarker x={m.offset/time.max*(barEl?.getBoundingClientRect().width || 0)}
                     y={-38}
                     time={m.offset}
                     text={m.text}
-                    show={showMarkers && currentPoints.includes(m)}
+                    show={ (showMarkers && markers[i].isActive) ?
+                        ((markers[i].isActive = false), true) :
+                        false }
                     delayHide={showMarkers ? 3000 : 0}
                 />
                 {/if}

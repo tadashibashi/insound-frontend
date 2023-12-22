@@ -12,7 +12,7 @@
     import ChoiceMenu from "./widgets/ChoiceMenu.svelte";
     import type { MixPreset } from "app/audio/src/ts/MixPresetMgr";
 
-    export let onload: Delegate<void, [ArrayBuffer, string[], string]>;
+    export let onload: Delegate<void, [ArrayBuffer[] | ArrayBuffer, string[], string]>;
 
     const onloadparams: Delegate<void, [ParameterMgr]> = new Delegate;
 
@@ -22,8 +22,7 @@
     let isLoaded = false;
     let numChannels = 0;
 
-    let points: SyncPoint[] = [];
-    let currentPoints: SyncPoint[] = [];
+    let points: (SyncPoint & {isActive: boolean})[] = [];
 
     let wasPlayingBeforeSeek = false;
 
@@ -35,6 +34,8 @@
     let mixPresets: MixPreset[] = [];
 
     let transitionTime: number = 1;
+
+    let mixNameValue: string = "";
 
     $: audio = $audioContext;
     $: if ($audioContext) {
@@ -73,21 +74,34 @@
 
 
     // Callback fired when audio is loaded
-    function onLoadAudio(pData: ArrayBuffer, pLayerNames: string[],
+    function onLoadAudio(pData: ArrayBuffer | ArrayBuffer[], pLayerNames: string[],
         scriptText: string)
     {
         if(!audio)
             throw Error("AudioEngine was not initialized.");
 
-        audio.loadTrack(pData, {
-            script: scriptText
-        });
+        audio.presets.clear(); // todo: populate presets from database
+
+        if (Array.isArray(pData))
+        {
+            audio.loadSounds(pData, {
+                script: scriptText
+            });
+        }
+        else
+        {
+            audio.loadTrack(pData, {
+                script: scriptText
+            });
+        }
+
         audio.setSyncPointCallback((label, seconds, index) => {
             if (label === "LoopEnd" && !isLooping) {
                 audio?.setPause(true);
                 isPlaying = false;
             }
-            currentPoints.push(points[index]);
+
+            points[index].isActive = true;
         });
         audio.setEndCallback(() => {
             console.log("End reached!");
@@ -110,14 +124,17 @@
 
         volumes = chVolumes;
 
+        audio.presets.presets.unshift({name: "Default Mix", volumes: volumes.map(volume => volume.defaultValue)});
+
         numChannels = audio.channelCount;
         isLoaded = true;
         isPlaying = false;
 
         time.max = audio.length;
+
         time.current = 0;
 
-        points = audio.points.points;
+        points = audio.points.points.map(point => { return{...point, isActive: false} });
 
         loopend = audio.engine.getLoopSeconds().loopend;
         mixPresets = audio.presets.presets;
@@ -134,8 +151,6 @@
         {
             time.current = audio.position;
         }
-
-        currentPoints.length = 0;
     }
 
     function onPressPlay()
@@ -173,34 +188,40 @@
         }
     }
 
-    function testMainMix()
+    function setMix(mix: number[], transitionTime: number)
     {
         if (!audio || !audio.isTrackLoaded()) return;
-        const mainMix = [.5, .75, .1];
-        const chanCount = Math.min(audio.channelCount, mainMix.length);
+
+        const chanCount = Math.min(audio.channelCount, mix.length);
 
         for (let i = 0; i < chanCount; ++i)
         {
-            volumes[i].transitionTo(mainMix[i], transitionTime);
+            volumes[i].transitionTo(mix[i], transitionTime);
         }
     }
 
-    function testDefaultMix()
+    function setDefaultMix(transitionTime: number)
     {
-        if (!audio || !audio.isTrackLoaded()) return;
-        const chanCount = audio.channelCount;
+        const defaultMix = volumes.map(vol => vol.defaultValue);
+        setMix(defaultMix, transitionTime);
+    }
 
-        for (let i = 0; i < chanCount; ++i)
-        {
-            volumes[i].transitionTo(1, transitionTime);
-        }
+    function handleAddMixClick()
+    {
+        if (mixNameValue === "" || volumes.length === 0) return;
+
+        mixPresets.push({
+            name: mixNameValue,
+            volumes: volumes.map(volume => volume.value),
+        });
+
+        mixNameValue = "";
+        mixPresets = mixPresets;
     }
 </script>
 
 <!-- Player Container -->
 <div class="relative select-none">
-    <!-- Mix preset options -->
-    <ChoiceMenu class="absolute right-0" choices={mixPresets.map(preset => preset.name)} onchoose={value => console.log(value)}/>
 
     <!-- options -->
     <table>
@@ -237,17 +258,8 @@
                     <input id="transition-time" type="number" min="0" max="10" step=".1" bind:value={transitionTime} class="pl-2 border border-gray-100"/>
                 </td>
             </tr>
-            <tr>
-                <button class="block border border-gray-100 rounded p-1" on:click={testMainMix}>Main Mix</button>
-                <button class="block border border-gray-100 rounded p-1" on:click={testDefaultMix}>Reset Mix</button>
-            </tr>
         </tbody>
     </table>
-
-
-
-
-
 
 
     <!-- Play/Pause Button -->
@@ -272,7 +284,7 @@
     </div>
 
     <Playbar class="w-full px-2" active={isLoaded} time={time} markers={points}
-        loopend={loopend} looping={isLooping} currentPoints={currentPoints} showMarkers={showSyncPoints}
+        loopend={loopend} looping={isLooping} showMarkers={showSyncPoints}
         onchange={(cur) => {
             if (!audio) return;
 
@@ -293,6 +305,13 @@
             isPlaying = false;
         }}
         onseeking={(val) => time.current = val} />
+
+    <div class="mt-4 ml-4">
+        <input  bind:value={mixNameValue} placeholder="Mix Name" />
+        <button class="block" on:click={handleAddMixClick}>Add Mix</button>
+    </div>
+    <!-- Mix preset options -->
+    <ChoiceMenu class="" choices={mixPresets.map(preset => preset.name)} onchoose={value => setMix(mixPresets[value].volumes, transitionTime)}/>
 
     <!-- Volume Sliders -->
     <div class="h-[240px] w-full flex justify-evenly items-center overflow-hidden">

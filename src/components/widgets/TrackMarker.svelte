@@ -23,19 +23,7 @@
     let isHovering: boolean = false;
 
     $:
-    if (!show)
-    {
-        if (isShowing)
-        {
-            if (hideTimeout !== null)
-                clearTimeout(hideTimeout);
-
-            hideTimeout = setTimeout(() => {
-                isShowing = false;
-            }, delayHide);
-        }
-    }
-    else
+    if (show)
     {
         if (hideTimeout !== null)
         {
@@ -44,6 +32,10 @@
         }
 
         isShowing = true;
+        show = false;
+        hideTimeout = setTimeout(() => {
+            isShowing = false;
+        }, delayHide);
 
         constrainPositionInWindow();
     }
