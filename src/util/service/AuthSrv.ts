@@ -97,6 +97,8 @@ export namespace AuthSrv {
         None,
         Failed,
         Verified,
+        MissingToken,
+        ExpiredToken,
         AlreadyVerified,
         Timeout,
     };
@@ -105,6 +107,7 @@ export namespace AuthSrv {
     async function activate(token: string) {
         return new Promise<VerificationState>(async (resolve, reject) => {
 
+            // 15 seconds until timeout error is returned
             const timeout = setTimeout(() => reject(VerificationState.Timeout),
                 15_000);
 
@@ -112,7 +115,24 @@ export namespace AuthSrv {
             if (!res.ok)
             {
                 clearTimeout(timeout);
-                return reject(VerificationState.Failed);
+
+                const err = res.error;
+                console.log(err);
+                // carefully matches up with server error message
+                if (err.startsWith("Missing token."))
+                {
+                    clearTimeout(timeout);
+                    return reject(VerificationState.MissingToken);
+                }
+                else if (err.startsWith("Token expired."))
+                {
+                    return reject(VerificationState.ExpiredToken);
+                }
+                else
+                {
+                    return reject(VerificationState.Failed);
+                }
+
             }
 
             if (res.result.startsWith("User already verified."))
