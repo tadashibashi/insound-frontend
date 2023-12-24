@@ -6,19 +6,35 @@
     import { UserContext } from "app/contexts/UserContext";
     import { AudioContext } from "app/contexts/AudioContext";
     import CreateTrackPage from "app/components/pages/tracks/CreateTrackPage.svelte";
-    import { useConsumeQuery } from "app/hooks/useQuery";
+    import { updateSearchParams, useQuery } from "app/hooks/useQuery";
     import TestPage from "app/components/pages/test/TestPage.svelte";
+    import { onMount } from "svelte";
 
     UserContext.init();
     AudioContext.init();
 
-    let query = useConsumeQuery();
-    let redirect = query.get("redirect");
-    if (redirect) {
-        redirect = decodeURI(atob(redirect));
-        console.log("redirecting to:", redirect);
-        navigate(redirect, {replace: true});
-    }
+    const query = useQuery();
+
+    onMount(() => {
+        let redirect = query.get("redirect");
+        if (redirect)
+        {
+            redirect = decodeURI(atob(redirect));
+
+            query.delete("redirect");
+            if (redirect.includes('?'))
+            {
+                redirect += '&' + query.toString();
+            }
+            else
+            {
+                redirect += '?' + query.toString();
+            }
+
+            navigate(redirect, {replace: true});
+        }
+    });
+
 </script>
 
 <main class="overflow-hidden">
