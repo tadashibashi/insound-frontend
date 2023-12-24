@@ -2,23 +2,36 @@
     import { Route, Router, navigate } from "svelte-routing";
     import LoginPage from "./LoginPage.svelte";
     import { Icon, XMark } from "svelte-hero-icons";
-    import { useConsumeQuery } from "app/hooks/useQuery";
+    import { useQuery, updateSearchParams } from "app/hooks/useQuery";
     import { onMount } from "svelte";
     import SignupPage from "./SignupPage.svelte";
+    import VerificationConfirm from "./VerificationConfirm.svelte";
+    import VerificationSentPage from "./VerificationSentPage.svelte";
 
     const subRoute = $$props["*"];
+    const query = useQuery();
 
-    const query = useConsumeQuery();
-    let lastLocation = query.get("last") || "/";
-    if (lastLocation[0] !== "/") {
-        lastLocation = "/" + lastLocation;
-    }
+    let lastLocation: string = "";
 
-    function exit() {
+    function exit()
+    {
+        if (!lastLocation)
+            return;
         navigate(lastLocation);
     }
 
     onMount(() => {
+
+        console.log(query.toString());
+        lastLocation = query.get("last") || "/";
+        if (lastLocation[0] !== "/") {
+            lastLocation = "/" + lastLocation;
+        }
+
+        query.delete("last");
+
+        updateSearchParams(query);
+
         function onKeydown(ev: KeyboardEvent) {
             if (ev.code === "Escape") {
                 exit();
@@ -44,6 +57,8 @@
         <Router>
             <Route path="signin" component={LoginPage}></Route>
             <Route path="signup" component={SignupPage}></Route>
+            <Route path="verify" component={VerificationConfirm}></Route>
+            <Route path="email-sent" component={VerificationSentPage}></Route>
         </Router>
     </div>
 
