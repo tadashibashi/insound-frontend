@@ -2,7 +2,7 @@
     import type { ParameterMgr } from "audio/params/ParameterMgr";
     import { Delegate } from "app/util/delegate";
     import { getContext, onMount } from "svelte";
-    import { Icon, Pause, Play } from "svelte-hero-icons";
+    import { Icon, Pause, PauseCircle, Play, PlayCircle } from "svelte-hero-icons";
     import { NumberParameter } from "app/audio/src/ts/params/types/NumberParameter";
     import VSlider from "./widgets/VSlider.svelte";
     import KnobWidget from "./widgets/KnobWidget.svelte";
@@ -264,13 +264,13 @@
 
     <!-- Play/Pause Button -->
     <button
-        class="drop-shadow-sm w-8 border border-gray-100 rounded-full p-2 box-content m-2"
+        class="drop-shadow-sm w-16 border border-gray-100 rounded-full box-content m-2"
         on:click={onPressPlay}
         >
         {#if isPlaying}
-            <Icon class="drop-shadow-sm" src="{Pause}" />
+            <Icon class="text-gray-500" src="{Pause}" />
         {:else}
-            <Icon class="drop-shadow-sm" src="{Play}" />
+            <Icon class="text-gray-500" src="{Play}" />
         {/if}
     </button>
 

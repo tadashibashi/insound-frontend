@@ -93,7 +93,7 @@ class Result<Body, Err>
     }
 
     /**
-     * Get the error of the request. Call only when Result#isSuccess === false.
+     * Get the error of the request. Call only when Result#ok === false.
      * Throws an exception otherwise.
      *
      */
