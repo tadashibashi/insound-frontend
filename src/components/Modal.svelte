@@ -8,10 +8,7 @@
     export let show: boolean;
     export let isCancellable: boolean = true;
 
-    function onClose() {
-        console.log("modal closed and reopened.");
-        show = true;
-    }
+    export let onClose = () => {};
 
 </script>
 
@@ -26,12 +23,9 @@
             leave="ease-in duration-200"
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
-            on:click={() => { if (isCancellable) show = !show; console.log("hey"); }}
+            on:click={() => { if (isCancellable) show = !show; }}
         >
-            <!-- svelte-ignore a11y-click-events-have-key-events -->
-            <!-- svelte-ignore a11y-no-static-element-interactions -->
-            <div
-                class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"/>
+            <div class="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"/>
         </TransitionChild>
 
         <!-- Content -->
