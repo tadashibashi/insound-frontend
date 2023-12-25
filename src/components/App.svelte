@@ -1,13 +1,12 @@
 <script lang="ts">
-    import {Router, Route, useLocation, useHistory, navigate} from "svelte-routing";
+    import {Router, Route, navigate} from "svelte-routing";
     import NotFoundPage from "app/components/pages/NotFoundPage.svelte";
     import LandingPage from "app/components/pages/LandingPage.svelte";
     import AuthLayout from "app/components/pages/auth/AuthLayout.svelte";
     import { UserContext } from "app/contexts/UserContext";
     import { AudioContext } from "app/contexts/AudioContext";
+    import { useQuery } from "app/hooks/useQuery";
     import CreateTrackPage from "app/components/pages/tracks/CreateTrackPage.svelte";
-    import { updateSearchParams, useQuery } from "app/hooks/useQuery";
-    import TestPage from "app/components/pages/test/TestPage.svelte";
     import { onMount } from "svelte";
 
     UserContext.init();
@@ -16,6 +15,8 @@
     const query = useQuery();
 
     onMount(() => {
+
+        // Read redirect in query string, then strip it from it
         let redirect = query.get("redirect");
         if (redirect)
         {
@@ -43,6 +44,5 @@
         <Route path="/auth/*" component={AuthLayout} />
         <Route path="/*" component={NotFoundPage} />
         <Route path="/tracks/create" component={CreateTrackPage} />
-        <Route path="/test" component={TestPage} />
     </Router>
 </main>
