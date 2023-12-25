@@ -23,7 +23,7 @@ export const UserToken = t.object({
     avatar: t.string(), // add this from the backend
 
     type: t.mixed()
-        .oneOf(["user", "admin", "guest", "unverified", "staff"])
+        .oneOf(["User", "Admin", "Guest", "Unverified", "Staff"])
         .required(),
 }).required();
 
