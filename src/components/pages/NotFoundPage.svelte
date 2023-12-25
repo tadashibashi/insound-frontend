@@ -1,7 +1,7 @@
 <script>
     import Navbar from "../Navbar.svelte";
 
-    const location = $$props["*"];
+    $: location = $$props["*"];
 </script>
 
 <main>
