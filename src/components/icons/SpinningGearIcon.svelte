@@ -6,7 +6,7 @@
 
 </script>
 
-<span class={($$props.class || "inline-block w-5 -translate-y-[1px]")}
+<span class={($$props.class || "inline-block w-4 -translate-y-[1px]")}
 >
     <!-- Fade and scale in/out -->
     <Transition
@@ -18,7 +18,7 @@
         leaveFrom="opacity-100 scale-100 w-full"
         leaveTo="opacity-0 scale-0 w-0"
     >
-        <Icon class="animate-spin inline-block" src="{Cog}" />
+        <Icon class="animate-spin inline-block" src="{Cog}" mini />
     </Transition>
 </span>
 
