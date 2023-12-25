@@ -7,7 +7,7 @@
     import { request } from "app/util/api/request";
     import debounce from "../util/debounce";
     import type { HttpMethod } from "app/util/api/request";
-    import type { Result } from "app/util/api/Result";
+    import { Result } from "app/util/api/Result";
 
     // ===== Attributes =======================================================
 
@@ -17,7 +17,7 @@
      * A string server endpoint or callback receiving the collected FormData
      * on submit –– callbacks must send its own requests and side-effects, etc.
      */
-    export let action: string | ((formData: FormData) => Promise<Result<unknown, unknown>>);
+    export let action: string | ((formData: FormData) => Promise<Result<unknown, unknown>>) | ((formData: FormData) => Promise<void>);
 
     /**
      * Optional.
@@ -57,17 +57,16 @@
      */
     export let delay: number = 0;
 
-
     let sendRequest = function(formEl: HTMLFormElement) {
         const data = new FormData(formEl);
         if (typeof action === "function") {
             action(data)
                 .catch(onCatch)
-                .then((res) => (onThen && res ? onThen(res, data) : null));
+                .then((res) => (onThen ? onThen(res ? res : new Result(undefined), data) : null));
         } else {
             request(action, method, data)
                 .catch(onCatch)
-                .then((res) => onThen && res ? onThen(res, data) : null);
+                .then((res) => onThen ? onThen(res ? res : new Result(undefined), data) : null);
         }
     }
 
