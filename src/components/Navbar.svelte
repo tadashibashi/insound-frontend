@@ -18,8 +18,6 @@
 
     <Link to="/tracks/create">Create Track</Link>
 
-    <Link to="/test">Test Upload</Link>
-
     <div class="ml-auto">
         {#if $user === null}
             <Link to="/auth/signin?last={$location.pathname}">Sign in</Link>
