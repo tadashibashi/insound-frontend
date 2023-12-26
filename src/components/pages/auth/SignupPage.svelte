@@ -2,15 +2,20 @@
     import {Link, navigate} from "svelte-routing";
     import Form from "app/components/Form.svelte";
     import { AuthSrv } from "app/util/service/AuthSrv";
+    import SpinningGearIcon from "app/components/icons/SpinningGearIcon.svelte";
 
     let email = "";
     let password = "";
     let password2 = "";
 
+    let isLoading = false;
+
     async function handleSubmit(formData: FormData) {
+        isLoading = true;
         if (password !== password2)
         {
             // handle error display here
+            isLoading = false;
             return;
         }
 
@@ -19,16 +24,18 @@
 
             if (res.ok) {
                 // Eventually redirect to a "validation email was sent" page
+                isLoading = false;
                 navigate("/");
             } else {
 
                 // Handle error display here
                 console.log(res.error);
+                isLoading = false;
             }
         } catch (e) {
             // Deal with unknown exception here, display some generic message
             console.log(e);
-
+            isLoading = false;
             throw e;
         }
     }
@@ -60,7 +67,9 @@
     </div>
 
     <div class="text-center mx-auto mt-8">
-        <input type="submit" value="Sign up" class="cursor-pointer text-sm w-full h-full py-2 text-gray-100 bg-purple-600 rounded-lg px-2"/>
+        <button type="submit" value="Sign up" class="cursor-pointer text-sm w-full h-full py-2 text-gray-100 bg-purple-600 rounded-lg px-2">
+            Sign up {#if isLoading}<SpinningGearIcon />{/if}
+        </button>
     </div>
     <p class="mt-8 text-sm text-center">Already have an account?
         <Link to="/auth/signin" class="text-purple-600">Sign in here</Link>

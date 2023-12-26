@@ -1,16 +1,31 @@
-<script>
+<script lang="ts">
     import { getContext } from "svelte";
     import { Link, navigate } from "svelte-routing";
     import Form from "../../Form.svelte";
+
+    import SpinningGearIcon from "app/components/icons/SpinningGearIcon.svelte";
+
     const { login } = getContext("user");
 
     let email = "";
     let password = "";
     let password2 = "";
 
-    async function handleSubmit() {
-        if (await login(email, password, password2))
-            navigate("/");
+    let isLoading = false;
+
+    async function handleSubmit(formData: FormData) {
+        isLoading = true;
+        try {
+            if (await login(email, password, password2))
+            {
+                isLoading = false;
+                navigate("/email-sent");
+            }
+        }
+        catch (e)
+        {
+            isLoading = false;
+        }
     }
 </script>
 
@@ -36,7 +51,9 @@
     </div>
 
     <div class="text-center mx-auto mt-8">
-        <input type="submit" value="Sign in" class="cursor-pointer text-sm w-full h-full py-2 text-gray-100 bg-purple-600 rounded-lg px-2"/>
+        <button type="submit" class="cursor-pointer text-sm w-full h-full py-2 text-gray-100 bg-purple-600 rounded-lg px-2">
+            Sign in {#if isLoading}<SpinningGearIcon />{/if}
+        </button>
     </div>
 
     <p class="mt-8 text-sm text-center">Don't have an account?
