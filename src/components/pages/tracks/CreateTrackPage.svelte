@@ -39,7 +39,20 @@
     let looping = true;
     let transitionTime = 1;
 
+    let scriptText: string =
+`--Called after track finishes loading
+function on_ready()
+    print("Track is ready!")
+end
 
+--Called when the playhead crosses a marker
+function on_marker(name, offset)
+    print("Marker: "..name..", "..offset)
+    if name == "LoopStart" then
+        print("Loop started")
+    end
+end
+`;
 
 
 
@@ -379,6 +392,7 @@
         <TextEditor
             onRequestText={onRequestText}
             onSave={()=> console.log("saved.")}
+            value={scriptText}
         />
     </div>
 

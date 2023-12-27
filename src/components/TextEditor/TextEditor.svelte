@@ -13,44 +13,7 @@
 
     export let onRequestText: Delegate<string, []>;
     export let onSave: () => void = () => {};
-    export let value: string =
-`-- Lua Script
-function on_init()
-    print("script initialized")
-end
-
-function on_load()
-    -- init params
-    snd.param.add_float("f", 0, 1, .01, .5)
-
-    print("Marker count: "..snd.marker.count())
-
-    for i=1, snd.marker.count() do
-        local marker = snd.marker.get(i)
-        print(marker.name..": "..marker.seconds)
-    end
-end
-
---Occurs every audio update - about once every 10 milliseconds
---@param delta number - number of milliseconds since last frame
---@param total number - total number of milliseconds since last frame
-function on_update(delta, total)
-
-end
-
-function on_marker(name, offset)
-    print("Marker: "..name..", "..offset)
-    if name == "LoopStart" then
-        snd.param.set("f", math.random() )
-        print("f set to: "..snd.param.get("f"))
-    end
-end
-
--- Occurs when a parameter is set
-function on_paramset(name, value)
-    print("param set: "..name..": "..value)
-end
-`;
+    export let value: string = "";
 
     let viewEl: HTMLDivElement;
     let view: EditorView;
@@ -105,7 +68,5 @@ end
 </script>
 
 <div  class="box-border w-full p-2">
-    <div bind:this={viewEl} class="border border-gray-100 rounded-2xl overflow-clip shadow-2xl">
-
-    </div>
+    <div bind:this={viewEl} class="border border-gray-100 rounded-2xl overflow-clip shadow-sm" />
 </div>
