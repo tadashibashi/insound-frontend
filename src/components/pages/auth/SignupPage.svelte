@@ -25,7 +25,7 @@
             if (res.ok) {
                 // Eventually redirect to a "validation email was sent" page
                 isLoading = false;
-                navigate("/");
+                navigate("/auth/email-sent");
             } else {
 
                 // Handle error display here
