@@ -92,7 +92,7 @@
 
 </script>
 
-<div class={"TrackMarker absolute select-none z-50 " +
+<div class={"TrackMarker absolute select-none z-30 " +
         (isShowing || isHovering ? "opacity-100" : "opacity-0 pointer-events-none") + " " +
         (clickable ? "cursor-pointer" : "cursor-default")}
     on:pointerdown={handlePointerDown}
