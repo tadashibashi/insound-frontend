@@ -8,22 +8,22 @@
      */
     export let description: string = "";
 
+    export let id: string | undefined = undefined
 </script>
 
-<div class="py-16">
-  <Switch
-    checked={enabled}
-    on:click={() => enabled = !enabled}
-    class={`${enabled ? 'bg-violet-900' : 'bg-gray-200'}
-      relative inline-flex h-[38px] w-[74px] shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2  focus-visible:ring-white/75`}
-  >
-    {#if description.length > 0}
-    <span class="sr-only">{description}</span>
-    {/if}
-    <span
-      aria-hidden="true"
-      class={`${enabled ? 'translate-x-9' : 'translate-x-0'}
-        pointer-events-none inline-block h-[34px] w-[34px] transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out`}
-    />
-  </Switch>
-</div>
+<Switch
+  id={id}
+  checked={enabled}
+  on:click={() => enabled = !enabled}
+  class={`${enabled ? 'bg-violet-900' : 'bg-gray-200'}
+    relative inline-flex h-[25px] w-[46px] shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2  focus-visible:ring-white/75`}
+>
+  {#if description.length > 0}
+  <span class="sr-only">{description}</span>
+  {/if}
+  <span
+    aria-hidden="true"
+    class={`${enabled ? 'translate-x-5' : 'translate-x-0'}
+      pointer-events-none inline-block h-[21px] w-[21px] transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out`}
+  />
+</Switch>
