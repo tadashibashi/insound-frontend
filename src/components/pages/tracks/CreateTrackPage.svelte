@@ -42,7 +42,7 @@
     let looping = true;
     let transitionTime = 1;
 
-    let scriptText: string =
+    const defaultScript =
 `--Called after track finishes loading
 function on_ready()
     print("Track is ready!")
@@ -63,6 +63,7 @@ end
 
     const onload = new Delegate<void, [ArrayBuffer | ArrayBuffer[], string[],
         string]>;
+    const onunload = new Delegate<void, []>;
     const onRequestText = new Delegate<string, []>;
 
     const retrieveMix = new Delegate<number[], []>;
@@ -100,6 +101,11 @@ end
         }
 
         return files;
+    }
+
+    function resetAudio()
+    {
+        onload.invoke([], [], "");
     }
 
     async function testLoadAudioHandler(): Promise<Result<ArrayBuffer[], unknown>>
@@ -237,15 +243,21 @@ end
         <div class="p-2">
             <div class="relative w-full h-12 mb-2">
             <p class="text-2xl">Layers</p>
-
-            <p class="text-xs font-bold"><span>Name</span></p>
         </div>
 
 
         <div class="w-full">
         {#each fileInputs as fileInput, i (fileInput)}
             <div class={i === fileInputs.length - 1 ? "sr-only" : "group relative flex items-center mb-2"}>
-                <input class="text-xs px-4 py-1 border border-gray-100" bind:value={fileInput.layername} type="text" name="name" />
+                <div class="relative">
+                    <p class="absolute left-2 -top-1.5 bg-white px-1 font-bold text-[8px] text-gray-200">Layer {i + 1}</p>
+                    <input class="text-xs px-4 py-1 border border-gray-100"
+                        bind:value={fileInput.layername}
+                        type="text"
+                        name="name"
+                    />
+                </div>
+
 
                 <label class="text-xs font-bold pl-4" for={"Layer_" + (i + 1)}>
                     <input
@@ -343,7 +355,7 @@ end
 
 <div class={"absolute w-full mt-4 transition-opacity duration-300 flex justify-center "
     + (formState === 1 ? "opacity-100" : "opacity-0 pointer-events-none")}>
-    <button class="absolute left-2 flex-none" on:click={() => formState = 0}>
+    <button class="absolute left-2 flex-none" on:click={() => {formState = 0; testLoadAudioHandler(); onunload.invoke(); }}>
         <Icon class="inline" size="14" src="{ArrowSmallLeft}" /> Back
     </button>
     <div class="w-3/4">
@@ -353,7 +365,7 @@ end
             <tbody>
                 <tr>
                     <td class="p-1">
-                        <label for="show-markers-input" class="block text-xs font-bold">
+                        <label for="show-markers-input" class="block text-xs font-bold select-none">
                             Show Markers
                         </label>
                     </td>
@@ -361,7 +373,7 @@ end
                         <Switch id="show-markers-input" bind:enabled={showMarkers} description="Option whether to show audio markers to end viewer." />
                     </td>
                     <td class="p-1">
-                        <label for="is-looping-input" class="ml-4 block text-xs font-bold">
+                        <label for="is-looping-input" class="ml-4 block text-xs font-bold select-none">
                             Looping
                         </label>
                     </td>
@@ -371,7 +383,7 @@ end
                 </tr>
             </tbody>
         </table>
-        <AudioPlayer onload={onload}
+        <AudioPlayer onload={onload} onunload={onunload}
             mixPresets={mixPresets}
             showMarkers={showMarkers}
             looping={looping}
@@ -404,7 +416,7 @@ end
         <TextEditor
             onRequestText={onRequestText}
             onSave={()=> console.log("saved.")}
-            value={scriptText}
+            value={defaultScript}
         />
 
         <button type="button" class="block mx-auto mt-4 px-2 py-1 bg-violet-700 text-white rounded-md">Submit</button>

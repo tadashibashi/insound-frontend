@@ -13,6 +13,7 @@
     import type { Param } from "audio/params/ParameterMgr";
 
     export let onload: Delegate<void, [ArrayBuffer[] | ArrayBuffer, string[], string]>;
+    export let onunload: Delegate<void, []>;
 
     let audioContext = getContext("audio");
 
@@ -58,10 +59,12 @@
 
     onMount(() => {
         onload.subscribe(onLoadAudio);
+        onunload.subscribe(onUnloadAudio);
         retrieveMix?.subscribe(getCurrentMix);
 
         return () => {
             onload.unsubscribe(onLoadAudio);
+            onunload.unsubscribe(onUnloadAudio);
             retrieveMix?.unsubscribe(getCurrentMix);
         };
     });
@@ -74,7 +77,12 @@
     let reverb = new NumberParameter("Reverb", 0, 0, 2, .01, 0, false,
         (i, val) => audio?.setMainReverbLevel(val));
 
+    function onUnloadAudio()
+    {
+        if (!audio) return;
 
+        audio.unloadTrack();
+    }
 
     // Callback fired when audio is loaded
     function onLoadAudio(pData: ArrayBuffer | ArrayBuffer[], pLayerNames: string[],
@@ -219,15 +227,6 @@
         {/if}
     </button>
 
-    <!-- Time -->
-    <div class="absolute top-[48px] right-1">
-        <p class="text-gray-400">
-            <span>{time.toString()}</span>
-            <span> / </span>
-            <span>{time.toString(time.max)}</span>
-        </p>
-    </div>
-
     <Playbar class="w-full px-2" active={isLoaded} time={time} markers={points}
         loopend={loopend} looping={looping} showMarkers={showMarkers}
         onchange={(cur) => {
@@ -251,6 +250,14 @@
         }}
         onseeking={(val) => time.current = val} />
 
+    <!-- Time -->
+    <div class="absolute top-[48px] right-1">
+        <p class="text-gray-400">
+            <span>{time.toString()}</span>
+            <span> / </span>
+            <span>{time.toString(time.max)}</span>
+        </p>
+    </div>
 
     <!-- Mix preset options -->
     <ChoiceMenu class="" choices={mixPresets.map(preset => preset.name)} onchoose={value => setMix(mixPresets[value].volumes, transitionTime)}/>
