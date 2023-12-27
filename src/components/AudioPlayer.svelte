@@ -10,11 +10,11 @@
     import { TimeDisplay } from "app/util/TimeDisplay";
     import type { SyncPoint } from "audio/SyncPointMgr";
     import ChoiceMenu from "./widgets/ChoiceMenu.svelte";
-    import type { MixPreset } from "app/audio/src/ts/MixPresetMgr";
+    import type { MixPreset } from "audio/MixPresetMgr";
+    import type { Param } from "audio/params/ParameterMgr";
 
     export let onload: Delegate<void, [ArrayBuffer[] | ArrayBuffer, string[], string]>;
 
-    const onloadparams: Delegate<void, [ParameterMgr]> = new Delegate;
 
     let audioContext = getContext("audio");
 
@@ -24,6 +24,7 @@
 
     let points: (SyncPoint & {isActive: boolean})[] = [];
 
+    // used to detect if user started drag seeking while audio was playing
     let wasPlayingBeforeSeek = false;
 
     let time: TimeDisplay = new TimeDisplay;
@@ -31,7 +32,10 @@
     let showSyncPoints: boolean = true;
     let isLooping: boolean = true;
 
-    let mixPresets: MixPreset[] = [];
+    export let mixPresets: MixPreset[] = [];
+
+    // todo: implement param page later
+    export let params: Param[] = [];
 
     let transitionTime: number = 1;
 
@@ -80,8 +84,6 @@
         if(!audio)
             throw Error("AudioEngine was not initialized.");
 
-        audio.presets.clear(); // todo: populate presets from database
-
         if (Array.isArray(pData))
         {
             audio.loadSounds(pData, {
@@ -124,8 +126,6 @@
 
         volumes = chVolumes;
 
-        audio.presets.presets.unshift({name: "Default Mix", volumes: volumes.map(volume => volume.defaultValue)});
-
         numChannels = audio.channelCount;
         isLoaded = true;
         isPlaying = false;
@@ -137,7 +137,6 @@
         points = audio.points.points.map(point => { return{...point, isActive: false} });
 
         loopend = audio.engine.getLoopSeconds().loopend;
-        mixPresets = audio.presets.presets;
         audio.setLooping(isLooping);
     }
 
@@ -306,10 +305,7 @@
         }}
         onseeking={(val) => time.current = val} />
 
-    <div class="mt-4 ml-4">
-        <input  bind:value={mixNameValue} placeholder="Mix Name" />
-        <button class="block" on:click={handleAddMixClick}>Add Mix</button>
-    </div>
+
     <!-- Mix preset options -->
     <ChoiceMenu class="" choices={mixPresets.map(preset => preset.name)} onchoose={value => setMix(mixPresets[value].volumes, transitionTime)}/>
 
