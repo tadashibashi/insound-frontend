@@ -57,7 +57,7 @@
     function positionToValue(posX: number): number
     {
         const rect = barEl.getBoundingClientRect();
-        return rect.width === 0 ? 0 : (posX-10) / rect.width; // 8px offset to match pointer
+        return rect.width === 0 ? 0 : (posX-rect.left) / rect.width; // 8px offset to match pointer
     }
 
     // ----- Event Handlers ---------------------------------------------------
@@ -117,6 +117,7 @@
         if (isDragging)
         {
             const progMax = Math.min(1, loopend / time.max);
+
             const prog = Math.min(Math.max(positionToValue(evt.x), 0), progMax);
             if (isNaN(prog)) return;
 
@@ -158,7 +159,7 @@
         />
 
         <!-- Hovering Markers -->
-        <div class="absolute z-10">
+        <div class="absolute z-30">
             {#each markers as m, i (m.text+m.offset+"-overlay")}
                 {#if !(m.text === "LoopStart" || m.text === "LoopEnd") || looping}
                 <TrackMarker x={m.offset/time.max*(barEl?.getBoundingClientRect().width || 0)}
@@ -177,7 +178,7 @@
 
         <!-- Bar -->
         <div bind:this={barEl}
-            class="ProgressBar absolute block w-full z-30"
+            class="ProgressBar absolute block w-full z-20"
             style={
                 `background: ${active ? bgColor : deactiveBgColor};
                 height: ${height};
@@ -186,7 +187,7 @@
 
             {#if showMarkers}
             <!-- Marker ticks -->
-            <div class="w-full absolute z-50"
+            <div class="w-full absolute z-20"
                 style={
                     `height: ${height};`
                 }>
@@ -211,7 +212,7 @@
 
 
             <!-- Progress -->
-            <div class="h-full shadow-sm absolute"
+            <div class="h-full shadow-sm absolute z-10"
                 style={`width: ${progress * 100}%; background: ${barColor};`}
             />
 
