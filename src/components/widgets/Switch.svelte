@@ -41,7 +41,7 @@
     id={id}
     checked={enabled}
     on:click={clickHandler}
-    class={`${enabled ? 'bg-violet-900' : 'bg-gray-200'}
+    class={`${enabled ? 'bg-violet-700' : 'bg-gray-200'}
       relative inline-flex h-[25px] w-[46px] shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2  focus-visible:ring-white/75`}
     >
     {#if description.length > 0}
