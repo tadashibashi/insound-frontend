@@ -1,21 +1,30 @@
 <script lang="ts">
     import Form from "app/components/Form.svelte";
     import { Result } from "app/util/api/Result";
-    import { ArrowUpTray, Icon, Minus, MusicalNote, Pause, Play, Plus, XMark } from "svelte-hero-icons";
+    import { ArrowRight, ArrowUpTray, Icon, Minus, MusicalNote, Pause, Play, Plus, XMark } from "svelte-hero-icons";
     import { Delegate } from "app/util/delegate";
     import AudioPlayer from "app/components/AudioPlayer.svelte";
     import TextEditor from "app/components/TextEditor/TextEditor.svelte";
 
-    let numInputs = 1;
+    import { Transition } from "@rgossiaux/svelte-headlessui";
+    import type { MixPreset } from "app/audio/src/ts/MixPresetMgr";
+    import ErrorAlert from "app/components/widgets/ErrorAlert.svelte";
+
     let fileInputs: InputData[] = [{layername: "Layer 1", filepath: "", input: undefined}];
     let filePaths: string[] = [];
-    let dummy: HTMLInputElement | undefined = undefined;
+
+    let formState = 0;
+
+    let mixPresets: MixPreset[] = [];
 
     interface InputData {
         layername: string;
         filepath: string;
         input: HTMLInputElement | undefined;
     }
+
+    let errorMessages: string[] = [];
+    $: showErrors = errorMessages.length > 0;
 
     let submitEl: HTMLButtonElement;
 
@@ -41,9 +50,10 @@
         onload.invoke(payload.result, names, text);
     }
 
-    async function testLoadAudioHandler(): Promise<Result<ArrayBuffer[], unknown>>
+    function collectFiles(): File[]
     {
         const files: File[] = [];
+        const numInputs = fileInputs.length;
 
         for (let i = 0; i < numInputs; ++i)
         {
@@ -53,6 +63,13 @@
             files.push(
                 input.files.item(0) as File );
         }
+
+        return files;
+    }
+
+    async function testLoadAudioHandler(): Promise<Result<ArrayBuffer[], unknown>>
+    {
+        const files = collectFiles();
 
         if (!files.length)
             throw Error("No audio files");
@@ -99,15 +116,10 @@
         onload.invoke(result, names, text);
     }
 
-    function handleInput(evt: InputEvent)
-    {
-        console.log(evt.dataTransfer);
-    }
-
     function removeInputSlot(index: number)
     {
         index = Math.floor(index);
-        if (index < numInputs && numInputs > 1)
+        if (index < fileInputs.length && fileInputs.length > 1)
         {
 
 
@@ -118,18 +130,77 @@
 
             filePaths = filePaths;
             fileInputs = temp;
-            --numInputs;
         }
+    }
+
+    function handleNewFileChange(evt: Event)
+    {
+        const target = evt.currentTarget as HTMLInputElement;
+
+        if (!target || !target.value) return;
+        const lastFileInput = fileInputs[fileInputs.length-1];
+
+        fileInputs.push({
+            filepath: "",
+            input: undefined,
+            layername: "Layer " + (fileInputs.length + 1)
+        });
+    }
+
+    function handleFileChange(fileInput: InputData)
+    {
+        let name = fileInput.input?.value || "";
+        if (name.startsWith("C:\\fakepath\\"))
+        {
+            name = name.substring(12);
+        }
+
+        if (name.length)
+            fileInput.filepath = name;
+
+        // update fileInputs (assumes fileInput is in the list)
+        fileInputs = fileInputs;
     }
 
 
 </script>
 <h1 class="ml-10 mt-2 text-3xl">New Track</h1>
+
+
+
+<Transition
+    class="absolute flex flex-col items-center justify-center w-full"
+    show={formState === 0}
+    enter="transition-opacity duration-300"
+    enterFrom="opacity-0"
+    enterTo="opacity-100"
+    leave="transition-opacity duration-300"
+    leaveFrom="opacity-100"
+    leaveTo="opacity-0"
+>
+
+<!-- Error message box -->
+<Transition
+    class="flex flex-col items-center justify-center w-full"
+    show={showErrors}
+    enter="transition-opacity duration-300"
+    enterFrom="opacity-0"
+    enterTo="opacity-100"
+    leave="transition-opacity duration-300"
+    leaveFrom="opacity-100"
+    leaveTo="opacity-0"
+
+    on:outroend={() => errorMessages.length = 0}
+>
+    <ErrorAlert title="An error occurred during your submission" errorList={errorMessages} oncancel={() => showErrors = false}/>
+</Transition>
+
 <Form
     class="max-w-[512px] mx-auto border border-gray-50 mt-4 rounded-md shadow-sm"
     action={testLoadAudioHandler}
     method="POST" onThen={testLoadAudioHandlerHandler}
     >
+
     <div class="p-2">
         <div class="relative w-full h-12 mb-2">
         <p class="text-2xl">Layers</p>
@@ -150,28 +221,17 @@
 
     <div class="w-full">
     {#each fileInputs as fileInput, i (fileInput)}
-        <div class="group relative flex items-center mb-2">
-
+        <div class={i === fileInputs.length - 1 ? "sr-only" : "group relative flex items-center mb-2"}>
             <input class="text-xs px-4 py-1 border border-gray-100" bind:value={fileInput.layername} type="text" name="name" />
+
             <label class="text-xs font-bold pl-4" for={"Layer_" + (i + 1)}>
-                {#if fileInput !== undefined}
                 <input
                     bind:this={fileInput.input}
                     on:change={(evt) => {
+                        if (i === fileInputs.length - 1)
+                            handleNewFileChange(evt);
 
-                        for (let i = 0; i < fileInputs.length; ++i)
-                        {
-                            let name = fileInputs[i].input?.value || "";
-                            if (name.startsWith("C:\\fakepath\\"))
-                            {
-                                name = name.substring(12);
-                            }
-
-                            if (name.length)
-                                fileInput.filepath = name;
-                        }
-
-                        submitEl.click();
+                        handleFileChange(fileInput);
                     }}
                     on:drop={evt => {
                         evt.preventDefault();
@@ -188,26 +248,27 @@
                     name={"Layer " + (i+1)}
                     type="file"
                 />
-                {/if}
 
-                {#if !filePaths[i]}
+                {#if !fileInput.filepath}
                     <div class="inline border border-gray-200 rounded-md p-1 cursor-pointer select-none"><Icon class="inline-block mr-1" src="{ArrowUpTray}" mini solid size="16" />
                         Upload audio
                     </div>
                 {:else}
-                    <div class="inline-flex rounded border border-gray-100">
-                        <div class="inline-flex justify-center items-center w-6 aspect-square p-1">
-                            <Icon class="inline rounded-md" src="{MusicalNote}" />
+                    <div class="inline-flex rounded border border-gray-100 shadow-sm">
+                        <div class="inline-flex justify-center items-center w-6 aspect-square bg-violet-100">
+                            <Icon class="inline rounded-md p-1 drop-shadow-sm" src="{MusicalNote}" />
                         </div>
                         <div class="border-l inline-flex items-center">
-                            <p class="mx-1 text-xs font-mono font-medium">{filePaths[i]}</p>
+                            <p class="mx-1 text-xs font-mono font-medium">{fileInput.filepath}</p>
                         </div>
                     </div>
                 {/if}
             </label>
+
+            <!-- Delete layer button -->
             {#if fileInputs.length > 1}
             <button
-                class="border bg-red-300 border-red-300 ml-2 opacity-0 group-hover:opacity-100"
+                class="rounded border bg-red-300 border-red-300 ml-2 opacity-0 group-hover:opacity-100"
                 type="button"
                 on:click={() => removeInputSlot(i)}
             >
@@ -216,27 +277,57 @@
             {/if}
 
         </div>
+
+        {#if i === fileInputs.length-1}
+            <label for={"Layer_" + (i + 1)}
+                class="mt-4 w-full border-t-2 border-gray-50 transition-colors duration-500 rounded-b-md bg-white hover:bg-gray-50 flex justify-center text-gray-400 hover:text-gray-500 cursor-pointer"
+            >
+                <p class="text-lg font-bold">+</p>
+            </label>
+        {/if}
     {/each}
     </div>
     </div>
 
-
-    <button
-        class="mt-4 w-full border-t-2 border-gray-50 transition-colors rounded-b-md bg-white hover:bg-gray-200 hover:border-transparent flex justify-center text-gray-400 hover:text-gray-500"
-        type="button"
-        on:click={() => {fileInputs.push({filepath: "", input: undefined, layername: "Layer " + (fileInputs.length + 1)}); fileInputs = fileInputs; ++numInputs}}>
-            <p class="text-lg font-bold">+</p>
-    </button>
-
     <button class="sr-only" bind:this={submitEl}></button>
 
 </Form>
+<div class="w-full flex justify-center mt-3">
+    <button
+        class="bg-violet-500 text-white px-2 rounded-md border border-violet-600"
+        on:click={()=> {
+            const files = collectFiles();
+            if (files.length === 0)
+            {
+                errorMessages.length = 0;
+                errorMessages.push("No audio files were attached.");
+                errorMessages = errorMessages;
+                return;
+            }
+            formState = 1;
+            submitEl.click();
+        }}
+    >
+        Next
+    </button>
+</div>
 
-<AudioPlayer onload={onload} />
+</Transition>
 
-<h2 class="text-xl mb-3 ml-2">Script</h2>
-<TextEditor
-    onRequestText={onRequestText}
-    onSave={()=> console.log("saved.")}
-/>
+<div class={"absolute transition-opacity duration-300 " + (formState === 1 ? "opacity-100" : "opacity-0 pointer-events-none")}>
+    <AudioPlayer onload={onload} mixPresets={mixPresets} />
+    <h2 class="text-xl mb-3 ml-2">Script</h2>
+    <TextEditor
+        onRequestText={onRequestText}
+        onSave={()=> console.log("saved.")}
+    />
+</div>
+
+
+
+<!-- <div class="mt-4 ml-4">
+    <input  bind:value={mixNameValue} placeholder="Mix Name" />
+    <button class="block" on:click={handleAddMixClick}>Add Mix</button>
+</div> -->
+
 
