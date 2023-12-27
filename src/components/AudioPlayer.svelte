@@ -1,8 +1,7 @@
 <script lang="ts">
-    import type { ParameterMgr } from "audio/params/ParameterMgr";
     import { Delegate } from "app/util/delegate";
     import { getContext, onMount } from "svelte";
-    import { Icon, Pause, PauseCircle, Play, PlayCircle } from "svelte-hero-icons";
+    import { Icon, Pause, Play } from "svelte-hero-icons";
     import { NumberParameter } from "app/audio/src/ts/params/types/NumberParameter";
     import VSlider from "./widgets/VSlider.svelte";
     import KnobWidget from "./widgets/KnobWidget.svelte";
@@ -14,7 +13,6 @@
     import type { Param } from "audio/params/ParameterMgr";
 
     export let onload: Delegate<void, [ArrayBuffer[] | ArrayBuffer, string[], string]>;
-
 
     let audioContext = getContext("audio");
 
@@ -38,6 +36,8 @@
     // todo: implement param page later
     export let params: Param[] = [];
 
+    export let retrieveMix: Delegate<number[], []> | undefined = undefined;
+
     $: audio = $audioContext;
     $: if ($audioContext) {
        $audioContext.onUpdate(onPlayerUpdate);
@@ -58,9 +58,11 @@
 
     onMount(() => {
         onload.subscribe(onLoadAudio);
+        retrieveMix?.subscribe(getCurrentMix);
 
         return () => {
             onload.unsubscribe(onLoadAudio);
+            retrieveMix?.unsubscribe(getCurrentMix);
         };
     });
 
@@ -194,6 +196,11 @@
         {
             volumes[i].transitionTo(mix[i], transitionTime);
         }
+    }
+
+    function getCurrentMix()
+    {
+        return volumes.map(vol => vol.value);
     }
 
 </script>

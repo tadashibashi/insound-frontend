@@ -22,26 +22,34 @@
     let fileInputs: InputData[] = [
         {layername: "Layer 1", filepath: "", input: undefined}
     ];
+
+    // state tracker, shows different parts of the form when set
+    // 0: file loader
+    // 1: options + audio previewer
     let formState = 0;
+
+    // error messages to display
+    let errorMessages: string[] = [];
+    $: showErrors = errorMessages.length > 0;
 
     // ===== Options ==========================================================
 
     let mixPresets: MixPreset[] = [];
-
     let showMarkers = true;
     let looping = true;
     let transitionTime = 1;
 
 
 
-    let errorMessages: string[] = [];
-    $: showErrors = errorMessages.length > 0;
+
 
     let submitEl: HTMLButtonElement;
 
     const onload = new Delegate<void, [ArrayBuffer | ArrayBuffer[], string[],
         string]>;
     const onRequestText = new Delegate<string, []>;
+
+    const retrieveMix = new Delegate<number[], []>;
 
     function loadAudioHandler(payload: Result<unknown, unknown>,
         data: FormData)
@@ -119,6 +127,7 @@
 
         let text = "";
         const names = data.getAll("name").map(val => val.toString());
+        names.pop(); // remove last one, since it's a dummy input waiting for user input
         if (onRequestText.handleCount)
         {
             text = onRequestText.invoke();
@@ -308,32 +317,46 @@
 
 </Transition>
 
-<div class={"absolute transition-opacity duration-300 " + (formState === 1 ? "opacity-100" : "opacity-0 pointer-events-none")}>
+<div class={"absolute w-full mt-4 transition-opacity duration-300 flex justify-center "
+    + (formState === 1 ? "opacity-100" : "opacity-0 pointer-events-none")}>
+    <div class="w-3/4">
 
-    <!-- options -->
-    <table>
-        <tbody>
-            <tr>
-                <td class="p-1">
-                    <label for="show-markers-input" class="block text-xs font-bold">
-                        Show Markers
-                    </label>
-                </td>
-                <td>
-                    <Switch id="show-markers-input" enabled={showMarkers} description="Option whether to show audio markers to end viewer." />
-                </td>
-            </tr>
+        <!-- options -->
+        <table>
+            <tbody>
+                <tr>
+                    <td class="p-1">
+                        <label for="show-markers-input" class="block text-xs font-bold">
+                            Show Markers
+                        </label>
+                    </td>
+                    <td>
+                        <Switch id="show-markers-input" bind:enabled={showMarkers} description="Option whether to show audio markers to end viewer." />
+                    </td>
+                    <td class="p-1">
+                        <label for="is-looping-input" class="block text-xs font-bold">
+                            Looping
+                        </label>
+                    </td>
+                    <td>
+                        <Switch id="is-looping-input" bind:enabled={looping} description="Option whether to set track to looping"/>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <AudioPlayer onload={onload}
+            mixPresets={mixPresets}
+            showMarkers={showMarkers}
+            looping={looping}
+            transitionTime={transitionTime}
+            retrieveMix={retrieveMix}
+        />
 
-            <tr>
-                <td class="p-1">
-                    <label for="is-looping-input" class="block text-xs font-bold">
-                        Looping
-                    </label>
-                </td>
-                <td>
-                    <Switch id="is-looping-input" enabled={looping} description="Option whether to set track to looping"/>
-                </td>
-            </tr>
+        <div class="flex justify-between">
+            <div class="flex">
+                <h2 class="text-xl mr-4">Mix Presets</h2>
+                <button on:click={() => console.log(retrieveMix.invoke())}>Add Mix +</button>
+            </div>
 
             <tr>
                 <td class="p-1">
@@ -345,15 +368,20 @@
                     <input id="transition-time" type="number" min="0" max="10" step=".1" bind:value={transitionTime} class="pl-2 border border-gray-100"/>
                 </td>
             </tr>
-        </tbody>
-    </table>
+        </div>
 
-    <AudioPlayer onload={onload} mixPresets={mixPresets} />
-    <h2 class="text-xl mb-3 ml-2">Script</h2>
-    <TextEditor
-        onRequestText={onRequestText}
-        onSave={()=> console.log("saved.")}
-    />
+
+
+
+
+
+        <h2 class="text-xl mb-3 ml-2">Script</h2>
+        <TextEditor
+            onRequestText={onRequestText}
+            onSave={()=> console.log("saved.")}
+        />
+    </div>
+
 </div>
 
 
