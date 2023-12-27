@@ -9,19 +9,30 @@
     import { Transition } from "@rgossiaux/svelte-headlessui";
     import type { MixPreset } from "app/audio/src/ts/MixPresetMgr";
     import ErrorAlert from "app/components/widgets/ErrorAlert.svelte";
-
-    let fileInputs: InputData[] = [{layername: "Layer 1", filepath: "", input: undefined}];
-    let filePaths: string[] = [];
-
-    let formState = 0;
-
-    let mixPresets: MixPreset[] = [];
+    import Switch from "app/components/widgets/Switch.svelte";
 
     interface InputData {
         layername: string;
         filepath: string;
         input: HTMLInputElement | undefined;
     }
+
+    // ===== Form state =======================================================
+
+    let fileInputs: InputData[] = [
+        {layername: "Layer 1", filepath: "", input: undefined}
+    ];
+    let formState = 0;
+
+    // ===== Options ==========================================================
+
+    let mixPresets: MixPreset[] = [];
+
+    let showMarkers = true;
+    let looping = true;
+    let transitionTime = 1;
+
+
 
     let errorMessages: string[] = [];
     $: showErrors = errorMessages.length > 0;
@@ -121,14 +132,8 @@
         index = Math.floor(index);
         if (index < fileInputs.length && fileInputs.length > 1)
         {
-
-
             const temp = [...fileInputs];
-
-            filePaths.splice(index, 1);
             temp.splice(index, 1);
-
-            filePaths = filePaths;
             fileInputs = temp;
         }
     }
@@ -165,7 +170,6 @@
 
 </script>
 <h1 class="ml-10 mt-2 text-3xl">New Track</h1>
-
 
 
 <Transition
@@ -206,16 +210,6 @@
         <p class="text-2xl">Layers</p>
 
         <p class="text-xs font-bold"><span>Name</span></p>
-<!--         <div class="absolute top-1 right-1">
-
-
-            <button
-                class="w-8 border border-gray-100 rounded-md bg-gray-200 hover:bg-gray-100"
-                type="button"
-                on:click={() => numInputs = Math.max(1, numInputs - 1)}>
-                    <Icon src="{Minus}" />
-            </button>
-        </div> -->
     </div>
 
 
@@ -315,6 +309,45 @@
 </Transition>
 
 <div class={"absolute transition-opacity duration-300 " + (formState === 1 ? "opacity-100" : "opacity-0 pointer-events-none")}>
+
+    <!-- options -->
+    <table>
+        <tbody>
+            <tr>
+                <td class="p-1">
+                    <label for="show-markers-input" class="block text-xs font-bold">
+                        Show Markers
+                    </label>
+                </td>
+                <td>
+                    <Switch id="show-markers-input" enabled={showMarkers} description="Option whether to show audio markers to end viewer." />
+                </td>
+            </tr>
+
+            <tr>
+                <td class="p-1">
+                    <label for="is-looping-input" class="block text-xs font-bold">
+                        Looping
+                    </label>
+                </td>
+                <td>
+                    <Switch id="is-looping-input" enabled={looping} description="Option whether to set track to looping"/>
+                </td>
+            </tr>
+
+            <tr>
+                <td class="p-1">
+                    <label for="transition-time" class="block text-xs font-bold">
+                        Transition Time (s)
+                    </label>
+                </td>
+                <td>
+                    <input id="transition-time" type="number" min="0" max="10" step=".1" bind:value={transitionTime} class="pl-2 border border-gray-100"/>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+
     <AudioPlayer onload={onload} mixPresets={mixPresets} />
     <h2 class="text-xl mb-3 ml-2">Script</h2>
     <TextEditor
