@@ -29,30 +29,27 @@
 
     let time: TimeDisplay = new TimeDisplay;
 
-    let showSyncPoints: boolean = true;
-    let isLooping: boolean = true;
+    export let showMarkers: boolean = true;
+    export let looping: boolean = true;
+    export let transitionTime: number = 1;
 
     export let mixPresets: MixPreset[] = [];
 
     // todo: implement param page later
     export let params: Param[] = [];
 
-    let transitionTime: number = 1;
-
-    let mixNameValue: string = "";
-
     $: audio = $audioContext;
     $: if ($audioContext) {
        $audioContext.onUpdate(onPlayerUpdate);
     }
 
-    $: if (isLooping) {
+    $: if (looping) {
         if ($audioContext && $audioContext.isTrackLoaded()) {
-            $audioContext.setLooping(isLooping);
+            $audioContext.setLooping(looping);
         }
     }  else {
         if ($audioContext && $audioContext.isTrackLoaded()) {
-            $audioContext.setLooping(isLooping);
+            $audioContext.setLooping(looping);
         }
     }
 
@@ -98,7 +95,7 @@
         }
 
         audio.setSyncPointCallback((label, seconds, index) => {
-            if (label === "LoopEnd" && !isLooping) {
+            if (label === "LoopEnd" && !looping) {
                 audio?.setPause(true);
                 isPlaying = false;
             }
@@ -137,7 +134,7 @@
         points = audio.points.points.map(point => { return{...point, isActive: false} });
 
         loopend = audio.engine.getLoopSeconds().loopend;
-        audio.setLooping(isLooping);
+        audio.setLooping(looping);
     }
 
 
@@ -199,68 +196,10 @@
         }
     }
 
-    function setDefaultMix(transitionTime: number)
-    {
-        const defaultMix = volumes.map(vol => vol.defaultValue);
-        setMix(defaultMix, transitionTime);
-    }
-
-    function handleAddMixClick()
-    {
-        if (mixNameValue === "" || volumes.length === 0) return;
-
-        mixPresets.push({
-            name: mixNameValue,
-            volumes: volumes.map(volume => volume.value),
-        });
-
-        mixNameValue = "";
-        mixPresets = mixPresets;
-    }
 </script>
 
 <!-- Player Container -->
 <div class="relative select-none">
-
-    <!-- options -->
-    <table>
-        <tbody>
-            <tr>
-                <td class="p-1">
-                    <label for="show-markers-input" class="block text-xs font-bold">
-                        Show Markers
-                    </label>
-                </td>
-                <td>
-                    <input id="show-markers-input" type="checkbox" bind:checked={showSyncPoints} />
-                </td>
-            </tr>
-
-            <tr>
-                <td class="p-1">
-                    <label for="is-looping-input" class="block text-xs font-bold">
-                        Looping
-                    </label>
-                </td>
-                <td>
-                    <input id="is-looping-input" type="checkbox" bind:checked={isLooping} />
-                </td>
-            </tr>
-
-            <tr>
-                <td class="p-1">
-                    <label for="transition-time" class="block text-xs font-bold">
-                        Transition Time (s)
-                    </label>
-                </td>
-                <td>
-                    <input id="transition-time" type="number" min="0" max="10" step=".1" bind:value={transitionTime} class="pl-2 border border-gray-100"/>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-
-
     <!-- Play/Pause Button -->
     <button
         class="drop-shadow-sm w-16 border border-gray-100 rounded-full box-content m-2"
@@ -283,7 +222,7 @@
     </div>
 
     <Playbar class="w-full px-2" active={isLoaded} time={time} markers={points}
-        loopend={loopend} looping={isLooping} showMarkers={showSyncPoints}
+        loopend={loopend} looping={looping} showMarkers={showMarkers}
         onchange={(cur) => {
             if (!audio) return;
 
