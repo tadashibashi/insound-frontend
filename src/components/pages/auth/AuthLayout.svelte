@@ -22,8 +22,6 @@
     }
 
     onMount(() => {
-
-        console.log(query.toString());
         lastLocation = query.get("last") || "/";
         if (lastLocation[0] !== "/") {
             lastLocation = "/" + lastLocation;
