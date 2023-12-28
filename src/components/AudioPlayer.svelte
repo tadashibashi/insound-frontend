@@ -11,6 +11,7 @@
     import ChoiceMenu from "./widgets/ChoiceMenu.svelte";
     import type { MixPreset } from "audio/MixPresetMgr";
     import type { Param } from "audio/params/ParameterMgr";
+    import ChannelStrip from "./widgets/ChannelStrip.svelte";
 
     export let onload: Delegate<void, [ArrayBuffer[] | ArrayBuffer, string[], string]>;
     export let onunload: Delegate<void, []>;
@@ -19,7 +20,9 @@
 
     let isPlaying = false;
     let isLoaded = false;
-    let numChannels = 0;
+    let channelCount = 0;
+
+    let layerNames: string[] = [];
 
     let points: (SyncPoint & {isActive: boolean})[] = [];
 
@@ -77,11 +80,13 @@
     let reverb = new NumberParameter("Reverb", 0, 0, 2, .01, 0, false,
         (i, val) => audio?.setMainReverbLevel(val));
 
+
     function onUnloadAudio()
     {
         if (!audio) return;
 
         audio.unloadTrack();
+        channelCount = 0;
     }
 
     // Callback fired when audio is loaded
@@ -116,27 +121,16 @@
             console.log("End reached!");
         });
 
-        const chVolumes: NumberParameter[] = [];
-        for (let i = 0; i < pLayerNames.length; ++i)
-        {
-            chVolumes.push(new NumberParameter(pLayerNames[i], i, 0, 1.25, .01,
-                1, false, (index, value) => {
-                    audio?.setChannelVolume(index, value);
-                }));
-        }
-
         // clear any potential volume transitions
         for (let i = 0; i < volumes.length; ++i)
         {
             volumes[i].clear();
         }
 
-        volumes = chVolumes;
-
-        numChannels = audio.channelCount;
+        channelCount = audio.channelCount;
         isLoaded = true;
         isPlaying = false;
-
+        layerNames = pLayerNames;
         time.max = audio.length;
 
         time.current = 0;
@@ -185,7 +179,7 @@
 
         const volume = target.valueAsNumber;
 
-        if (channel === numChannels) {
+        if (channel === channelCount) {
             // Main volume
             audio.setMainVolume(volume);
         } else {
@@ -262,15 +256,15 @@
     <!-- Mix preset options -->
     <ChoiceMenu class="" choices={mixPresets.map(preset => preset.name)} onchoose={value => setMix(mixPresets[value].volumes, transitionTime)}/>
 
-    <!-- Volume Sliders -->
-    <div class="h-[240px] w-full flex justify-evenly items-center overflow-hidden">
-        {#each Array(numChannels) as _, i (volumes[i])}
-            <VSlider param={volumes[i]} height="120px" />
-        {/each}
-        <VSlider class="h-full my-auto"
-            param={volume} height="120px" />
-        <KnobWidget class=""
-            param={reverb} />
+    <!-- Channel Strip -->
+    <div class="h-[240px] w-full overflow-x-scroll overflow-y-hidden">
+        {#if audio}
+            {#each Array(channelCount) as _, i ("channel-" + i)}
+                <ChannelStrip audio={audio} channel={i + 1} name="{layerNames[i]}" />
+            {/each}
+
+            <ChannelStrip audio={audio} channel={0} name="main" />
+        {/if}
     </div>
 
 </div>
