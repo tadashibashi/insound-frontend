@@ -25,9 +25,20 @@
 
     let focused: boolean = false;
 
-    let hideTimeout: NodeJS.Timeout | null = null;
+    let hideTimeout: number | null = null;
 
     let isShowing: boolean = show;
+
+    $: if (min !== undefined && max !== undefined)
+    {
+        // swap min-max if opposite
+        if (min > max)
+        {
+            const temp = max;
+            max = min;
+            min = temp;
+        }
+    }
 
     $: if (show || focused)
     {
