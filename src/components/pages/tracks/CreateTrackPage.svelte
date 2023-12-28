@@ -1,7 +1,7 @@
 <script lang="ts">
     import Form from "app/components/Form.svelte";
     import { Result } from "app/util/api/Result";
-    import { ArrowRight, ArrowSmallLeft, ArrowUpTray, Backward, Icon, Minus, MusicalNote, Pause, Play, Plus, PlusCircle, XMark } from "svelte-hero-icons";
+    import { ArrowDownTray, ArrowSmallLeft, ArrowUpTray, Icon, MusicalNote, PlusCircle, XMark } from "svelte-hero-icons";
     import { Delegate } from "app/util/delegate";
     import AudioPlayer from "app/components/AudioPlayer.svelte";
     import TextEditor from "app/components/TextEditor/TextEditor.svelte";
@@ -11,6 +11,8 @@
     import ErrorAlert from "app/components/widgets/ErrorAlert.svelte";
     import Switch from "app/components/widgets/Switch.svelte";
     import Modal from "app/components/Modal.svelte";
+    import { util } from "app/util";
+    import { afterUpdate } from "svelte";
 
     interface InputData {
         layername: string;
@@ -35,6 +37,8 @@
 
     let showAddMixModal = false;
 
+    let dropZoneDraggedOver = false;
+
     // ===== Options ==========================================================
 
     let mixPresets: MixPreset[] = [];
@@ -57,7 +61,36 @@ function on_marker(name, offset)
 end
 `;
 
+    let newFiles: File[] = [];
+    let newFileInsertPosition: number = 0;
 
+    // Apply new files to the last file inputs (created and pushed by the drop event)
+    afterUpdate(() => {
+        const newFileCount = newFiles.length;
+
+        if (newFileCount > 0)
+        {
+            if (fileInputs.length < newFileCount)
+            {
+                throw Error("Internal error, something went wrong while processing file drag");
+            }
+
+            for (let i = 0; i < newFileCount; ++i)
+            {
+                const fileInput = fileInputs[newFileInsertPosition + i];
+                const input = fileInput.input;
+                if (!input) continue;
+
+                const dt = new DataTransfer();
+                dt.items.add(newFiles[i]);
+                input.files = dt.files;
+                fileInput.filepath = newFiles[i].name;
+                fileInput.layername = util.fileNameToLabelName(newFiles[i].name);
+            }
+
+            newFiles.length = 0;
+        }
+    });
 
     let submitEl: HTMLButtonElement;
 
@@ -67,24 +100,6 @@ end
     const onRequestText = new Delegate<string, []>;
 
     const retrieveMix = new Delegate<number[], []>;
-
-    function loadAudioHandler(payload: Result<unknown, unknown>,
-        data: FormData)
-    {
-        if (!payload.ok)
-            throw Error("Request error.");
-        if (!(payload.result instanceof ArrayBuffer))
-            throw Error("Wrong data type received from request.");
-
-        let text = "";
-        const names = data.getAll("name").map(val => val.toString());
-        if (onRequestText.handleCount)
-        {
-            text = onRequestText.invoke();
-        }
-
-        onload.invoke(payload.result, names, text);
-    }
 
     function collectFiles(): File[]
     {
@@ -174,7 +189,6 @@ end
         const target = evt.currentTarget as HTMLInputElement;
 
         if (!target || !target.value) return;
-        const lastFileInput = fileInputs[fileInputs.length-1];
 
         fileInputs.push({
             filepath: "",
@@ -183,24 +197,98 @@ end
         });
     }
 
-    function handleFileChange(fileInput: InputData)
+    function handleFileChange(fileInput: InputData, index: number)
     {
-        let name = fileInput.input?.value || "";
-        if (name.startsWith("C:\\fakepath\\"))
+        const input = fileInput.input;
+        if (!input) return;
+
+        if (!input.files)
         {
-            name = name.substring(12);
+            fileInput.filepath = "";
+            fileInput.layername = "";
+            return;
         }
 
-        if (name.length)
-            fileInput.filepath = name;
+        const numFiles = input.files.length;
+        for (let i = 0; i < numFiles; ++i)
+        {
+            if (i > 0)
+            {
+                // push new input, add data to queue to be added after render
+                const name = input.files[i].name;
+                const newFileInput = {
+                    input: undefined,
+                    filepath: "",
+                    layername: "",
+                };
+
+                // add new file input
+                if (index + i >= fileInputs.length)
+                    fileInputs.push(newFileInput);
+                else
+                    fileInputs.splice(index + i, 0, newFileInput);
+
+                // add new file to the queue (to be inserted after render)
+                newFiles.push(input.files[i]);
+            }
+            else
+            {
+                // alter current data
+                const name = input.files[i].name;
+                fileInput.filepath = name;
+                fileInput.layername = util.fileNameToLabelName(name);
+            }
+        }
+
+        if (numFiles > 1)
+        {
+            // new files need to be inserted on new file inputs, indicate
+            // the index at which to begin inserting
+            newFileInsertPosition = index + 1;
+
+            // since multiple files were input, we only need the first one on
+            // the original input element
+            const dt = new DataTransfer();
+            dt.items.add(input.files.item(0) as File);
+
+            input.files = dt.files;
+        }
 
         // update fileInputs (assumes fileInput is in the list)
         fileInputs = fileInputs;
     }
 
+    function handleDropFile(evt: DragEvent, fileInput: InputData)
+    {
+        evt.preventDefault();
+
+        const target = fileInput.input;
+        if (!target || !evt.dataTransfer || !evt.dataTransfer.files.length) return;
+
+        const dropFileCount = evt.dataTransfer.files.length;
+
+        for (let i = 0; i < dropFileCount; ++i)
+        {
+            fileInputs.push({
+                filepath: "",
+                input: undefined,
+                layername: "Layer " + (fileInputs.length + 1)
+            });
+
+            newFiles.push(evt.dataTransfer.files.item(i) as File);
+        }
+
+        newFileInsertPosition = fileInputs.length - dropFileCount - 1;
+        newFiles = newFiles;
+        fileInputs = fileInputs;
+
+        dropZoneDraggedOver = false;
+    }
+
 
 </script>
 
+<!-- Modals -->
 <Modal bind:show={showAddMixModal} isCancellable={true}>
     <div class="w-full h-full fixed flex items-center justify-center">
         <div class="bg-white rounded-md w-1/2 min-w-[200px] h-auto">
@@ -210,9 +298,11 @@ end
     </div>
 </Modal>
 
+<!-- Header -->
 <h1 class="ml-10 mt-2 text-3xl">New Track</h1>
 
 
+<!-- Form State 0: Audio file selection -->
 <div
     class={"absolute flex flex-col items-center justify-center w-full transition-opacity duration-300 " +
         (formState === 0 ? "opacity-100" : "opacity-0 pointer-events-none")}
@@ -234,21 +324,21 @@ end
         <ErrorAlert title="An error occurred during your submission" errorList={errorMessages} oncancel={() => showErrors = false}/>
     </Transition>
 
+
+    <div class="w-full h-12 mb-2">
+        <p class="text-2xl text-center text-gray-500">Sound Layers</p>
+    </div>
+
+    <!-- Audio file selection boxes -->
     <Form
-        class="max-w-[512px] mx-auto border border-gray-50 mt-4 rounded-md shadow-sm"
+        class="max-w-[512px] mx-auto mb-2 rounded-md"
         action={testLoadAudioHandler}
         method="POST" onThen={testLoadAudioHandlerHandler}
         >
 
-        <div class="p-2">
-            <div class="relative w-full h-12 mb-2">
-            <p class="text-2xl">Layers</p>
-        </div>
-
-
-        <div class="w-full">
+        <div class={fileInputs.length <= 1 ? "sr-only" : "w-full p-2"}>
         {#each fileInputs as fileInput, i (fileInput)}
-            <div class={i === fileInputs.length - 1 ? "sr-only" : "group relative flex items-center mb-2"}>
+            <div class={i === fileInputs.length - 1 ? "sr-only" : "group relative flex items-center mb-2"} draggable>
                 <div class="relative">
                     <p class="absolute left-2 -top-1.5 bg-white px-1 font-bold text-[8px] text-gray-200">Layer {i + 1}</p>
                     <input class="text-xs px-4 py-1 border border-gray-100"
@@ -259,29 +349,23 @@ end
                 </div>
 
 
-                <label class="text-xs font-bold pl-4" for={"Layer_" + (i + 1)}>
+                <label class="text-xs font-bold select-none" for={"Layer_" + (i + 1)}>
                     <input
                         bind:this={fileInput.input}
                         on:change={(evt) => {
+                            const target = evt.currentTarget;
+                            if (!target || !target.files || !target.files.length) return;
+
                             if (i === fileInputs.length - 1)
                                 handleNewFileChange(evt);
 
-                            handleFileChange(fileInput);
+                            handleFileChange(fileInput, i);
                         }}
-                        on:drop={evt => {
-                            evt.preventDefault();
-                            if (evt.dataTransfer && evt.dataTransfer.files &&
-                                evt.dataTransfer.files.length)
-                            {
-                                fileInputs[i]
-                            }
-
-                        }}
-
                         class="sr-only"
                         id={"Layer_" + (i + 1)}
                         name={"Layer " + (i+1)}
                         type="file"
+                        multiple
                     />
 
                     {#if !fileInput.filepath}
@@ -289,14 +373,21 @@ end
                             Upload audio
                         </div>
                     {:else}
-                        <div class="inline-flex rounded border border-gray-100 shadow-sm">
-                            <div class="inline-flex justify-center items-center w-6 aspect-square bg-violet-100">
-                                <Icon class="inline rounded-md p-1 drop-shadow-sm" src="{MusicalNote}" />
+                        <div class="inline-flex justify-center items-center">
+                            <div class="flex items-center justify-center">
+                                <div class="border-t border border-gray-200 w-4"></div>
                             </div>
-                            <div class="border-l inline-flex items-center">
-                                <p class="mx-1 text-xs font-mono font-medium">{fileInput.filepath}</p>
+                            <div class="inline-flex rounded border border-gray-100 shadow-sm">
+
+                                <div class="inline-flex justify-center items-center w-6 aspect-square bg-violet-100">
+                                    <Icon class="inline rounded-md p-1 drop-shadow-sm" src="{MusicalNote}" />
+                                </div>
+                                <div class="border-l inline-flex items-center">
+                                    <p class="mx-1 text-xs font-mono font-medium">{fileInput.filepath}</p>
+                                </div>
                             </div>
                         </div>
+
                     {/if}
                 </label>
 
@@ -310,7 +401,6 @@ end
                     <Icon class="text-white" src="{XMark}" size="16"/>
                 </button>
                 {/if}
-
             </div>
 
             {#if i === fileInputs.length-1}
@@ -322,12 +412,32 @@ end
             {/if}
         {/each}
         </div>
+
+        <!-- Add layer drop zone when no layers are visible -->
+        {#if fileInputs.length === 1}
+        <!-- svelte-ignore a11y-no-static-element-interactions -->
+        <div  class="relative w-full flex flex-col items-center justify-center p-10 rounded-md min-w-[300px] border-dashed border-2 border-gray-200 text-gray-300 select-none cursor-default"
+            on:dragenter={(evt)=>{evt.preventDefault(); dropZoneDraggedOver=true;}}
+            on:dragover={(evt)=>evt.preventDefault()}
+            on:drop={(evt) => handleDropFile(evt, fileInputs[0])}
+        >
+            <Icon class="block mb-2" src="{ArrowDownTray}" size="48" />
+            <p class="text-center text-xs"><label for="Layer_1" class="cursor-pointer inline font-bold text-gray-400">Choose an audio file</label> or drag one here</p>
+
+            {#if dropZoneDraggedOver}
+            <div class="absolute w-full h-full rounded-md opacity-20 bg-gray-900"
+                on:dragleave={(evt) => {evt.preventDefault(); dropZoneDraggedOver=false;}}
+                on:dragover={(evt) => evt.preventDefault()}
+            />
+            {/if}
         </div>
+        {/if}
 
         <button class="sr-only" bind:this={submitEl}></button>
 
     </Form>
 
+    {#if fileInputs.length > 1}
     <div class="w-full flex justify-center mt-3">
         <button
             class="bg-violet-700 text-white px-2 rounded-md border border-violet-600"
@@ -350,6 +460,7 @@ end
             Next
         </button>
     </div>
+    {/if}
 
 </div>
 
@@ -383,6 +494,8 @@ end
                 </tr>
             </tbody>
         </table>
+
+        <!-- Player -->
         <AudioPlayer onload={onload} onunload={onunload}
             mixPresets={mixPresets}
             showMarkers={showMarkers}
@@ -391,7 +504,9 @@ end
             retrieveMix={retrieveMix}
         />
 
+        <!-- Mix Presets -->
         <div class="flex justify-between">
+            <!-- Title -->
             <div class="flex">
                 <h2 class="text-xl mr-4">Mix Presets</h2>
                 <button on:click={() => {
@@ -400,6 +515,7 @@ end
                 >Add Mix <Icon class="inline" src="{PlusCircle}" size="16" /></button>
             </div>
 
+            <!-- Transition Time -->
             <tr>
                 <td class="p-1">
                     <label for="transition-time" class="block text-xs font-bold">
@@ -412,6 +528,7 @@ end
             </tr>
         </div>
 
+        <!-- Script -->
         <h2 class="text-xl mb-3 ml-2">Script</h2>
         <TextEditor
             onRequestText={onRequestText}
@@ -419,6 +536,7 @@ end
             value={defaultScript}
         />
 
+        <!-- Submit Button -->
         <button type="button" class="block mx-auto mt-4 px-2 py-1 bg-violet-700 text-white rounded-md">Submit</button>
     </div>
 
