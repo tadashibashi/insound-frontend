@@ -7,6 +7,7 @@
     import { util } from "app/util";
 
     export let param: NumberParameter;
+    export let showName: boolean = true;
 
     let rotation: number = 0;
 
@@ -115,15 +116,31 @@
             angle += 360;
         const percentage = (angle - AngleMin) / AngleDistance;
 
-        const paramDistance = param.max - param.min;
-        return percentage * paramDistance + param.min;
+        const paramDistance = Math.abs(param.max - param.min);
+        return param.min < param.max ?
+            percentage * paramDistance + param.min :
+            paramDistance - (percentage * paramDistance) + param.max;
     }
 
     function valueToAngle(value: number)
     {
-        const percentage = (value - param.min) / (param.max - param.min);
+        let min: number, max: number;
+        if (param.min < param.max)
+        {
+            min = param.min;
+            max = param.max;
+        }
+        else
+        {
+            min = param.max;
+            max = param.min;
+        }
 
-        return percentage * AngleDistance + AngleMin;
+        const percentage = (value - min) / (max - min);
+
+        return param.min < param.max ?
+            percentage * AngleDistance + AngleMin :
+            AngleDistance - (percentage * AngleDistance) + AngleMin;
 
     }
 
@@ -146,7 +163,9 @@
     on:mouseleave={mouseLeaveHandler}
     on:dblclick={dblclickHandler}
 >
+    {#if showName}
     <WidgetLabel for={id} name={param.name} />
+    {/if}
 
     <!-- Dial -->
     <div class="relative">
