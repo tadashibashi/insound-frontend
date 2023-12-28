@@ -151,7 +151,6 @@
     });
 </script>
 
-
 <div class={$$props.class}
     role="group" aria-roledescription="houses a ui slider"
     on:mouseenter={containerMouseEnterHandler}
@@ -160,14 +159,11 @@
 >
     <div class="flex flex-col items-center justify-center h-full w-24 select-none">
        <div class="w-full justify-center">
-            <div class="overflow-visible">
-                <WidgetLabel name={param.name} for={id} />
-            </div>
-
 
             <!-- Slider -->
-            <div aria-roledescription="slider" class="w-full relative py-1 mb-1"
+            <div aria-roledescription="slider" class="w-full relative"
                 style={`height: ${height};`}>
+
                 <!-- Track line -->
                 <div class="relative rounded-full mx-auto w-1 h-full bg-gray-200 border border-l-gray-300 border-t-gray-300 border-r-gray-100 border-b-gray-100"
                     bind:this={trackLine}
@@ -186,12 +182,18 @@
                         style={`transform: translateY(${defaultPositionY}px);`}/>
                 </div>
             </div>
+
+            <!-- Number Input -->
             <div class="overflow-visible">
                <NumberInput id={id} min={param.min} max={param.max} value={param.value}
                 step={param.step} onchange={inputChangeHandler}
                 show={showNumberInput} delayHide={500}/>
             </div>
 
+            <!-- Label -->
+            <div class="overflow-visible">
+                <WidgetLabel name={param.name} for={id} />
+            </div>
         </div>
     </div>
 </div>
