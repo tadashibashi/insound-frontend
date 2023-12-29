@@ -14,6 +14,9 @@
     // Show/hide
     export let show: boolean = true;
 
+    // Show arrows on focus
+    export let showArrowsOnFocus = false;
+
     // Time to delay triggering shift from show -> hide
     export let delayHide: number = 0;
 
@@ -105,16 +108,16 @@
 
     <input
         id={id}
-        class={"w-full text-center font-light text-gray-200 " +
-            (focused ? "focused" : "")}
+        class={"w-full text-center font-light text-gray-200 bg-transparent " +
+            (focused && showArrowsOnFocus ? "focused" : "")}
         min={min}
         max={max}
         step={step}
         type="number"
         value={value}
         on:change={changeHandler}
-        on:focus={() => focused = true}
-        on:blur={() => focused = false}
+        on:focus={() => { focused = true; }}
+        on:blur={() => { focused = false; }}
         />
 
 </div>
@@ -123,7 +126,7 @@
     input[type="number"] {
         font-size: .6rem;
         margin:  0;
-        appearance:  textfield;
+        appearance: textfield;
         -moz-appearance: textfield;
         padding: 1px 0px;
         border-radius: 4px;
