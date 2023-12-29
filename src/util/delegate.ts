@@ -113,23 +113,36 @@ export class Delegate<Ret, Args extends any[]> {
      *         or if this function is invoked inside one of the callbacks.
      */
     invoke(...args: Args): Ret {
-        if (this.isInvoking)
-            throw Error("Delegate cannot be invoked while already invoking.");
-        if (this.handles.length === 0)
-            throw Error("Cannot invoke Delegate without any handles");
+        try {
+            if (this.isInvoking)
+            {
+                throw Error("Delegate cannot be invoked while already invoking.");
+            }
 
-        this.isInvoking = true;
-        const length = this.handles.length;
-        const ret = this.handles[0].invoke(...args);
-        
-        for (let i = 1; i < length; ++i) {
-            this.handles[i].invoke(...args);
+            if (this.handles.length === 0)
+            {
+                throw Error("Cannot invoke Delegate without any handles");
+            }
+
+            this.isInvoking = true;
+            const length = this.handles.length;
+            const ret = this.handles[0].invoke(...args);
+
+            for (let i = 1; i < length; ++i) {
+                this.handles[i].invoke(...args);
+            }
+            this.isInvoking = false;
+
+            this.doCommands();
+
+            return ret;
         }
-        this.isInvoking = false;
+        catch(err)
+        {
+            this.isInvoking = false;
+            throw err;
+        }
 
-        this.doCommands();
-
-        return ret;
     }
 
     private doCommands() {
