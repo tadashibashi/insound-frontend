@@ -1,30 +1,34 @@
 <script lang="ts">
+    import type { AudioChannelSettings } from "app/util/AudioChannel";
+    import { AudioConsole } from "app/util/AudioConsole";
+    import type { AudioEngine } from "audio/AudioEngine";
     import { Delegate } from "app/util/delegate";
-    import { getContext, onMount } from "svelte";
-    import { Icon, Pause, Play } from "svelte-hero-icons";
-    import { NumberParameter } from "app/audio/src/ts/params/types/NumberParameter";
-    import Playbar from "./widgets/Playbar.svelte";
-    import { TimeDisplay } from "app/util/TimeDisplay";
-    import type { SyncPoint } from "audio/SyncPointMgr";
-    import ChoiceMenu from "./widgets/ChoiceMenu.svelte";
     import type { MixPreset } from "app/util/MixPreset";
     import type { Param } from "audio/params/ParameterMgr";
+    import type { SyncPoint } from "audio/SyncPointMgr";
+    import { TimeDisplay } from "app/util/TimeDisplay";
+
+    import { onMount } from "svelte";
+
     import ChannelStrip from "./widgets/ChannelStrip.svelte";
-    import { AudioConsole } from "app/util/AudioConsole";
-    import type { AudioChannelSettings } from "app/util/AudioChannel";
+    import ChoiceMenu from "./widgets/ChoiceMenu.svelte";
+    import Playbar from "./widgets/Playbar.svelte";
+    import { Icon, Pause, Play } from "svelte-hero-icons";
 
     export let onload: Delegate<void, [ArrayBuffer[] | ArrayBuffer, string[], string]>;
     export let onunload: Delegate<void, []>;
+    export let retrieveMix: Delegate<MixPreset, []> | undefined = undefined;
 
-    // Bindable AudioConsole for external setting control or to provide your own
-    export let audioConsole = new AudioConsole();
+    // Providing the AudioEngine externally ensures it always exists in this
+    // component.
+    export let audio: AudioEngine;
 
-    let audioContext = getContext("audio");
+    // Bindable AudioConsole for external control. You can provide your own.
+    export let audioConsole = new AudioConsole(audio);
 
     // ===== State ============================================================
     let isPlaying = false;
     let isAudioLoaded = false;
-
 
     let points: (SyncPoint & {isActive: boolean})[] = [];
 
@@ -32,6 +36,8 @@
     let wasPlayingBeforeSeek = false;
 
     let time: TimeDisplay = new TimeDisplay;
+
+    let loopend: number = 0;
 
     export let showMarkers: boolean = true;
     export let looping: boolean = true;
@@ -42,28 +48,18 @@
     // todo: implement param page later
     export let params: Param[] = [];
 
-    export let retrieveMix: Delegate<MixPreset, []> | undefined = undefined;
 
-    $: audio = $audioContext;
-    $: if ($audioContext) {
-       $audioContext.onUpdate(onPlayerUpdate);
-       audioConsole.provideAudioEngine($audioContext);
-    }
-
-    $: if (looping) {
-        if ($audioContext && $audioContext.isTrackLoaded()) {
-            $audioContext.setLooping(looping);
-        }
-    }  else {
-        if ($audioContext && $audioContext.isTrackLoaded()) {
-            $audioContext.setLooping(looping);
-        }
+    $: if (looping && audio.isTrackLoaded())
+    {
+        audio.setLooping(looping);
     }
 
 
-    let loopend: number = 0;
+    // ----- Callbacks --------------------------------------------------------
 
     onMount(() => {
+       audio.onUpdate(onPlayerUpdate);
+
         onload.subscribe(onLoadAudio);
         onunload.subscribe(onUnloadAudio);
         retrieveMix?.subscribe(getCurrentMix);
@@ -75,8 +71,7 @@
         };
     });
 
-    let volumes: NumberParameter[] = [];
-
+    // Called when unloading audio track
     function onUnloadAudio()
     {
         if (!audio) return;
@@ -86,12 +81,9 @@
     }
 
     // Callback fired when audio is loaded
-    function onLoadAudio(pData: ArrayBuffer | ArrayBuffer[], pLayerNames: string[],
-        scriptText: string)
+    function onLoadAudio(pData: ArrayBuffer | ArrayBuffer[],
+        pLayerNames: string[], scriptText: string)
     {
-        if(!audio)
-            throw Error("AudioEngine was not initialized.");
-
         if (Array.isArray(pData))
         {
             audio.loadSounds(pData, {
@@ -107,21 +99,16 @@
 
         audio.setSyncPointCallback((label, seconds, index) => {
             if (label === "LoopEnd" && !looping) {
-                audio?.setPause(true);
+                audio.setPause(true);
                 isPlaying = false;
             }
 
             points[index].isActive = true;
         });
+
         audio.setEndCallback(() => {
             console.log("End reached!");
         });
-
-        // clear any potential volume transitions
-        for (let i = 0; i < volumes.length; ++i)
-        {
-            volumes[i].clear();
-        }
 
         isAudioLoaded = true;
         isPlaying = false;
@@ -143,36 +130,10 @@
     // Called 60+ times a second
     function onPlayerUpdate()
     {
-        if (!audio) return;
-
         if (!audio.paused)
         {
             time.current = audio.position;
         }
-    }
-
-    function onPressPlay()
-    {
-        if (!audio || !audio.isTrackLoaded()) return;
-        const newPause = !audio.paused;
-
-        if (!newPause)
-            audio.setPause(newPause, 0);
-        else
-            audio.setPause(newPause, .1);
-        isPlaying = !newPause;
-    }
-
-    function applyMix(mix: AudioChannelSettings[], transitionTime: number = 0)
-    {
-        if (!audio || !audio.isTrackLoaded()) return;
-
-        audioConsole.applySettings(mix, transitionTime);
-    }
-
-    function getCurrentMix()
-    {
-        return {name: "", mix: audioConsole.getCurrentSettings()};
     }
 
     /**
@@ -183,8 +144,6 @@
      */
     function onSeeked(cur: number)
     {
-        if (!audio) return;
-
         audio.seek(Math.max(Math.min(cur, audio.length-.001), 0));
 
         // Start playing audio again if it was seek interrupted
@@ -196,15 +155,43 @@
         }
     }
 
+    // Called when seeking begins, user begins dragging playhead
     function onSeekStart()
     {
-        if (!audio) return;
         if (!audio.paused)
             wasPlayingBeforeSeek = true;
         audio.setPause(true);
         isPlaying = false;
     }
 
+    // Called when player clicks play/pause button
+    function onPressPlay()
+    {
+        if (!audio.isTrackLoaded()) return;
+        const newPause = !audio.paused;
+
+        if (!newPause)
+            audio.setPause(newPause, 0);
+        else
+            audio.setPause(newPause, .1);
+        isPlaying = !newPause;
+    }
+
+    // ----- Helpers ----------------------------------------------------------
+
+    // Helper to apply a mix setting to the audio console
+    function applyMix(mix: AudioChannelSettings[], transitionTime: number = 0)
+    {
+        if (!audio.isTrackLoaded()) return;
+
+        audioConsole.applySettings(mix, transitionTime);
+    }
+
+    // Helper to get current mix from the audio console
+    function getCurrentMix()
+    {
+        return {name: "", mix: audioConsole.getCurrentSettings()};
+    }
 </script>
 
 <!-- Player Container -->
