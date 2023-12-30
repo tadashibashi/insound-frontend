@@ -8,6 +8,7 @@
 
     export let param: NumberParameter;
     export let showName: boolean = true;
+    export let labelClass: string = "";
 
     let rotation: number = 0;
 
@@ -164,7 +165,7 @@
     on:dblclick={dblclickHandler}
 >
     {#if showName}
-    <WidgetLabel for={id} name={param.name} />
+    <WidgetLabel for={id} name={param.name} size="{labelClass}" />
     {/if}
 
     <!-- Dial -->
@@ -185,6 +186,7 @@
                 style={`transform: rotate(${AngleMin}deg);`}>
                 <div class="h-[1px] w-1 bg-gray-200 -mr-2"></div>
             </div>
+
             <!-- default value mark -->
             <div class="absolute flex items-center justify-end w-full aspect-square"
                 style={`transform: rotate(${valueToAngle(param.defaultValue)}deg);`}>
@@ -194,7 +196,7 @@
 
         <!-- Main knob -->
         <button
-            class={"rounded-full w-full border border-gray-200 bg-[#fcfcfc] aspect-square flex items-center justify-end ring-inset ring-2 ring-gray-100 z-10"}
+            class={"rounded-full w-full border border-gray-200 bg-[#fcfcfc] aspect-square flex items-center justify-end ring-inset ring-2 ring-gray-100 z-10 drop-shadow-sm"}
             bind:this={button}
             on:mousedown={mousedownHandler}
             style={`transform: rotate(${rotation}deg);`}
@@ -208,7 +210,7 @@
     <!-- Input text box -->
     <NumberInput id={id} value={param.value} min={param.min} max={param.max}
         step={param.step}
-        onchange={inputChangeHandler} show={showNumberInput} delayHide={500} />
+        onchange={inputChangeHandler} show={showNumberInput} delayHide={250} />
 </div>
 
 

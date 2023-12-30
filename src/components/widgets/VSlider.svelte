@@ -18,6 +18,10 @@
      */
     export let height: string = "100px";
 
+    export let labelClass: string = "";
+
+    export let showName = true;
+
 
     // ----- State ------------------------------------------------------------
 
@@ -187,13 +191,15 @@
             <div class="overflow-visible">
                <NumberInput id={id} min={param.min} max={param.max} value={param.value}
                 step={param.step} onchange={inputChangeHandler}
-                show={showNumberInput} delayHide={500}/>
+                show={showNumberInput} delayHide={250}/>
             </div>
 
             <!-- Label -->
+            {#if showName}
             <div class="overflow-visible">
-                <WidgetLabel name={param.name} for={id} />
+                <WidgetLabel name={param.name} for={id} size={"whitespace-normal " + labelClass} />
             </div>
+            {/if}
         </div>
     </div>
 </div>
