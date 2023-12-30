@@ -1,7 +1,7 @@
 <script lang="ts">
     import Form from "app/components/Form.svelte";
     import { Result } from "app/util/api/Result";
-    import { ArrowDownTray, ArrowSmallLeft, ArrowUpTray, Icon, MusicalNote, PlusCircle, XMark } from "svelte-hero-icons";
+    import { ArrowDownTray, ArrowSmallLeft, ArrowUpTray, ExclamationCircle, Icon, MusicalNote, PlusCircle, XCircle, XMark } from "svelte-hero-icons";
     import { Delegate } from "app/util/delegate";
     import AudioPlayer from "app/components/AudioPlayer.svelte";
     import TextEditor from "app/components/TextEditor/TextEditor.svelte";
@@ -13,25 +13,33 @@
     import Modal from "app/components/Modal.svelte";
     import { util } from "app/util";
     import { afterUpdate } from "svelte";
+    import { SoundLoadError } from "app/audio/src/ts/AudioEngine";
 
     interface InputData {
         layername: string;
         filepath: string;
         input: HTMLInputElement | undefined;
+        isProblematic: boolean;
+    }
+
+    enum FormState {
+        LoadFiles = 0,
+        AudioOptions = 1,
     }
 
     // ===== Form state =======================================================
 
     let fileInputs: InputData[] = [
-        {layername: "Layer 1", filepath: "", input: undefined}
+        {layername: "Layer 1", filepath: "", input: undefined, isProblematic: false}
     ];
 
     // state tracker, shows different parts of the form when set
     // 0: file loader
     // 1: options + audio previewer
-    let formState = 0;
+    let formState: FormState = FormState.LoadFiles;
 
     // error messages to display
+    let errorTitle: string = "";
     let errorMessages: string[] = [];
     $: showErrors = errorMessages.length > 0;
 
@@ -118,13 +126,10 @@ end
         return files;
     }
 
-    function resetAudio()
-    {
-        onload.invoke([], [], "");
-    }
-
     async function testLoadAudioHandler(): Promise<Result<ArrayBuffer[], unknown>>
     {
+        fileInputs.forEach(input => input.isProblematic = false);
+
         const files = collectFiles();
 
         if (!files.length)
@@ -142,7 +147,6 @@ end
         }
         catch(err)
         {
-            console.error(err);
             return new Result([], err);
         }
     }
@@ -156,11 +160,21 @@ end
     function testLoadAudioHandlerHandler(payload: Result<unknown, unknown>,
         data: FormData)
     {
+
         if (!payload.ok)
-            throw Error("Request error.");
+        {
+            errorMessages.push(payload.error?.toString() ||
+                "Application error: problem occurred while processing audio files.");
+            return false;
+        }
+
         const result = payload.result;
         if (!isArrayBufferArray(result))
-            throw Error("Wrong data type received from request.");
+        {
+            errorMessages.push(
+                "Application error: wrong data type received from request.");
+            return false;
+        }
 
         let text = "";
         const names = data.getAll("name").map(val => val.toString());
@@ -170,7 +184,38 @@ end
             text = onRequestText.invoke();
         }
 
-        onload.invoke(result, names, text);
+        try {
+            onload.invoke(result, names, text);
+        }
+        catch(err)
+        {
+            if (err instanceof SoundLoadError)
+            {
+                errorTitle = "Audio engine failed to accept the following";
+                const fileNames = err.getErrorMessage(names);
+                for (let i = 0; i < fileNames.length; ++i)
+                {
+                    errorMessages.push(`Layer ${err.soundIndices[i] + 1}: ${fileNames[i]}`);
+                    const input = fileInputs[err.soundIndices[i]];
+                    if (input)
+                    {
+                        input.isProblematic = true;
+                    }
+                }
+                fileInputs = fileInputs;
+            }
+            else if (err instanceof Error)
+            {
+                errorTitle = "An unexpected problem occured while loading the audio files";
+                errorMessages.push(err.message);
+            }
+            errorMessages = errorMessages;
+            return false;
+        }
+
+        // success, progress the form state
+        formState = FormState.AudioOptions;
+        return true;
     }
 
     function removeInputSlot(index: number)
@@ -193,7 +238,8 @@ end
         fileInputs.push({
             filepath: "",
             input: undefined,
-            layername: "Layer " + (fileInputs.length + 1)
+            layername: "Layer " + (fileInputs.length + 1),
+            isProblematic: false,
         });
     }
 
@@ -215,11 +261,11 @@ end
             if (i > 0)
             {
                 // push new input, add data to queue to be added after render
-                const name = input.files[i].name;
                 const newFileInput = {
                     input: undefined,
                     filepath: "",
                     layername: "",
+                    isProblematic: false,
                 };
 
                 // add new file input
@@ -237,6 +283,7 @@ end
                 const name = input.files[i].name;
                 fileInput.filepath = name;
                 fileInput.layername = util.fileNameToLabelName(name);
+                fileInput.isProblematic = false;
             }
         }
 
@@ -272,7 +319,8 @@ end
             fileInputs.push({
                 filepath: "",
                 input: undefined,
-                layername: "Layer " + (fileInputs.length + 1)
+                layername: "Layer " + (fileInputs.length + 1),
+                isProblematic: false,
             });
 
             newFiles.push(evt.dataTransfer.files.item(i) as File);
@@ -321,7 +369,7 @@ end
 
         on:outroend={() => errorMessages.length = 0}
     >
-        <ErrorAlert title="An error occurred during your submission" errorList={errorMessages} oncancel={() => showErrors = false}/>
+        <ErrorAlert title={errorTitle} errorList={errorMessages} oncancel={() => showErrors = false}/>
     </Transition>
 
 
@@ -339,16 +387,29 @@ end
         <div class={fileInputs.length <= 1 ? "sr-only" : "w-full p-2"}>
         {#each fileInputs as fileInput, i (fileInput)}
             <div class={i === fileInputs.length - 1 ? "sr-only" : "group relative flex items-center mb-2"} draggable>
+
+                <!-- Layer name -->
                 <div class="relative">
-                    <p class="absolute left-2 -top-1.5 bg-white px-1 font-bold text-[8px] text-gray-200">Layer {i + 1}</p>
-                    <input class="text-xs px-4 py-1 border border-gray-100"
+                    <!-- Error circle -->
+                    {#if fileInput.isProblematic}
+                    <Icon src="{ExclamationCircle}" class="absolute top-0 left-[3px] w-3 text-red-500" />
+                    {/if}
+
+                    <!-- Inset layer title -->
+                    <p class={"absolute left-2 -top-1.5 bg-white px-1 font-bold text-[8px] " +
+                        (fileInput.isProblematic ? "text-red-400" : "text-gray-200")}>
+                        Layer {i + 1}
+                    </p>
+                    <!-- Layer name input -->
+                    <input class={"text-xs px-5 py-1 border " +
+                        (fileInput.isProblematic ? "border-red-400": "border-gray-100")}
                         bind:value={fileInput.layername}
                         type="text"
                         name="name"
                     />
                 </div>
 
-
+                <!-- Input element -->
                 <label class="text-xs font-bold select-none" for={"Layer_" + (i + 1)}>
                     <input
                         bind:this={fileInput.input}
@@ -374,14 +435,25 @@ end
                         </div>
                     {:else}
                         <div class="inline-flex justify-center items-center">
+                            <!-- Connecting line (for style) -->
                             <div class="flex items-center justify-center">
-                                <div class="border-t border border-gray-200 w-4"></div>
+                                <div class={"border-t border w-4 " +
+                                    (fileInput.isProblematic ? "border-red-400" : "border-gray-200")}></div>
                             </div>
-                            <div class="inline-flex rounded border border-gray-100 shadow-sm">
 
+                            <div class={"inline-flex rounded border shadow-sm " +
+                                (fileInput.isProblematic ? "border-red-400" : "border-gray-200")}>
+
+                                {#if !fileInput.isProblematic}
                                 <div class="inline-flex justify-center items-center w-6 aspect-square bg-violet-100">
                                     <Icon class="inline rounded-md p-1 drop-shadow-sm" src="{MusicalNote}" />
                                 </div>
+                                {:else}
+                                <div class="inline-flex justify-center items-center w-6 aspect-square bg-red-100">
+                                    <Icon class="inline text-red-400 rounded-md p-1 drop-shadow-sm" solid src="{XCircle}" />
+                                </div>
+                                {/if}
+
                                 <div class="border-l inline-flex items-center">
                                     <p class="mx-1 text-xs font-mono font-medium">{fileInput.filepath}</p>
                                 </div>
@@ -422,7 +494,7 @@ end
             on:drop={(evt) => handleDropFile(evt, fileInputs[0])}
         >
             <Icon class="block mb-2" src="{ArrowDownTray}" size="48" />
-            <p class="text-center text-xs"><label for="Layer_1" class="cursor-pointer inline font-bold text-gray-400">Choose an audio file</label> or drag one here</p>
+            <p class="text-center text-xs"><label for="Layer_1" class="cursor-pointer inline font-bold text-gray-400">Choose audio files</label> or drag them here</p>
 
             {#if dropZoneDraggedOver}
             <div class="absolute w-full h-full rounded-md opacity-20 bg-gray-900"
@@ -451,7 +523,6 @@ end
                     return;
                 }
 
-                formState = 1;
                 errorMessages.length = 0;
                 errorMessages = errorMessages;
                 submitEl.click();
@@ -464,17 +535,29 @@ end
 
 </div>
 
+<!-- FormState.AudioOptions -->
 <div class={"absolute w-full mt-4 transition-opacity duration-300 flex justify-center "
     + (formState === 1 ? "opacity-100" : "opacity-0 pointer-events-none")}>
-    <button class="absolute left-2 flex-none" on:click={() => {formState = 0; testLoadAudioHandler(); onunload.invoke(); }}>
+
+    <!-- Back Button -->
+    <button class="absolute left-2 flex-none rounded-full hover:bg-gray-100 px-3 py-1 transition-colors duration-300"
+        on:click={() => {
+            formState = FormState.LoadFiles;
+            testLoadAudioHandler();
+            onunload.invoke();
+        }}
+    >
         <Icon class="inline" size="14" src="{ArrowSmallLeft}" /> Back
     </button>
+
+    <!-- AudioOptions main container -->
     <div class="w-3/4">
 
-        <!-- options -->
+        <!-- Options -->
         <table>
             <tbody>
                 <tr>
+                     <!-- Show Markers -->
                     <td class="p-1">
                         <label for="show-markers-input" class="block text-xs font-bold select-none">
                             Show Markers
@@ -483,6 +566,8 @@ end
                     <td>
                         <Switch id="show-markers-input" bind:enabled={showMarkers} description="Option whether to show audio markers to end viewer." />
                     </td>
+
+                    <!-- Looping -->
                     <td class="p-1">
                         <label for="is-looping-input" class="ml-4 block text-xs font-bold select-none">
                             Looping
@@ -512,7 +597,7 @@ end
                 <button on:click={() => {
                     showAddMixModal = true;
                 }}
-                >Add Mix <Icon class="inline" src="{PlusCircle}" size="16" /></button>
+                >Save Mix <Icon class="inline" src="{PlusCircle}" size="16" /></button>
             </div>
 
             <!-- Transition Time -->
