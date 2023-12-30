@@ -8,8 +8,8 @@
     /** Bar height when not engaged with. Grows to  */
     export let height: string = "4px";
     export let deactiveBgColor: string = "#fafafa";
-    export let barColor: string = "#888";
-    export let buttonColor: string = "#888";
+    export let barColor: string = "#555";
+    export let buttonColor: string = "#555";
     export let bgColor: string = "#ddd";
 
     export let showMarkers: boolean = true;
@@ -196,13 +196,17 @@
                         {#if looping}
                             <div class="absolute w-1 h-full bg-blue-400"
                                 style={
-                                    `transform: translateX(calc(${offset/time.max*(barEl?.getBoundingClientRect().width || 0)}px - 50%));`
+                                    `transform: translateX(-50%);
+                                    left: ${offset/time.max * 100}%;
+                                    `
                                 }/>
                         {/if}
                     {:else}
                         <div class="absolute w-1 h-full bg-black"
                             style={
-                                `transform: translateX(calc(${offset/time.max*(barEl?.getBoundingClientRect().width || 0)}px - 50%));`
+                                `transform: translateX(-50%);
+                                left: ${offset/time.max * 100}%;
+                                `
                             }/>
                     {/if}
                 {/each}
