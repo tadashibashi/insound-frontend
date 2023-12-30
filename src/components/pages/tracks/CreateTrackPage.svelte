@@ -1,18 +1,21 @@
 <script lang="ts">
     import Form from "app/components/Form.svelte";
     import { Result } from "app/util/api/Result";
-    import { ArrowDownTray, ArrowSmallLeft, ArrowUpTray, ExclamationCircle, Icon, MusicalNote, PlusCircle, XCircle, XMark } from "svelte-hero-icons";
+    import {
+        ArrowDownTray, ArrowSmallLeft, ArrowUpTray, ExclamationCircle, Icon,
+        MusicalNote, PlusCircle, XCircle, XMark
+    } from "svelte-hero-icons";
     import { Delegate } from "app/util/delegate";
     import AudioPlayer from "app/components/AudioPlayer.svelte";
     import TextEditor from "app/components/TextEditor/TextEditor.svelte";
 
     import { Transition } from "@rgossiaux/svelte-headlessui";
-    import type { MixPreset } from "app/audio/src/ts/MixPresetMgr";
+    import type { MixPreset } from "app/util/MixPreset";
     import ErrorAlert from "app/components/widgets/ErrorAlert.svelte";
     import Switch from "app/components/widgets/Switch.svelte";
     import Modal from "app/components/Modal.svelte";
     import { util } from "app/util";
-    import { afterUpdate } from "svelte";
+    import { afterUpdate, getContext } from "svelte";
     import { SoundLoadError } from "app/audio/src/ts/AudioEngine";
 
     interface InputData {
@@ -30,7 +33,12 @@
     // ===== Form state =======================================================
 
     let fileInputs: InputData[] = [
-        {layername: "Layer 1", filepath: "", input: undefined, isProblematic: false}
+        {
+            layername: "Layer 1",
+            filepath: "",
+            input: undefined,
+            isProblematic: false
+        }
     ];
 
     // state tracker, shows different parts of the form when set
@@ -41,6 +49,7 @@
     // error messages to display
     let errorTitle: string = "";
     let errorMessages: string[] = [];
+
     $: showErrors = errorMessages.length > 0;
 
     let showAddMixModal = false;
@@ -68,6 +77,8 @@ function on_marker(name, offset)
     end
 end
 `;
+
+    let audio = getContext("audio");
 
     let newFiles: File[] = [];
     let newFileInsertPosition: number = 0;
@@ -107,7 +118,7 @@ end
     const onunload = new Delegate<void, []>;
     const onRequestText = new Delegate<string, []>;
 
-    const retrieveMix = new Delegate<number[], []>;
+    const retrieveMix = new Delegate<MixPreset, []>;
 
     function collectFiles(): File[]
     {
@@ -581,13 +592,17 @@ end
         </table>
 
         <!-- Player -->
-        <AudioPlayer onload={onload} onunload={onunload}
+        {#if $audio}
+        <AudioPlayer
+            audio={$audio}
+            onload={onload} onunload={onunload}
             mixPresets={mixPresets}
             showMarkers={showMarkers}
             looping={looping}
             transitionTime={transitionTime}
             retrieveMix={retrieveMix}
         />
+        {/if}
 
         <!-- Mix Presets -->
         <div class="flex justify-between">
