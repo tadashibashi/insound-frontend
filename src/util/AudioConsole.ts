@@ -134,6 +134,7 @@ export class AudioConsole
      */
     clear()
     {
+        this.channels.forEach(chan => chan.clear());
         this.channels.length = 0;
     }
 
