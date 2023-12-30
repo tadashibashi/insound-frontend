@@ -38,7 +38,7 @@
 
 </script>
 
-<main class="overflow-hidden">
+<main class="overflow-x-hidden overflow-y-auto bg-[#fdfdfd] w-screen h-screen">
     <Router>
         <Route path="/" component={LandingPage} />
         <Route path="/auth/*" component={AuthLayout} />
