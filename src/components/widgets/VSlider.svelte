@@ -8,18 +8,16 @@
 
     // ----- Attributes -------------------------------------------------------
 
-    /**
-     * Parameter that this slider controls and represents
-     */
+    /** Parameter that this slider controls and represents. Required. */
     export let param: NumberParameter;
 
-    /**
-     * Height of the slider portion
-     */
+    /** Height of the slider portion. Default `"100px"` */
     export let height: string = "100px";
 
+    /** Styling class to add to the label */
     export let labelClass: string = "";
 
+    /** Whether to show the label name. Default `true`  */
     export let showName = true;
 
 
