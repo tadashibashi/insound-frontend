@@ -100,7 +100,7 @@ export class AudioConsole
         }
 
         this.channels.push(
-            new AudioChannel(this.audio, name, this.channels.length + 1));
+            new AudioChannel(this.audio, name, this.channels.length));
     }
 
     /**
