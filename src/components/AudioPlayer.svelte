@@ -3,26 +3,28 @@
     import { getContext, onMount } from "svelte";
     import { Icon, Pause, Play } from "svelte-hero-icons";
     import { NumberParameter } from "app/audio/src/ts/params/types/NumberParameter";
-    import VSlider from "./widgets/VSlider.svelte";
-    import KnobWidget from "./widgets/KnobWidget.svelte";
     import Playbar from "./widgets/Playbar.svelte";
     import { TimeDisplay } from "app/util/TimeDisplay";
     import type { SyncPoint } from "audio/SyncPointMgr";
     import ChoiceMenu from "./widgets/ChoiceMenu.svelte";
-    import type { MixPreset } from "audio/MixPresetMgr";
+    import type { MixPreset } from "app/util/MixPreset";
     import type { Param } from "audio/params/ParameterMgr";
     import ChannelStrip from "./widgets/ChannelStrip.svelte";
+    import { AudioConsole } from "app/util/AudioConsole";
+    import type { AudioChannelSettings } from "app/util/AudioChannel";
 
     export let onload: Delegate<void, [ArrayBuffer[] | ArrayBuffer, string[], string]>;
     export let onunload: Delegate<void, []>;
 
+    // Bindable AudioConsole for external setting control or to provide your own
+    export let audioConsole = new AudioConsole();
+
     let audioContext = getContext("audio");
 
+    // ===== State ============================================================
     let isPlaying = false;
-    let isLoaded = false;
-    let channelCount = 0;
+    let isAudioLoaded = false;
 
-    let layerNames: string[] = [];
 
     let points: (SyncPoint & {isActive: boolean})[] = [];
 
@@ -40,11 +42,12 @@
     // todo: implement param page later
     export let params: Param[] = [];
 
-    export let retrieveMix: Delegate<number[], []> | undefined = undefined;
+    export let retrieveMix: Delegate<MixPreset, []> | undefined = undefined;
 
     $: audio = $audioContext;
     $: if ($audioContext) {
        $audioContext.onUpdate(onPlayerUpdate);
+       audioConsole.provideAudioEngine($audioContext);
     }
 
     $: if (looping) {
@@ -72,21 +75,14 @@
         };
     });
 
-    let volume = new NumberParameter("Main Volume", 0, 0, 1.25, .01, 1, false,
-        (i, val) => audio?.setMainVolume(val));
-
     let volumes: NumberParameter[] = [];
-
-    let reverb = new NumberParameter("Reverb", 0, 0, 2, .01, 0, false,
-        (i, val) => audio?.setMainReverbLevel(val));
-
 
     function onUnloadAudio()
     {
         if (!audio) return;
 
         audio.unloadTrack();
-        channelCount = 0;
+        audioConsole.clear();
     }
 
     // Callback fired when audio is loaded
@@ -127,10 +123,8 @@
             volumes[i].clear();
         }
 
-        channelCount = audio.channelCount;
-        isLoaded = true;
+        isAudioLoaded = true;
         isPlaying = false;
-        layerNames = pLayerNames;
         time.max = audio.length;
 
         time.current = 0;
@@ -139,6 +133,10 @@
 
         loopend = audio.engine.getLoopSeconds().loopend;
         audio.setLooping(looping);
+
+        audioConsole.clear();
+        audioConsole.addChannels(["Main", ...pLayerNames]);
+        audioConsole = audioConsole;
     }
 
 
@@ -165,44 +163,46 @@
         isPlaying = !newPause;
     }
 
-
-    function onVolumeInput(evt: Event)
-    {
-        if (!audio) return;
-
-        const target = evt.currentTarget as HTMLInputElement | null;
-        if (!target) return;
-
-        const channel = parseInt(target.dataset["chan"] || "");
-        if (isNaN(channel))
-            throw Error("Invalid chan data value on volume slider");
-
-        const volume = target.valueAsNumber;
-
-        if (channel === channelCount) {
-            // Main volume
-            audio.setMainVolume(volume);
-        } else {
-            // Regular channel
-            audio.setChannelVolume(channel, volume);
-        }
-    }
-
-    function setMix(mix: number[], transitionTime: number)
+    function applyMix(mix: AudioChannelSettings[], transitionTime: number = 0)
     {
         if (!audio || !audio.isTrackLoaded()) return;
 
-        const chanCount = Math.min(audio.channelCount, mix.length);
-
-        for (let i = 0; i < chanCount; ++i)
-        {
-            volumes[i].transitionTo(mix[i], transitionTime);
-        }
+        audioConsole.applySettings(mix, transitionTime);
     }
 
     function getCurrentMix()
     {
-        return volumes.map(vol => vol.value);
+        return {name: "", mix: audioConsole.getCurrentSettings()};
+    }
+
+    /**
+     * Called when seek is applied by the user
+     * (click release after dragging playhead)
+     *
+     * @param cur - current seconds that is seeked to
+     */
+    function onSeeked(cur: number)
+    {
+        if (!audio) return;
+
+        audio.seek(Math.max(Math.min(cur, audio.length-.001), 0));
+
+        // Start playing audio again if it was seek interrupted
+        if (wasPlayingBeforeSeek)
+        {
+            audio.setPause(false, .1);
+            isPlaying = true;
+            wasPlayingBeforeSeek = false;
+        }
+    }
+
+    function onSeekStart()
+    {
+        if (!audio) return;
+        if (!audio.paused)
+            wasPlayingBeforeSeek = true;
+        audio.setPause(true);
+        isPlaying = false;
     }
 
 </script>
@@ -221,28 +221,17 @@
         {/if}
     </button>
 
-    <Playbar class="w-full px-2" active={isLoaded} time={time} markers={points}
-        loopend={loopend} looping={looping} showMarkers={showMarkers}
-        onchange={(cur) => {
-            if (!audio) return;
-
-            audio.seek(Math.max(Math.min(cur, audio.length-.001), 0));
-
-            if (wasPlayingBeforeSeek)
-            {
-                audio.setPause(false, .1);
-                isPlaying = true;
-                wasPlayingBeforeSeek = false;
-            }
-        }}
-        onstartseek={() => {
-            if (!audio) return;
-            if (!audio.paused)
-                wasPlayingBeforeSeek = true;
-            audio.setPause(true);
-            isPlaying = false;
-        }}
-        onseeking={(val) => time.current = val} />
+    <Playbar
+        class="w-full px-2"
+        active={isAudioLoaded}
+        time={time}
+        markers={points}
+        loopend={loopend}
+        looping={looping}
+        showMarkers={showMarkers}
+        onchange={onSeeked}
+        onstartseek={onSeekStart}
+        onseeking={val => time.current = val} />
 
     <!-- Time -->
     <div class="absolute top-[48px] right-1">
@@ -254,17 +243,33 @@
     </div>
 
     <!-- Mix preset options -->
-    <ChoiceMenu class="" choices={mixPresets.map(preset => preset.name)} onchoose={value => setMix(mixPresets[value].volumes, transitionTime)}/>
+    <ChoiceMenu class="" choices={mixPresets.map(preset => preset.name)}
+        onchoose={value => applyMix(mixPresets[value].mix, transitionTime)}/>
 
-    <!-- Channel Strip -->
-    <div class="h-[240px] w-full overflow-x-scroll overflow-y-hidden">
-        {#if audio}
-            {#each Array(channelCount) as _, i ("channel-" + i)}
-                <ChannelStrip audio={audio} channel={i + 1} name="{layerNames[i]}" />
-            {/each}
+    <!-- Channel Strips -->
+    <div class="border border-b-2 border-gray-50 rounded-md my-6 shadow-lg">
+        <div class="h-[324px] w-full flex pt-2 pl-2">
+                <div class="overflow-y-hidden overflow-x-auto whitespace-nowrap flex-grow flex">
 
-            <ChannelStrip audio={audio} channel={0} name="main" />
-        {/if}
+                    {#each audioConsole.channels as chan, i (chan)}
+                        {#if i > 0}
+                            <ChannelStrip channel={chan} />
+
+                            {#if i !== audioConsole.channels.length - 1}
+                            <div class="inline h-[300px] w-[1px] border-l border-l-gray-100" />
+                            {/if}
+                        {/if}
+                    {/each}
+
+                </div>
+
+            {#if audioConsole.channels.length > 0}
+                <ChannelStrip channel={audioConsole.channels[0]} />
+            {/if}
+
+        </div>
+
     </div>
+
 
 </div>
