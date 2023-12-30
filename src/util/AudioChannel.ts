@@ -1,4 +1,5 @@
 import type { AudioEngine } from "app/audio/src/ts/AudioEngine";
+import type { ParameterBase } from "audio/params/types/ParameterBase";
 import { NumberParameter } from "audio/params/types/NumberParameter";
 
 /** Audio channel settings */
@@ -24,6 +25,9 @@ export class AudioChannel
     readonly panRight: NumberParameter;
     readonly reverb: NumberParameter;
 
+    /** All params accessible through this array. Make sure to set in ctor */
+    private readonly params: ParameterBase[];
+
     constructor(audio: AudioEngine, name: string, channel: number)
     {
         this.name = name;
@@ -47,6 +51,8 @@ export class AudioChannel
         (channel > 0) ?
             (i, val) => audio.engine.setChannelPanRight(channel - 1, val * .01) :
             (i, val) => audio.engine.setMainPanRight(val * .01));
+
+        this.params = [this.volume, this.reverb, this.panLeft, this.panRight];
     }
 
     /**
@@ -81,7 +87,6 @@ export class AudioChannel
         {
             this.name = settings.name;
         }
-
     }
 
     /**
@@ -91,9 +96,21 @@ export class AudioChannel
      */
     reset(seconds: number = 0)
     {
-        this.volume.reset(seconds);
-        this.reverb.reset(seconds);
-        this.panLeft.reset(seconds);
-        this.panRight.reset(seconds);
+        for (const param of this.params)
+        {
+            param.reset(seconds);
+        }
+    }
+
+    /**
+     * Use when cleaning up, clears any current intervals from any parameter
+     * transitions.
+     */
+    clear()
+    {
+        for (const param of this.params)
+        {
+            param.clear();
+        }
     }
 }
