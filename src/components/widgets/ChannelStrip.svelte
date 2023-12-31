@@ -7,8 +7,8 @@
     export let channel: AudioChannel;
 </script>
 
-<div class="w-18 inline-flex">
-    <div class="flex flex-col items-center">
+<div class="w-[124px] inline-flex">
+    <div class="flex flex-col items-center w-full">
         <div class="w-8">
             <KnobWidget param={channel.reverb} labelClass={"text-[10px]"} />
         </div>
@@ -23,10 +23,13 @@
             </div>
         </div>
 
+
         <VSlider param={channel.volume} height="100px" showName={false} />
-        <div class="overflow-visible">
-            <WidgetLabel name={channel.name} size="whitespace-normal " />
+        <div class="overflow-visible mx-auto">
+            <WidgetLabel name={channel.name} size="whitespace-normal block" />
         </div>
+
+
     </div>
 </div>
 
