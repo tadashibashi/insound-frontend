@@ -74,8 +74,6 @@
     // Called when unloading audio track
     function onUnloadAudio()
     {
-        if (!audio) return;
-
         audio.unloadTrack();
         audioConsole.clear();
     }
@@ -99,7 +97,8 @@
 
         audio.setSyncPointCallback((label, seconds, index) => {
             if (label === "LoopEnd" && !looping) {
-                audio.setPause(true);
+                audio.setPause(true, 0);
+                audio.suspend();
                 isPlaying = false;
             }
 
