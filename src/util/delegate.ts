@@ -73,7 +73,8 @@ export class Delegate<Ret, Args extends any[]> {
     /**
      * Tries to invoke the handle, discarding return value and returning a
      * boolean indicating whether invoke was successful. For simplicity,
-     * recursion is not allowed and will throw an error if attempted.
+     * recursion (invoking this function inside a call to invoke or tryInvoke)
+     * is not allowed and will throw an error if attempted.
      *
      * @param  ...args - function arguments
      *
@@ -100,8 +101,9 @@ export class Delegate<Ret, Args extends any[]> {
 
     /**
      * Invoke the callback, returning the first subscribed callback's return
-     * value. For simplicity, recursion is not allowed and will throw an error
-     * if attempted.
+     * value. For simplicity, recursion (invoking this function inside a call
+     * to invoke or tryInvoke) is not allowed and will throw an error if
+     * attempted.
      *
      * @param   ...args   - arguments to pass to the callbacks
      *
