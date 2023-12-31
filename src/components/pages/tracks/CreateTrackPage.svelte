@@ -2,7 +2,7 @@
     import Form from "app/components/Form.svelte";
     import { Result } from "app/util/api/Result";
     import {
-        ArrowDownTray, ArrowSmallLeft, ArrowUpTray, ExclamationCircle, Icon,
+        ArrowDownTray, ArrowRight, ArrowSmallLeft, ArrowUpTray, EllipsisVertical, ExclamationCircle, Icon,
         MusicalNote, PlusCircle, XCircle, XMark
     } from "svelte-hero-icons";
     import { Delegate } from "app/util/delegate";
@@ -15,7 +15,7 @@
     import Switch from "app/components/widgets/Switch.svelte";
     import Modal from "app/components/Modal.svelte";
     import { util } from "app/util";
-    import { afterUpdate, getContext } from "svelte";
+    import { afterUpdate, getContext, onMount } from "svelte";
     import { SoundLoadError } from "app/audio/src/ts/AudioEngine";
 
     interface InputData {
@@ -37,7 +37,7 @@
             layername: "Layer 1",
             filepath: "",
             input: undefined,
-            isProblematic: false
+            isProblematic: false,
         }
     ];
 
@@ -55,6 +55,9 @@
     let showAddMixModal = false;
 
     let dropZoneDraggedOver = false;
+
+    // Temp file cache to workaround chrome's file removal behavior on cancel
+    let chromeFileCache: File | null = null;
 
     // ===== Options ==========================================================
 
@@ -117,8 +120,85 @@ end
         string]>;
     const onunload = new Delegate<void, []>;
     const onRequestText = new Delegate<string, []>;
-
     const retrieveMix = new Delegate<MixPreset, []>;
+
+    let draggingInput: InputData | null = null;
+    let draggingInputY: number = 0;
+
+    function handlePointerMoveForDraggingInput(evt: MouseEvent)
+    {
+        if (draggingInput)
+        {
+            draggingInputY = evt.y;
+        }
+    }
+
+    function handlePointerUpForDraggingInput(evt: MouseEvent)
+    {
+        if (draggingInput)
+        {
+            if (!draggingInput.input)
+            {
+                draggingInput = null;
+                return;
+            }
+
+            // find spliced from position
+            const spliceFrom = fileInputs.findIndex((input) => draggingInput === input);
+            if (spliceFrom === -1)
+            {
+                console.error("Dragging input does not exist in input array");
+                draggingInput = null;
+                return;
+            }
+
+            // find insert to based on y position
+            let insertTo = spliceFrom;
+            for (let i = 0; i < fileInputs.length-1; ++i) // -1 to length since the last fileInput is invisible for insertion
+            {
+                const input = fileInputs[i].input;
+                if (!input) continue;
+
+                const checkRect = input.getBoundingClientRect();
+                if (evt.y < checkRect.top + checkRect.height*.5)
+                {
+                    insertTo = (i <= spliceFrom) ? i : Math.max(i-1, 0);
+                    break;
+                }
+
+                if (i === fileInputs.length-2)
+                {
+                    insertTo = i;
+                    break;
+                }
+            }
+
+            if (insertTo === spliceFrom)
+            {
+                console.log("Insert and splice position are the same. Do nothing.");
+                draggingInput = null;
+                return;
+            }
+
+            // success perform splice and insert
+            const temp = [...fileInputs];
+            temp.splice(spliceFrom, 1);
+            temp.splice(insertTo, 0, draggingInput);
+            fileInputs = temp;
+
+            draggingInput = null;
+        }
+    }
+
+    onMount(() => {
+        document.addEventListener("pointerup", handlePointerUpForDraggingInput);
+        document.addEventListener("pointermove", handlePointerMoveForDraggingInput);
+        return () => {
+            document.removeEventListener("pointerup",
+                handlePointerUpForDraggingInput);
+            document.removeEventListener("pointermove", handlePointerMoveForDraggingInput);
+        }
+    });
 
     function collectFiles(): File[]
     {
@@ -345,6 +425,7 @@ end
     }
 
 
+
 </script>
 
 <!-- Modals -->
@@ -358,13 +439,14 @@ end
 </Modal>
 
 <!-- Header -->
-<h1 class="ml-10 mt-2 text-3xl">New Track</h1>
+<h1 class="ml-10 mt-2 text-3xl select-none">New Track</h1>
 
 
 <!-- Form State 0: Audio file selection -->
 <div
-    class={"absolute flex flex-col items-center justify-center w-full transition-opacity duration-300 " +
-        (formState === 0 ? "opacity-100" : "opacity-0 pointer-events-none")}
+    class={"absolute flex flex-col items-center justify-center w-full transition-opacity duration-300 select-none " +
+        (formState === 0 ? "opacity-100" : "opacity-0 pointer-events-none") + " " +
+        (draggingInput ? "cursor-move" : "")}
 >
 
     <!-- Error message box -->
@@ -385,19 +467,47 @@ end
 
 
     <div class="w-full h-12 mb-2">
-        <p class="text-2xl text-center text-gray-500">Sound Layers</p>
+        <p class="text-2xl text-center text-gray-500 selection-none">Sound Layers</p>
     </div>
 
     <!-- Audio file selection boxes -->
     <Form
-        class="max-w-[512px] mx-auto mb-2 rounded-md"
+        class="max-w-[512px] mx-auto mb-2 rounded-md selection-none"
         action={testLoadAudioHandler}
         method="POST" onThen={testLoadAudioHandlerHandler}
         >
 
-        <div class={fileInputs.length <= 1 ? "sr-only" : "w-full p-2"}>
+        <div class={(fileInputs.length <= 1 ? "sr-only w-full" : "w-full p-2") + " relative"}>
         {#each fileInputs as fileInput, i (fileInput)}
-            <div class={i === fileInputs.length - 1 ? "sr-only" : "group relative flex items-center mb-2"} draggable>
+
+             <!-- Drag target indicater line -->
+            {#if draggingInput && draggingInput !== fileInput && draggingInput !== fileInputs[i-1] &&
+                fileInput.input && draggingInputY < fileInput.input.getBoundingClientRect().y + fileInput.input.getBoundingClientRect().height*.5 &&
+                draggingInputY > fileInput.input.getBoundingClientRect().y - fileInput.input.getBoundingClientRect().height*.5 }
+                <div class="absolute w-full border border-blue-500 rounded-full -translate-y-1"></div>
+            {/if}
+
+            <!-- Individual file input row -->
+            <div class={i === fileInputs.length - 1 ? "sr-only" : ("group relative flex items-center mb-2 select-none p-1 rounded-full " + (draggingInput === fileInput ? "bg-gray-100 opacity-50" : ""))}>
+
+                <!-- Layer grabber icon -->
+                <div class="inline w-[24px] h-[24px]">
+                    {#if fileInputs.length > 2}
+                    <button class={"flex group-hover:opacity-100 text-gray-400 " + (draggingInput === fileInput ? "opacity-100 cursor-move" : "opacity-0 cursor-grab")}
+                        type="button"
+                        on:pointerdown={(evt)=> {
+                            draggingInput = fileInput;
+                            draggingInputY = evt.y;
+                        }}
+                        >
+                        {#if !draggingInput || draggingInput === fileInput}
+                        <Icon src="{EllipsisVertical}" class="-mr-4" />
+                        <Icon src="{EllipsisVertical}" />
+                        {/if}
+                    </button>
+                    {/if}
+                </div>
+
 
                 <!-- Layer name -->
                 <div class="relative">
@@ -421,19 +531,37 @@ end
                 </div>
 
                 <!-- Input element -->
-                <label class="text-xs font-bold select-none" for={"Layer_" + (i + 1)}>
+                <label class="text-xs font-bold select-none h-full" for={"Layer_" + (i + 1)}>
                     <input
                         bind:this={fileInput.input}
                         on:change={(evt) => {
                             const target = evt.currentTarget;
-                            if (!target || !target.files || !target.files.length) return;
+                            if (!target) return;
 
+                            // Work around undesirable Chrome behavior - cancel
+                            // causes current file to be dropped. If it was,
+                            // replace it with cached file
+                            if (target.value === "" && chromeFileCache)
+                            {
+                                const dt = new DataTransfer();
+                                dt.items.add(chromeFileCache);
+
+                                target.files = dt.files;
+                                return;
+                            }
+
+                            if (!target.files || !target.files.length) return;
+
+                            // Last fileInput is an invisible input to add new
+                            // files, the func below pushes a new input to
+                            // become the last invisible one after adding
                             if (i === fileInputs.length - 1)
                                 handleNewFileChange(evt);
 
                             handleFileChange(fileInput, i);
                         }}
-                        class="sr-only"
+                        on:click={() => chromeFileCache = fileInput.input?.files?.item(0) || null}
+                        class="sr-only absolute h-full"
                         id={"Layer_" + (i + 1)}
                         name={"Layer " + (i+1)}
                         type="file"
@@ -477,7 +605,8 @@ end
                 <!-- Delete layer button -->
                 {#if fileInputs.length > 1}
                 <button
-                    class="rounded border bg-red-300 border-red-300 ml-2 opacity-0 group-hover:opacity-100"
+                    class={"rounded border bg-red-300 border-red-300 ml-2 opacity-0 " +
+                        (draggingInput ? "group-hover:opacity-0" : "group-hover:opacity-100")}
                     type="button"
                     on:click={() => removeInputSlot(i)}
                 >
@@ -485,6 +614,13 @@ end
                 </button>
                 {/if}
             </div>
+
+             <!-- Drag target indicater line at end -->
+            {#if draggingInput && i === fileInputs.length - 2 &&
+                fileInput !== draggingInput && fileInput.input &&
+                draggingInputY > fileInput.input.getBoundingClientRect().y + fileInput.input.getBoundingClientRect().height * .5}
+                <div class="absolute w-full border border-blue-500 rounded-full -translate-y-1"></div>
+            {/if}
 
             {#if i === fileInputs.length-1}
                 <label for={"Layer_" + (i + 1)}
@@ -523,7 +659,7 @@ end
     {#if fileInputs.length > 1}
     <div class="w-full flex justify-center mt-3">
         <button
-            class="bg-violet-700 text-white px-2 rounded-md border border-violet-600"
+            class="bg-violet-400 text-white px-3 py-1 rounded-full border border-violet-500 hover:border-violet-400 hover:bg-violet-300 transition-colors"
             on:click={()=> {
                 const files = collectFiles();
                 if (files.length === 0)
@@ -540,6 +676,7 @@ end
             }}
         >
             Next
+            <Icon src={ArrowRight} size="16" class="inline ml-[1px] pb-[1px]" />
         </button>
     </div>
     {/if}
@@ -553,9 +690,8 @@ end
     <!-- Back Button -->
     <button class="absolute left-2 flex-none rounded-full hover:bg-gray-100 px-3 py-1 transition-colors duration-300"
         on:click={() => {
+            onunload.tryInvoke();
             formState = FormState.LoadFiles;
-            testLoadAudioHandler();
-            onunload.invoke();
         }}
     >
         <Icon class="inline" size="14" src="{ArrowSmallLeft}" /> Back
