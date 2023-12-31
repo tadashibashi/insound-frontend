@@ -6,7 +6,7 @@
 <label
     aria-label="parameter label"
     for={$$props["for"]}
-    class={$$props["class"] || "WidgetLabel block text-center text-gray-200 mb-1 select-none " + size}>
+    class={$$props["class"] || "WidgetLabel text-center text-gray-200 mb-1 select-none " + size}>
     {name}
 </label>
 
