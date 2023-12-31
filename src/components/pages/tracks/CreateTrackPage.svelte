@@ -490,10 +490,10 @@ end
             <!-- Individual file input row -->
             <div class={i === fileInputs.length - 1 ? "sr-only" : ("group relative flex items-center mb-2 select-none p-1 rounded-full " + (draggingInput === fileInput ? "bg-gray-100 opacity-50" : ""))}>
 
-                <!-- Layer grabber icon -->
+                <!-- Layer grab point icon -->
                 <div class="inline w-[24px] h-[24px]">
                     {#if fileInputs.length > 2}
-                    <button class={"flex group-hover:opacity-100 text-gray-400 " + (draggingInput === fileInput ? "opacity-100 cursor-move" : "opacity-0 cursor-grab")}
+                    <button class={"flex group-hover:opacity-100 text-gray-400 " + (draggingInput === fileInput ? "opacity-100 cursor-grabbing" : "opacity-0 cursor-grab")}
                         type="button"
                         on:pointerdown={(evt)=> {
                             draggingInput = fileInput;
@@ -516,18 +516,25 @@ end
                     <Icon src="{ExclamationCircle}" class="absolute top-0 left-[3px] w-3 text-red-500" />
                     {/if}
 
-                    <!-- Inset layer title -->
-                    <p class={"absolute left-2 -top-1.5 bg-white px-1 font-bold text-[8px] " +
-                        (fileInput.isProblematic ? "text-red-400" : "text-gray-200")}>
+                    <!-- Inset layer title border -->
+                    <p class={"absolute left-[7px] -top-[7px] px-1 font-bold text-[8px] border rounded " +
+                        (fileInput.isProblematic ? "border-red-400" : "border-gray-100")} >
                         Layer {i + 1}
                     </p>
+
                     <!-- Layer name input -->
-                    <input class={"text-xs px-5 py-1 border " +
+                    <input class={"relative text-xs px-5 py-1 border " +
                         (fileInput.isProblematic ? "border-red-400": "border-gray-100")}
                         bind:value={fileInput.layername}
                         type="text"
                         name="name"
                     />
+
+                    <!-- Inset layer title -->
+                    <p class={"absolute left-2 -top-1.5 bg-white px-1 font-bold text-[8px] rounded " +
+                        (fileInput.isProblematic ? "text-red-400" : "text-gray-200")}>
+                        Layer {i + 1}
+                    </p>
                 </div>
 
                 <!-- Input element -->
