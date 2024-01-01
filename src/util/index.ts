@@ -22,7 +22,6 @@ export namespace util
      */
     export function fileNameToLabelName(filename: string): string
     {
-
         function isSpace(c: string)
         {
             if (c.length === 0) return false;
@@ -103,6 +102,7 @@ export namespace util
      */
     export function transformArray<T>(arr: T[], action: TransformArrayAction.SpliceAndInsert, arg: {from: number, to: number}): void;
     export function transformArray<T>(arr: T[], action: TransformArrayAction.Erase, arg: number): void;
+    export function transformArray<T>(arr: T[], action: TransformArrayAction.Insert, arg: {index: number, items: T[]}): void;
     export function transformArray<T>(arr: T[], action: TransformArrayAction.Insert, arg: {index: number, item: T}): void;
     export function transformArray<T>(arr: T[], action: TransformArrayAction.Clear): void;
     export function transformArray<T>(arr: T[], action: TransformArrayAction, arg?: any): void
@@ -137,8 +137,15 @@ export namespace util
                     arg.index >= arr.length)
                     return;
 
-                 // trusts `arg.item`` is of type T
-                arr.splice(arg.index, 0, arg.item as T);
+                if (Array.isArray(arg.items))
+                {
+                    arr.splice(arg.index, 0, ...arg.items);
+                }
+                else if (arg.item !== undefined)
+                {
+                    // trusts `arg.item`` is of type T
+                    arr.splice(arg.index, 0, arg.item as T);
+                }
             }
 
         case TransformArrayAction.Clear:
