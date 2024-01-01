@@ -2,7 +2,6 @@
     import type { AudioChannelSettings } from "app/util/AudioChannel";
     import { AudioConsole } from "app/util/AudioConsole";
     import type { AudioEngine } from "audio/AudioEngine";
-    import { Delegate } from "app/util/delegate";
     import type { MixPreset } from "app/util/MixPreset";
     import type { Param } from "audio/params/ParameterMgr";
     import type { SyncPoint } from "audio/SyncPointMgr";
@@ -15,9 +14,11 @@
     import Playbar from "./widgets/Playbar.svelte";
     import { Icon, Pause, Play } from "svelte-hero-icons";
 
-    export let onload: Delegate<void, [ArrayBuffer[] | ArrayBuffer, string[], string]>;
-    export let onunload: Delegate<void, []>;
-    export let retrieveMix: Delegate<MixPreset, []> | undefined = undefined;
+    export const context: AudioPlayerExternalControls = {
+        load: onLoadAudio,
+        unload: onUnloadAudio,
+        getCurrentMix: getCurrentMix,
+    };
 
     // Providing the AudioEngine externally ensures it always exists in this
     // component.
@@ -59,16 +60,6 @@
 
     onMount(() => {
        audio.onUpdate(onPlayerUpdate);
-
-        onload.subscribe(onLoadAudio);
-        onunload.subscribe(onUnloadAudio);
-        retrieveMix?.subscribe(getCurrentMix);
-
-        return () => {
-            onload.unsubscribe(onLoadAudio);
-            onunload.unsubscribe(onUnloadAudio);
-            retrieveMix?.unsubscribe(getCurrentMix);
-        };
     });
 
     // Called when unloading audio track
@@ -241,9 +232,8 @@
                         {#if i > 0}
                             <ChannelStrip channel={chan} />
 
-                            {#if i !== audioConsole.channels.length - 1}
+                            <!-- Channel divider -->
                             <div class="inline h-[300px] w-[1px] border-l border-l-gray-100" />
-                            {/if}
                         {/if}
                     {/each}
 
