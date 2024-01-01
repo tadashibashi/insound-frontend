@@ -1,7 +1,8 @@
 <script lang="ts">
+    import Dropzone from "app/components/widgets/Dropzone.svelte";
     import { util } from "app/util";
     import { afterUpdate, onMount } from "svelte";
-    import { ArrowDownTray, ArrowRight, ArrowUpTray, EllipsisVertical, ExclamationCircle, Icon, MusicalNote, XCircle, XMark } from "svelte-hero-icons";
+    import { ArrowDownTray, ArrowRight, ArrowUpTray, EllipsisVertical, ExclamationCircle, Icon, MusicalNote, Square3Stack3d, XCircle, XMark } from "svelte-hero-icons";
 
     // ===== User callbacks ===================================================
     export let onsubmit: (files: File[]) => void = () => {};
@@ -15,8 +16,6 @@
 
 
     // ----- UI State ---------------------------------------------------------
-
-    let dropZoneDraggedOver = false;
 
     // Temp file cached to work around Chrome's file-removing behavior
     let chromeFileCache: File | null = null;
@@ -126,25 +125,16 @@
     }
 
     /** Handle dropped files over drop zone (when no inputs are visible) */
-    function handleDropFile(evt: DragEvent)
+    function handleDroppedFiles(files: File[])
     {
-        evt.preventDefault();
-
-        const target = evt.currentTarget;
-        if (!target || !evt.dataTransfer || !evt.dataTransfer.files.length)
-            return;
-
-        const droppedFileCount = evt.dataTransfer.files.length;
-        for (let i = 0; i < droppedFileCount; ++i)
+        for (let i = 0; i < files.length; ++i)
         {
             addInputSlot();
-            newFileQueue.push(evt.dataTransfer.files.item(i) as File);
+            newFileQueue.push(files[i]);
         }
 
-        newFileInsertPosition = fileInputs.length - droppedFileCount - 1;
+        newFileInsertPosition = fileInputs.length - files.length - 1;
         fileInputs = fileInputs;
-
-        dropZoneDraggedOver = false;
     }
 
     function handleSubmit()
@@ -465,24 +455,23 @@
         {/each}
         </div>
 
-        <!-- Add layer drop zone when no layers are visible -->
+        <!-- Show drop zone when no layers are visible -->
         {#if fileInputs.length === 1}
-        <!-- svelte-ignore a11y-no-static-element-interactions -->
-        <div  class="relative w-full flex flex-col items-center justify-center p-10 rounded-md min-w-[300px] border-dashed border-2 border-gray-200 text-gray-300 select-none cursor-default"
-            on:dragenter={(evt)=>{evt.preventDefault(); dropZoneDraggedOver=true;}}
-            on:dragover={(evt)=>evt.preventDefault()}
-            on:drop={handleDropFile}
-        >
-            <Icon class="block mb-2" src="{ArrowDownTray}" size="48" />
-            <p class="text-center text-xs"><label for="Layer_1" class="cursor-pointer inline font-bold text-gray-400">Choose audio files</label> or drag them here</p>
+            <Dropzone onfiles={handleDroppedFiles}>
+                <div slot="normal" class="flex flex-col items-center p-10">
+                    <Icon class="block mb-2" src="{ArrowDownTray}" size="48" />
+                    <p class="text-center text-xs"><label for="Layer_1" class="cursor-pointer inline font-bold text-gray-400">Choose audio files</label> or drag them here</p>
+                </div>
+                <div slot="dragover">
+                    <div class="absolute w-full h-full rounded-md opacity-25 bg-gray-500"></div>
+                    <div class="flex flex-col items-center p-10">
+                        <Icon class="block mb-2" src="{Square3Stack3d}" size="48" />
+                        <p class="text-center text-xs">Drop files</p>
+                    </div>
 
-            {#if dropZoneDraggedOver}
-            <div class="absolute w-full h-full rounded-md opacity-20 bg-gray-900"
-                on:dragleave={(evt) => {evt.preventDefault(); dropZoneDraggedOver=false;}}
-                on:dragover={(evt) => evt.preventDefault()}
-            />
-            {/if}
-        </div>
+
+                </div>
+            </Dropzone>
         {/if}
     </div>
 
