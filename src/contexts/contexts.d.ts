@@ -16,3 +16,11 @@ declare module "svelte" {
     declare function getContext(key: "user"): UserContext;
     declare function getContext(key: "audio"): AudioCtx;
 }
+
+// Represents one input element in the list
+interface InputData {
+    layername: string;
+    filepath: string;
+    input: HTMLInputElement | undefined;
+    isProblematic: boolean;
+}
