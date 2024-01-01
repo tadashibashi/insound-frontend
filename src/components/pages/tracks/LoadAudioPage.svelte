@@ -2,7 +2,7 @@
     import Dropzone from "app/components/widgets/Dropzone.svelte";
     import { util } from "app/util";
     import { afterUpdate, onMount } from "svelte";
-    import { ArrowDownTray, ArrowRight, ArrowUpTray, EllipsisVertical, ExclamationCircle, Icon, MusicalNote, Square3Stack3d, XCircle, XMark } from "svelte-hero-icons";
+    import { ArrowDownTray, ArrowRight, ArrowUpTray, EllipsisVertical, ExclamationCircle, Icon, MusicalNote, Plus, Square3Stack3d, XCircle, XMark } from "svelte-hero-icons";
 
     // ===== User callbacks ===================================================
     export let onsubmit: (files: File[]) => void = () => {};
@@ -127,20 +127,25 @@
     /** Handle dropped files over drop zone (when no inputs are visible) */
     function handleDroppedFiles(files: File[])
     {
+        if (files.length === 0) return;
+        const startPos = fileInputs.length - 1;
+
         for (let i = 0; i < files.length; ++i)
         {
             addInputSlot();
             newFileQueue.push(files[i]);
         }
 
-        newFileInsertPosition = fileInputs.length - files.length - 1;
+        newFileInsertPosition = startPos;
         fileInputs = fileInputs;
     }
 
     function handleSubmit()
     {
         fileInputs.forEach(input => input.isProblematic = false);
-        onsubmit(collectFiles());
+
+        const files = collectFiles();
+        onsubmit(files);
     }
 
     // ===== Helpers ==========================================================
@@ -167,8 +172,7 @@
             const input = fileInputs[i].input;
             if (!input || !input.files || !input.files.item(0))
                 continue;
-            files.push(
-                input.files.item(0) as File );
+            files.push(input.files.item(0) as File);
         }
 
         return files;
@@ -265,44 +269,45 @@
     {
         const newFileCount = newFileQueue.length;
 
-        if (newFileCount > 0)
+        if (newFileCount === 0) return;
+
+        if (fileInputs.length < newFileInsertPosition + newFileCount)
         {
-            if (fileInputs.length < newFileInsertPosition + newFileCount)
-            {
-                throw Error("Internal error, cannot apply file changes due " +
-                    "to insufficient number of file input elements");
-            }
-
-            // visit each file in the queue
-            for (let i = 0; i < newFileCount; ++i)
-            {
-                const fileInput = fileInputs[newFileInsertPosition + i];
-                if (!fileInput)
-                {
-                    throw Error("Internal error, missing InputData object to " +
-                        "attach new file to.");
-                }
-
-                const input = fileInput.input;
-                if (!input)
-                {
-                    throw Error("Internal error, missing input element to " +
-                        "attach new file to.");
-                }
-
-                // apply new file to the input element, set name
-                const newFile = newFileQueue[i];
-                const dt = new DataTransfer();
-                dt.items.add(newFile);
-                input.files = dt.files;
-                fileInput.filepath = newFile.name;
-                fileInput.layername = util.fileNameToLabelName(newFile.name);
-                fileInput.isProblematic = false;
-            }
-
-            // done handling new files, clear the queue
-            newFileQueue.length = 0;
+            throw Error("Internal error, cannot apply file changes due " +
+                "to insufficient number of file input elements");
         }
+
+        // visit each file in the queue
+        for (let i = 0; i < newFileCount; ++i)
+        {
+            const fileInput = fileInputs[newFileInsertPosition + i];
+            if (!fileInput)
+            {
+                throw Error("Internal error, missing InputData object to " +
+                    "attach new file to.");
+            }
+
+            const input = fileInput.input;
+            if (!input)
+            {
+                throw Error("Internal error, missing input element to " +
+                    "attach new file to.");
+            }
+
+            // apply new file to the input element, set name
+            const newFile = newFileQueue[i];
+            const dt = new DataTransfer();
+            dt.items.add(newFile);
+
+            input.files = dt.files;
+            fileInput.filepath = newFile.name;
+            fileInput.layername = util.fileNameToLabelName(newFile.name);
+            fileInput.isProblematic = false;
+        }
+
+        // done handling new files, clear the queue
+        newFileQueue.length = 0;
+
     }
 
 </script>
@@ -318,142 +323,164 @@
 
     <!-- Audio file selection boxes -->
     <div class="max-w-[512px] mx-auto mb-2 rounded-md selection-none">
-        <div class={(fileInputs.length <= 1 ? "sr-only w-full" : "w-full p-2") + " relative"}>
-        {#each fileInputs as fileInput, i (fileInput)}
 
-             <!-- Drag target indicater line -->
-            {#if draggingInput && draggingInput !== fileInput && draggingInput !== fileInputs[i-1] &&
-                fileInput.input && draggingInputY < fileInput.input.getBoundingClientRect().y + fileInput.input.getBoundingClientRect().height*.5 &&
-                draggingInputY > fileInput.input.getBoundingClientRect().y - fileInput.input.getBoundingClientRect().height*.5 }
-                <div class="absolute w-full border border-blue-500 rounded-full -translate-y-1"></div>
-            {/if}
+        <Dropzone class={(fileInputs.length <= 1 ? "sr-only" : "") + " relative w-full h-full"}
+            onfiles={handleDroppedFiles}
+            active={fileInputs.length > 1}
+            >
 
-            <!-- Individual file input row -->
-            <div class={i === fileInputs.length - 1 ? "sr-only" : ("group relative flex items-center mb-2 select-none p-1 rounded-full " + (draggingInput === fileInput ? "bg-gray-100 opacity-50" : ""))}>
+            <div slot="normal" class="p-2">
+            {#each fileInputs as fileInput, i (fileInput)}
 
-                <!-- Layer grab point icon -->
-                <div class="inline w-[24px] h-[24px]">
-                    {#if fileInputs.length > 2}
-                    <button class={"flex group-hover:opacity-100 text-gray-400 " + (draggingInput === fileInput ? "opacity-100 cursor-grabbing" : "opacity-0 cursor-grab")}
-                        type="button"
-                        on:pointerdown={(evt)=> {
-                            draggingInput = fileInput;
-                            draggingInputY = evt.y;
-                        }}
-                        >
-                        {#if !draggingInput || draggingInput === fileInput}
-                        <Icon src="{EllipsisVertical}" class="-mr-4" />
-                        <Icon src="{EllipsisVertical}" />
+                 <!-- Drag target indicater line -->
+                {#if draggingInput && draggingInput !== fileInput && draggingInput !== fileInputs[i-1] &&
+                    fileInput.input && draggingInputY < fileInput.input.getBoundingClientRect().y + fileInput.input.getBoundingClientRect().height*.5 &&
+                    draggingInputY > fileInput.input.getBoundingClientRect().y - fileInput.input.getBoundingClientRect().height*.5 }
+                    <div class="absolute w-full border border-blue-500 rounded-full -translate-y-1"></div>
+                {/if}
+
+                <!-- Individual file input row -->
+                <div class={i === fileInputs.length - 1 ? "sr-only" : ("group relative flex items-center mb-2 select-none p-1 rounded-full " + (draggingInput === fileInput ? "bg-gray-100 opacity-50" : ""))}>
+
+                    <!-- Layer grab point icon -->
+                    <div class="inline w-[24px] h-[24px]">
+                        {#if fileInputs.length > 2}
+                        <button class={"flex group-hover:opacity-100 text-gray-400 " + (draggingInput === fileInput ? "opacity-100 cursor-grabbing" : "opacity-0 cursor-grab")}
+                            type="button"
+                            on:pointerdown={(evt)=> {
+                                draggingInput = fileInput;
+                                draggingInputY = evt.y;
+                            }}
+                            >
+                            {#if !draggingInput || draggingInput === fileInput}
+                            <Icon src="{EllipsisVertical}" class="-mr-4" />
+                            <Icon src="{EllipsisVertical}" />
+                            {/if}
+                        </button>
                         {/if}
+                    </div>
+
+
+                    <!-- Layer name -->
+                    <div class="relative">
+                        <!-- Error circle -->
+                        {#if fileInput.isProblematic}
+                        <Icon src="{ExclamationCircle}" class="absolute top-0 left-[3px] w-3 text-red-500" />
+                        {/if}
+
+                        <!-- Inset layer title border -->
+                        <p class={"absolute left-[7px] -top-[7px] px-1 font-bold text-[8px] border rounded " +
+                            (fileInput.isProblematic ? "border-red-400" : "border-gray-100")} >
+                            Layer {i + 1}
+                        </p>
+
+                        <!-- Layer name input -->
+                        <input class={"relative text-xs px-5 py-1 border " +
+                            (fileInput.isProblematic ? "border-red-400": "border-gray-100")}
+                            bind:value={fileInput.layername}
+                            type="text"
+                            name="name"
+                        />
+
+                        <!-- Inset layer title -->
+                        <p class={"absolute left-2 -top-1.5 bg-white px-1 font-bold text-[8px] rounded " +
+                            (fileInput.isProblematic ? "text-red-400" : "text-gray-200")}>
+                            Layer {i + 1}
+                        </p>
+                    </div>
+
+                    <!-- Input element -->
+                    <label class="text-xs font-bold select-none h-full cursor-pointer" for={"Layer_" + (i + 1)}>
+                        <input
+                            bind:this={fileInput.input}
+                            on:change={() => changeFile(i)}
+                            on:click={() => chromeFileCache = fileInput.input?.files?.item(0) || null}
+                            class="sr-only absolute h-full"
+                            id={"Layer_" + (i + 1)}
+                            name={"Layer " + (i+1)}
+                            type="file"
+                            multiple
+                        />
+
+                        {#if !fileInput.filepath}
+                            <div class="inline border border-gray-200 rounded-md p-1 cursor-pointer select-none"><Icon class="inline-block mr-1" src="{ArrowUpTray}" mini solid size="16" />
+                                Upload audio
+                            </div>
+                        {:else}
+                            <div class="inline-flex justify-center items-center">
+                                <!-- Connecting line (for style) -->
+                                <div class="flex items-center justify-center">
+                                    <div class={"border-t border w-4 " +
+                                        (fileInput.isProblematic ? "border-red-400" : "border-gray-200")}></div>
+                                </div>
+
+                                <div class={"inline-flex rounded border shadow-sm " +
+                                    (fileInput.isProblematic ? "border-red-400" : "border-gray-200")}>
+
+                                    {#if !fileInput.isProblematic}
+                                    <div class="inline-flex justify-center items-center w-6 aspect-square bg-violet-100">
+                                        <Icon class="inline rounded-md p-1 drop-shadow-sm" src="{MusicalNote}" />
+                                    </div>
+                                    {:else}
+                                    <div class="inline-flex justify-center items-center w-6 aspect-square bg-red-100">
+                                        <Icon class="inline text-red-400 rounded-md p-1 drop-shadow-sm" solid src="{XCircle}" />
+                                    </div>
+                                    {/if}
+
+                                    <div class="border-l inline-flex items-center">
+                                        <p class="mx-1 text-xs font-mono font-medium">{fileInput.filepath}</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                        {/if}
+                    </label>
+
+                    <!-- Delete layer button -->
+                    {#if fileInputs.length > 1}
+                    <button
+                        class={"rounded border bg-red-300 border-red-300 ml-2 opacity-0 " +
+                            (draggingInput ? "group-hover:opacity-0" : "group-hover:opacity-100")}
+                        type="button"
+                        on:click={() => removeInputSlot(i)}
+                    >
+                        <Icon class="text-white" src="{XMark}" size="16"/>
                     </button>
                     {/if}
                 </div>
 
-
-                <!-- Layer name -->
-                <div class="relative">
-                    <!-- Error circle -->
-                    {#if fileInput.isProblematic}
-                    <Icon src="{ExclamationCircle}" class="absolute top-0 left-[3px] w-3 text-red-500" />
-                    {/if}
-
-                    <!-- Inset layer title border -->
-                    <p class={"absolute left-[7px] -top-[7px] px-1 font-bold text-[8px] border rounded " +
-                        (fileInput.isProblematic ? "border-red-400" : "border-gray-100")} >
-                        Layer {i + 1}
-                    </p>
-
-                    <!-- Layer name input -->
-                    <input class={"relative text-xs px-5 py-1 border " +
-                        (fileInput.isProblematic ? "border-red-400": "border-gray-100")}
-                        bind:value={fileInput.layername}
-                        type="text"
-                        name="name"
-                    />
-
-                    <!-- Inset layer title -->
-                    <p class={"absolute left-2 -top-1.5 bg-white px-1 font-bold text-[8px] rounded " +
-                        (fileInput.isProblematic ? "text-red-400" : "text-gray-200")}>
-                        Layer {i + 1}
-                    </p>
-                </div>
-
-                <!-- Input element -->
-                <label class="text-xs font-bold select-none h-full" for={"Layer_" + (i + 1)}>
-                    <input
-                        bind:this={fileInput.input}
-                        on:change={() => changeFile(i)}
-                        on:click={() => chromeFileCache = fileInput.input?.files?.item(0) || null}
-                        class="sr-only absolute h-full"
-                        id={"Layer_" + (i + 1)}
-                        name={"Layer " + (i+1)}
-                        type="file"
-                        multiple
-                    />
-
-                    {#if !fileInput.filepath}
-                        <div class="inline border border-gray-200 rounded-md p-1 cursor-pointer select-none"><Icon class="inline-block mr-1" src="{ArrowUpTray}" mini solid size="16" />
-                            Upload audio
-                        </div>
-                    {:else}
-                        <div class="inline-flex justify-center items-center">
-                            <!-- Connecting line (for style) -->
-                            <div class="flex items-center justify-center">
-                                <div class={"border-t border w-4 " +
-                                    (fileInput.isProblematic ? "border-red-400" : "border-gray-200")}></div>
-                            </div>
-
-                            <div class={"inline-flex rounded border shadow-sm " +
-                                (fileInput.isProblematic ? "border-red-400" : "border-gray-200")}>
-
-                                {#if !fileInput.isProblematic}
-                                <div class="inline-flex justify-center items-center w-6 aspect-square bg-violet-100">
-                                    <Icon class="inline rounded-md p-1 drop-shadow-sm" src="{MusicalNote}" />
-                                </div>
-                                {:else}
-                                <div class="inline-flex justify-center items-center w-6 aspect-square bg-red-100">
-                                    <Icon class="inline text-red-400 rounded-md p-1 drop-shadow-sm" solid src="{XCircle}" />
-                                </div>
-                                {/if}
-
-                                <div class="border-l inline-flex items-center">
-                                    <p class="mx-1 text-xs font-mono font-medium">{fileInput.filepath}</p>
-                                </div>
-                            </div>
-                        </div>
-
-                    {/if}
-                </label>
-
-                <!-- Delete layer button -->
-                {#if fileInputs.length > 1}
-                <button
-                    class={"rounded border bg-red-300 border-red-300 ml-2 opacity-0 " +
-                        (draggingInput ? "group-hover:opacity-0" : "group-hover:opacity-100")}
-                    type="button"
-                    on:click={() => removeInputSlot(i)}
-                >
-                    <Icon class="text-white" src="{XMark}" size="16"/>
-                </button>
+                 <!-- Drag target indicater line at end -->
+                {#if draggingInput && i === fileInputs.length - 2 &&
+                    fileInput !== draggingInput && fileInput.input &&
+                    draggingInputY > fileInput.input.getBoundingClientRect().y + fileInput.input.getBoundingClientRect().height * .5}
+                    <div class="absolute w-full border border-blue-500 rounded-full -translate-y-1"></div>
                 {/if}
+
+                {#if i === fileInputs.length-1 && fileInputs.length > 1}
+                    <label for={"Layer_" + (i + 1)}
+                        class="mt-4 w-full border-t-2 border-gray-50 transition-colors duration-500 rounded-b-md bg-white hover:bg-gray-50 flex justify-center text-gray-400 hover:text-gray-500 cursor-pointer"
+                    >
+                        <p class="text-lg font-bold">+</p>
+                    </label>
+                {/if}
+            {/each}
             </div>
 
-             <!-- Drag target indicater line at end -->
-            {#if draggingInput && i === fileInputs.length - 2 &&
-                fileInput !== draggingInput && fileInput.input &&
-                draggingInputY > fileInput.input.getBoundingClientRect().y + fileInput.input.getBoundingClientRect().height * .5}
-                <div class="absolute w-full border border-blue-500 rounded-full -translate-y-1"></div>
-            {/if}
+            <div slot="dragover" class="box-content w-full h-full rounded-md border-2 border-dashed border-gray-100 text-gray-300 shadow-inner shadow-md">
+                <div class="absolute w-full h-full rounded-md bg-gray-100 border-0"></div>
+                <div class="absolute w-full h-full flex flex-col items-center justify-center">
+                    <div class="absolute pointer-events-none">
+                        <div class="relative">
+                            <Icon class="z-10 absolute block mb-2 drop-shadow-md" src="{MusicalNote}" size="48" />
+                            <Icon class="z-0 relative block mb-2 text-white translate-y-8 text-gray-50 animate-pulse" src="{Square3Stack3d}" size="48" />
 
-            {#if i === fileInputs.length-1}
-                <label for={"Layer_" + (i + 1)}
-                    class="mt-4 w-full border-t-2 border-gray-50 transition-colors duration-500 rounded-b-md bg-white hover:bg-gray-50 flex justify-center text-gray-400 hover:text-gray-500 cursor-pointer"
-                >
-                    <p class="text-lg font-bold">+</p>
-                </label>
-            {/if}
-        {/each}
-        </div>
+                        </div>
+
+                        <p class="relative text-center text-xs absolute drop-shadow-md translate-y-1">Add files</p>
+                    </div>
+                </div>
+            </div>
+        </Dropzone>
 
         <!-- Show drop zone when no layers are visible -->
         {#if fileInputs.length === 1}
@@ -462,14 +489,19 @@
                     <Icon class="block mb-2" src="{ArrowDownTray}" size="48" />
                     <p class="text-center text-xs"><label for="Layer_1" class="cursor-pointer inline font-bold text-gray-400">Choose audio files</label> or drag them here</p>
                 </div>
-                <div slot="dragover">
-                    <div class="absolute w-full h-full rounded-md opacity-25 bg-gray-500"></div>
-                    <div class="flex flex-col items-center p-10">
-                        <Icon class="block mb-2" src="{Square3Stack3d}" size="48" />
-                        <p class="text-center text-xs">Drop files</p>
+                <div slot="dragover" class="box-content w-full h-full rounded-md text-gray-300 shadow-inner shadow-md">
+                    <div class="absolute w-full h-full rounded-md bg-gray-100 border-0"></div>
+                    <div class="absolute w-full h-full flex flex-col items-center justify-center">
+                        <div class="absolute pointer-events-none">
+                            <div class="relative">
+                                <Icon class="z-10 absolute block mb-2 drop-shadow-md" src="{MusicalNote}" size="48" />
+                                <Icon class="z-0 relative block mb-2 text-white translate-y-8 text-gray-50 animate-pulse" src="{Square3Stack3d}" size="48" />
+
+                            </div>
+
+                            <p class="relative text-center text-xs absolute drop-shadow-md translate-y-1">Add files</p>
+                        </div>
                     </div>
-
-
                 </div>
             </Dropzone>
         {/if}
@@ -479,7 +511,7 @@
     {#if fileInputs.length > 1}
     <div class="w-full flex justify-center mt-3">
         <button
-            class="bg-violet-400 text-white px-3 py-1 rounded-full border border-violet-500 hover:border-violet-400 hover:bg-violet-300 transition-colors"
+            class="bg-violet-400 text-white px-3 py-1 rounded-full border border-violet-500 hover:border-violet-400 hover:bg-violet-300 transition-colors animate-pulse"
             on:click={handleSubmit}
         >
             Next
