@@ -1,6 +1,5 @@
 <script lang="ts">
     import debounce from "app/util/debounce";
-    import type { Delegate } from "app/util/delegate";
 
     import {basicSetup, EditorView} from "codemirror";
     import {autocompletion} from "@codemirror/autocomplete";
@@ -11,12 +10,13 @@
     import {EditorState} from "@codemirror/state";
     import { onMount } from "svelte";
 
-    export let onRequestText: Delegate<string, []>;
     export let onSave: () => void = () => {};
     export let value: string = "";
 
+    // Bindable
+    export let view: EditorView;
+
     let viewEl: HTMLDivElement;
-    let view: EditorView;
 
     function setEditorText(view: EditorView, text: string)
     {
@@ -50,19 +50,15 @@
 
     onMount(() => {
         onSave = debounce(onSave, 1000);
-        const requestTextHandler = () => {
-            return view.state.doc.toString();
-        };
 
-        onRequestText.subscribe(requestTextHandler);
-        view = new EditorView({
-            parent: viewEl,
-        });
+        if (!view)
+        {
+            view = new EditorView({
+                parent: viewEl,
+            });
+        }
+
         setEditorText(view, value);
-
-        return () => {
-            onRequestText.unsubscribe(requestTextHandler);
-        };
     });
 
 </script>
