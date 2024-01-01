@@ -1,3 +1,4 @@
+type MixPreset = import("app/util/MixPreset").MixPreset;
 type UserToken = import("shared/schemas/user/UserToken").UserToken;
 
 interface UserContext {
@@ -23,4 +24,35 @@ interface InputData {
     filepath: string;
     input: HTMLInputElement | undefined;
     isProblematic: boolean;
+}
+
+// External controls for an AudioPlayer component
+interface AudioPlayerExternalControls {
+    /**
+     * Load audio into the player
+     *
+     * @param data binary data of a single FSB, or multiple audio files
+     * @param layerNames name of each audio layer
+     * @param script text of lua script
+     */
+    load(data: ArrayBuffer[] | ArrayBuffer, layerNames: string[], script: string): void;
+
+    /**
+     * Unload data from audio player
+     */
+    unload(): void;
+
+    /**
+     * Get the current mix configuration from the player
+     */
+    getCurrentMix(): MixPreset;
+}
+
+interface AudioSubmissionData
+{
+    looping: boolean;
+    mixPresets: MixPreset[];
+    transitionTime: number;
+    script: string;
+    showMarkers: boolean;
 }
