@@ -30,7 +30,7 @@
 
 </script>
 
-<TransitionRoot as="div" show={show} class="w-full h-full overflow-hidden" style="z-index: 100;">
+<TransitionRoot as="div" show={show} class="w-full h-full overflow-hidden fixed" style="z-index: 100;">
     <Dialog as="div" class="z-50" on:close={onClose}>
         <!-- Background -->
         <TransitionChild
