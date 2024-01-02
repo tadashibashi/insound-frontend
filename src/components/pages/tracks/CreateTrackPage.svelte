@@ -3,7 +3,6 @@
         ArrowSmallLeft, Icon
     } from "svelte-hero-icons";
 
-    import { Transition } from "@rgossiaux/svelte-headlessui";
     import ErrorAlert from "app/components/widgets/ErrorAlert.svelte";
     import { SoundLoadError } from "app/audio/src/ts/AudioEngine";
     import LoadAudioPage from "./LoadAudioPage.svelte";
@@ -28,7 +27,11 @@
 
     let errorTitle = "";
     let errorMessages: string[] = [];
-    $: showErrors = errorMessages.length > 0;
+    $: if (fileInputs && !fileInputs.some(input => input.isProblematic))
+    {
+        errorTitle = "";
+        errorMessages = [];
+    }
 
     let audioContext: AudioPlayerExternalControls;
 
@@ -99,19 +102,10 @@
 <h1 class="ml-10 mt-2 text-3xl select-none">New Track</h1>
 
 <!-- Error message box -->
-<Transition
-    class="flex flex-col items-center justify-center w-full"
-    show={showErrors}
-    enter="transition-opacity duration-300"
-    enterFrom="opacity-0"
-    enterTo="opacity-100"
-    leave="transition-opacity duration-300"
-    leaveFrom="opacity-100"
-    leaveTo="opacity-0"
-    on:outroend={() => errorMessages.length = 0}
->
-    <ErrorAlert title={errorTitle} errorList={errorMessages} oncancel={() => showErrors = false}/>
-</Transition>
+<div class={"flex flex-col items-center justify-center w-full " + (errorTitle || errorMessages.length > 0 ? "" : "sr-only")}>
+    <ErrorAlert title={errorTitle} errorList={errorMessages} oncancel={() => { errorTitle = ""; errorMessages = []; } }/>
+</div>
+
 
 <!-- Back Button -->
 {#if formState > 0}
