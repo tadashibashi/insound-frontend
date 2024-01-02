@@ -30,6 +30,7 @@
     // Y position where the mouse is currently dragging
     let draggingInputY: number = 0;
 
+    let isDraggingOverDropzone = false;
 
     // ===== Callbacks ========================================================
 
@@ -326,6 +327,7 @@
 
         <Dropzone class={(fileInputs.length <= 1 ? "sr-only" : "") + " relative w-full h-full"}
             onfiles={handleDroppedFiles}
+            bind:isdraggedover={isDraggingOverDropzone}
             active={fileInputs.length > 1}
             >
 
@@ -466,7 +468,7 @@
             {/each}
             </div>
 
-            <div slot="dragover" class="box-content w-full h-full rounded-md text-gray-300 shadow-inner shadow-md">
+            <div slot="dragover" class="box-content w-full h-full rounded-md text-gray-300">
                 <div class="absolute w-full h-full rounded-md bg-gray-100 border-0"></div>
                 <div class="absolute w-full h-full flex flex-col items-center justify-center">
                     <div class="absolute pointer-events-none">
@@ -489,7 +491,7 @@
                     <Icon class="block mb-2" src="{ArrowDownTray}" size="48" />
                     <p class="text-center text-xs"><label for="Layer_1" class="cursor-pointer inline font-bold text-gray-400">Choose audio files</label> or drag them here</p>
                 </label>
-                <div slot="dragover" class="box-content w-full h-full rounded-md text-gray-300 shadow-inner shadow-md">
+                <div slot="dragover" class="box-content w-full h-full rounded-md text-gray-300">
                     <div class="absolute w-full h-full rounded-md bg-gray-100 border-l border-l-gray-300"></div>
                     <div class="absolute w-full h-full flex flex-col items-center justify-center">
                         <div class="absolute pointer-events-none">
@@ -509,7 +511,7 @@
 
     <!-- Submit button -->
     {#if fileInputs.length > 1}
-    <div class="w-full flex justify-center mt-3">
+    <div class={"w-full flex justify-center mt-3 " + (isDraggingOverDropzone ? "sr-only" : "")}>
         <button
             class="bg-violet-400 text-white px-3 py-1 rounded-full border border-violet-500 hover:border-violet-400 hover:bg-violet-300 transition-colors animate-pulse"
             on:click={handleSubmit}
@@ -519,5 +521,4 @@
         </button>
     </div>
     {/if}
-
 </div>
