@@ -466,7 +466,7 @@
             {/each}
             </div>
 
-            <div slot="dragover" class="box-content w-full h-full rounded-md border-2 border-dashed border-gray-100 text-gray-300 shadow-inner shadow-md">
+            <div slot="dragover" class="box-content w-full h-full rounded-md text-gray-300 shadow-inner shadow-md">
                 <div class="absolute w-full h-full rounded-md bg-gray-100 border-0"></div>
                 <div class="absolute w-full h-full flex flex-col items-center justify-center">
                     <div class="absolute pointer-events-none">

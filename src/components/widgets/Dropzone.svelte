@@ -91,7 +91,7 @@
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
-    class={$$props.class || "relative w-full h-full rounded-md min-w-[300px] border-dashed border-2 border-gray-200 text-gray-300 select-none"}
+    class={$$props.class || "relative w-full h-full rounded-md min-w-[300px] border-dashed border-[3px] border-gray-200 text-gray-300 select-none"}
 >
     <div class={"w-full h-full " + (isDraggedOver ? "sr-only" : "opacity-100")}
         bind:this={normalLayer}
