@@ -115,7 +115,7 @@
 
 <!-- Back Button -->
 {#if formState > 0}
-<button class="absolute left-2 flex-none rounded-full hover:bg-gray-100 px-3 py-1 transition-colors duration-300"
+<button class="absolute z-10 left-2 flex-none rounded-full hover:bg-gray-100 px-3 py-1 transition-colors duration-300"
     on:click={() => {
         if (formState === FormState.AudioOptions)
         {
