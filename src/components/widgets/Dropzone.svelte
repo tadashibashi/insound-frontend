@@ -1,13 +1,23 @@
 <script lang="ts">
+    /** Transition time to wait before drag state changes. Prevent bugs. */
+    const TimeoutTime = 10;
+
+    // ===== Public ===========================================================
+    /** Whether dropzone can be dragged over with files */
     export let active = true;
 
-    let normalLayer: HTMLElement;
-    let isDraggedOver: boolean = false;
+    /** Whether current dropzone is being hover/dragged over with files */
+    export let isdraggedover: boolean = false;
 
     /** Callback to handle file that was dropped */
     export let onfiles: (files: File[]) => void = () => {};
-    const timeoutTime = 10;
 
+    // ===== Private ==========================================================
+
+    let _isDraggedOver: boolean = isdraggedover;
+    $: isdraggedover = _isDraggedOver;
+
+    let normalLayer: HTMLElement;
     let timeout: number | undefined = undefined;
 
     let width: number = 0, height: number = 0;
@@ -16,8 +26,10 @@
     {
         if (timeout !== undefined)
             clearTimeout(timeout);
-        isDraggedOver = false;
+        _isDraggedOver = false;
     }
+
+    // ===== Callbacks ========================================================
 
     function dragOverHandler(evt: DragEvent)
     {
@@ -44,9 +56,9 @@
         if (!active) return;
 
         timeout = setTimeout(() => {
-            isDraggedOver = true;
+            _isDraggedOver = true;
             timeout = undefined;
-        }, timeoutTime);
+        }, TimeoutTime);
     }
 
     function dragLeaveHandler(evt: DragEvent)
@@ -61,9 +73,9 @@
         if (!active) return;
 
         timeout = setTimeout(() => {
-            isDraggedOver = false;
+            _isDraggedOver = false;
             timeout = undefined;
-        }, timeoutTime);
+        }, TimeoutTime);
     }
 
     function dropHandler(evt: DragEvent)
@@ -82,7 +94,7 @@
             files.push(evt.dataTransfer.files.item(i) as File);
         }
 
-        isDraggedOver = false;
+        _isDraggedOver = false;
 
         onfiles(files);
     }
@@ -91,15 +103,15 @@
 
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
-    class={$$props.class || "relative w-full h-full rounded-md min-w-[300px] border-dashed border-[3px] border-gray-200 text-gray-300 select-none"}
+    class={$$props.class || "relative w-full h-full rounded-md min-w-[min(75vmin,500px)] border-dashed border-[3px] border-gray-200 text-gray-300 select-none"}
 >
-    <div class={"w-full h-full " + (isDraggedOver ? "sr-only" : "opacity-100")}
+    <div class={"w-full h-full " + (_isDraggedOver ? "sr-only" : "opacity-100")}
         bind:this={normalLayer}
         on:dragenter={dragEnterHandler}
         on:dragover={dragOverHandler}>
             <slot name="normal" />
     </div>
-    {#if isDraggedOver}
+    {#if _isDraggedOver}
         <div class=""
             style={`width: ${width}px; height: ${height}px;`}
             on:dragleave={dragLeaveHandler}
