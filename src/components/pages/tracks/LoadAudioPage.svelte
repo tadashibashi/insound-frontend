@@ -1,6 +1,7 @@
 <script lang="ts">
     import Dropzone from "app/components/widgets/Dropzone.svelte";
     import { util } from "app/util";
+    import debounce from "app/util/debounce";
     import { afterUpdate, onMount } from "svelte";
     import { ArrowDownTray, ArrowRight, ArrowUpTray, EllipsisVertical, ExclamationCircle, Icon, MusicalNote, Plus, Square3Stack3d, XCircle, XMark } from "svelte-hero-icons";
 
@@ -14,6 +15,7 @@
     // Input rows data. Externally bindable.
     export let fileInputs: InputData[] = [createInputData()];
 
+    $: submissionProblematic = fileInputs.some(input => input.isProblematic);
 
     // ----- UI State ---------------------------------------------------------
 
@@ -143,10 +145,14 @@
 
     function handleSubmit()
     {
+        if (submissionProblematic) return;
+
         fileInputs.forEach(input => input.isProblematic = false);
 
         const files = collectFiles();
         onsubmit(files);
+
+        fileInputs = fileInputs;
     }
 
     // ===== Helpers ==========================================================
@@ -401,6 +407,7 @@
                             id={"Layer_" + (i + 1)}
                             name={"Layer " + (i+1)}
                             type="file"
+                            accept="audio/*"
                             multiple
                         />
 
@@ -513,8 +520,9 @@
     {#if fileInputs.length > 1}
     <div class={"w-full flex justify-center mt-3 " + (isDraggingOverDropzone ? "sr-only" : "")}>
         <button
-            class="bg-violet-400 text-white px-3 py-1 rounded-full border border-violet-500 hover:border-violet-400 hover:bg-violet-300 transition-colors animate-pulse"
-            on:click={handleSubmit}
+            class={"px-3 py-1 rounded-full border  transition-colors " +
+                (submissionProblematic ? "bg-gray-100 border-gray-50 text-gray-50 cursor-not-allowed" : "bg-violet-400 border-violet-500 animate-pulse text-white cursor-pointer")}
+            on:click={debounce(handleSubmit, 1000)}
         >
             Next
             <Icon src={ArrowRight} size="16" class="inline ml-[1px] pb-[1px]" />
