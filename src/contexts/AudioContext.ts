@@ -1,4 +1,4 @@
-import { initAudioModule } from "app/audio/src/ts/emaudio/AudioModule";
+import { audioModuleWasInit, initAudioModule } from "app/audio/src/ts/emaudio/AudioModule";
 import { AudioEngine } from "audio/AudioEngine";
 import { onMount, setContext } from "svelte";
 import { get, writable } from "svelte/store";
@@ -12,9 +12,18 @@ export namespace AudioContext {
             const engine = get(audio);
             if (engine)
             {
-                if (engine.updateHandler)
-                    engine.updateHandler();
-                engine.update();
+                try {
+                    if (audioModuleWasInit())
+                    {
+                        if (engine.updateHandler)
+                            engine.updateHandler();
+                        engine.update();
+                    }
+                }
+                catch(err)
+                {
+                    engine.reset();
+                }
             }
         }
 
