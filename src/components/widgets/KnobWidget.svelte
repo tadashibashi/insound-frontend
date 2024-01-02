@@ -142,7 +142,12 @@
         return param.min < param.max ?
             percentage * AngleDistance + AngleMin :
             AngleDistance - (percentage * AngleDistance) + AngleMin;
+    }
 
+    function handleSetCallback(index: number, value: number)
+    {
+        rotation = valueToAngle(value);
+        param = param;
     }
 
     onMount(() => {
@@ -151,9 +156,13 @@
 
         rotation = valueToAngle(param.value);
 
+        param.addSetCallback(handleSetCallback)
+
         return () => {
             document.removeEventListener("mousemove", mousemoveHandler);
             document.removeEventListener("mouseup", mouseupHandler);
+
+            param.removeSetCallback(handleSetCallback);
         };
     });
 </script>
