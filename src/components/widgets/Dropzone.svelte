@@ -14,7 +14,7 @@
 
     // ===== Private ==========================================================
 
-    let _isDraggedOver: boolean = isdraggedover;
+    let _isDraggedOver: boolean = false;
     $: isdraggedover = _isDraggedOver;
 
     let normalLayer: HTMLElement;

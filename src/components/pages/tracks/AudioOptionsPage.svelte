@@ -20,8 +20,6 @@
 
     // ===== Options ==========================================================
     export let show: boolean = true;
-
-    // Bindings to enable final form submission in parent component
     const mixPresets: MixPreset[] = [];
     let showMarkers: boolean = true;
     let looping: boolean = true;
