@@ -485,12 +485,12 @@
         <!-- Show drop zone when no layers are visible -->
         {#if fileInputs.length === 1}
             <Dropzone onfiles={handleDroppedFiles}>
-                <div slot="normal" class="flex flex-col items-center p-10">
+                <label for="Layer_1" slot="normal" class="flex flex-col items-center px-10 py-16 cursor-pointer">
                     <Icon class="block mb-2" src="{ArrowDownTray}" size="48" />
                     <p class="text-center text-xs"><label for="Layer_1" class="cursor-pointer inline font-bold text-gray-400">Choose audio files</label> or drag them here</p>
-                </div>
+                </label>
                 <div slot="dragover" class="box-content w-full h-full rounded-md text-gray-300 shadow-inner shadow-md">
-                    <div class="absolute w-full h-full rounded-md bg-gray-100 border-0"></div>
+                    <div class="absolute w-full h-full rounded-md bg-gray-100 border-l border-l-gray-300"></div>
                     <div class="absolute w-full h-full flex flex-col items-center justify-center">
                         <div class="absolute pointer-events-none">
                             <div class="relative">
