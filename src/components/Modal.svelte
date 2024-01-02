@@ -5,11 +5,13 @@
         Dialog
     } from "@rgossiaux/svelte-headlessui";
     import { onMount } from "svelte";
+    import { Icon, XMark } from "svelte-hero-icons";
 
     export let show: boolean;
     export let isCancellable: boolean = true;
 
-    export let onClose = () => {};
+    export let onclose = () => {};
+    export let onopen = () => {};
 
     onMount(() => {
 
@@ -31,7 +33,7 @@
 </script>
 
 <TransitionRoot as="div" show={show} class="w-full h-full overflow-hidden fixed" style="z-index: 100;">
-    <Dialog as="div" class="z-50" on:close={onClose}>
+    <Dialog as="div" class="z-50">
         <!-- Background -->
         <TransitionChild
             as="div"
@@ -41,10 +43,12 @@
             leave="ease-in duration-200"
             leaveFrom="opacity-100"
             leaveTo="opacity-0"
-
+            on:introstart={onopen}
+            on:outroend={onclose}
         >
             <button class="fixed inset-0 z-50 bg-gray-500 bg-opacity-75 transition-opacity"
-                on:click={() => { if (isCancellable) show = false }}/>
+                on:click={() => { if (isCancellable) show = false }}>
+            </button>
         </TransitionChild>
 
         <!-- Content -->
@@ -58,7 +62,7 @@
                 leaveTo="opacity-0 translate-y-4"
                 class="w-full h-full flex justify-items items-center z-50"
             >
-                <slot />
+                    <slot />
             </TransitionChild>
         </div>
     </Dialog>
