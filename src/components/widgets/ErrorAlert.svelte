@@ -38,11 +38,15 @@
             <!-- Error list -->
             {#if errorList.length > 0}
             <div class="mt-2 text-sm text-red-700">
-                <ul role="list" class="list-disc space-y-1 pl-5">
-                    {#each errorList as message, i (message + "-" + i)}
-                    <li>{message}</li>
-                    {/each}
-                </ul>
+                {#if errorList.length === 1}
+                    <p>{errorList[0]}</p>
+                {:else}
+                    <ul role="list" class="list-disc space-y-1 pl-5">
+                        {#each errorList as message, i (message + "-" + i)}
+                        <li>{message}</li>
+                        {/each}
+                    </ul>
+                {/if}
             </div>
             {/if}
 
