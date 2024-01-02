@@ -81,7 +81,7 @@ export namespace util
      * An enumeration of action indices that is used in the `transformArray`
      * functions. This function uses the reducer pattern such as in Redux.
      */
-    export enum TransformArrayAction
+    export enum ArrayOp
     {
         /** Splice an object from an array and insert it at another index */
         SpliceAndInsert,
@@ -94,69 +94,70 @@ export namespace util
     }
 
     /**
-     * Performs a mutating operation on an array
+     * Performs operation on a copy of an array. (`arr` is const and won't be
+     * modified)
      *
      * @param arr    the array to perform the operation on
      * @param action the action type to perform
      * @param arg    the data associated with the action
      */
-    export function transformArray<T>(arr: T[], action: TransformArrayAction.SpliceAndInsert, arg: {from: number, to: number}): void;
-    export function transformArray<T>(arr: T[], action: TransformArrayAction.Erase, arg: number): void;
-    export function transformArray<T>(arr: T[], action: TransformArrayAction.Insert, arg: {index: number, items: T[]}): void;
-    export function transformArray<T>(arr: T[], action: TransformArrayAction.Insert, arg: {index: number, item: T}): void;
-    export function transformArray<T>(arr: T[], action: TransformArrayAction.Clear): void;
-    export function transformArray<T>(arr: T[], action: TransformArrayAction, arg?: any): void
+    export function transformArray<T>(arr: T[], action: ArrayOp.SpliceAndInsert, arg: {from: number, to: number}): T[];
+    export function transformArray<T>(arr: T[], action: ArrayOp.Erase, arg: number): T[];
+    export function transformArray<T>(arr: T[], action: ArrayOp.Insert, arg: {index: number, items: T[]}): T[];
+    export function transformArray<T>(arr: T[], action: ArrayOp.Insert, arg: {index: number, item: T}): T[];
+    export function transformArray<T>(arr: T[], action: ArrayOp.Clear): T[];
+    export function transformArray<T>(arr: T[], action: ArrayOp, arg?: any): T[]
     {
+        const temp = [...arg];
         switch(action)
         {
-        case TransformArrayAction.SpliceAndInsert:
+        case ArrayOp.SpliceAndInsert:
             {
                 if (typeof arg.from !== "number" || typeof arg.to !== "number"
                     || arg.from < 0 || arg.from >= arr.length
                     || arg.to < 0 || arg.to >= arg.length
                     || arg.from === arg.to)
-                    return;
+                    return temp;
 
                 const item = arr[arg.from];
-                arr.splice(arg.from, 1);
-                arr.splice(arg.to, 0, item);
+                temp.splice(arg.from, 1);
+                temp.splice(arg.to, 0, item);
             break;
             }
-        case TransformArrayAction.Erase:
+        case ArrayOp.Erase:
             {
                 if (typeof arg !== "number" || arg < 0 || arg >= arr.length)
-                    return;
+                    return temp;
 
-                arr.splice(arg, 1);
+                temp.splice(arg, 1);
             break;
             }
 
-        case TransformArrayAction.Insert:
+        case ArrayOp.Insert:
             {
                 if (typeof arg.index !== "number" || arg.index < 0 ||
                     arg.index >= arr.length)
-                    return;
+                    return temp;
 
                 if (Array.isArray(arg.items))
                 {
-                    arr.splice(arg.index, 0, ...arg.items);
+                    temp.splice(arg.index, 0, ...arg.items);
                 }
                 else if (arg.item !== undefined)
                 {
                     // trusts `arg.item`` is of type T
-                    arr.splice(arg.index, 0, arg.item as T);
+                    temp.splice(arg.index, 0, arg.item as T);
                 }
             }
 
-        case TransformArrayAction.Clear:
+        case ArrayOp.Clear:
             {
-               arr.length = 0;
+               temp.length = 0;
             break;
             }
-
         }
 
-
+        return temp;
     }
 }
 
