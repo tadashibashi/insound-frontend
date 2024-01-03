@@ -22,6 +22,7 @@ export namespace util
      */
     export function fileNameToLabelName(filename: string): string
     {
+        /** Checks if first character is a space or space-like (e.g. "-_") */
         function isSpace(c: string)
         {
             if (c.length === 0) return false;
@@ -50,7 +51,7 @@ export namespace util
                 if (isSpace(c))
                     continue;
 
-                if (/[A-Za-z]/.test(c))
+                if (/[A-Za-z0-9]/.test(c))
                 {
                     lastSpace = false;
                     res += c.toUpperCase();
