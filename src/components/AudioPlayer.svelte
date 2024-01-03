@@ -3,7 +3,6 @@
     import { AudioConsole } from "app/util/AudioConsole";
     import type { AudioEngine } from "audio/AudioEngine";
     import type { MixPreset } from "app/util/MixPreset";
-    import type { Param } from "audio/params/ParameterMgr";
     import type { SyncPoint } from "audio/SyncPointMgr";
     import { TimeDisplay } from "app/util/TimeDisplay";
 
@@ -47,7 +46,7 @@
     export let mixPresets: MixPreset[] = [];
 
     // todo: implement param page later
-    export let params: Param[] = [];
+    // export let params: Param[] = [];
 
 
     $: if (looping && audio.isTrackLoaded())
@@ -178,9 +177,9 @@
     }
 
     // Helper to get current mix from the audio console
-    function getCurrentMix()
+    function getCurrentMix(name?: string)
     {
-        return {name: "", mix: audioConsole.getCurrentSettings()};
+        return {name: name || "", mix: audioConsole.getCurrentSettings()};
     }
 </script>
 
@@ -221,7 +220,7 @@
 
     <!-- Mix preset options -->
     <ChoiceMenu class="" choices={mixPresets.map(preset => preset.name)}
-        onchoose={value => applyMix(mixPresets[value].mix, transitionTime)}/>
+        onchoose={value => applyMix(mixPresets[value].mix, transitionTime)} />
 
     <!-- Channel Strips -->
     <div class="border border-b-2 border-gray-50 rounded-md my-6 shadow-lg">
