@@ -1,8 +1,8 @@
 <script lang="ts">
-    import VSlider from "./VSlider.svelte";
-    import KnobWidget from "./KnobWidget.svelte";
+    import VSlider from "app/components/widgets/VSlider.svelte";
+    import KnobWidget from "app/components/widgets/KnobWidget.svelte";
     import { AudioChannel } from "app/util/AudioChannel";
-    import WidgetLabel from "./WidgetLabel.svelte";
+    import WidgetLabel from "app/components/widgets/WidgetLabel.svelte";
 
     export let channel: AudioChannel;
 </script>

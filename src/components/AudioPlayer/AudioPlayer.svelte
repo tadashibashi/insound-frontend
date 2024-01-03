@@ -8,10 +8,12 @@
 
     import { onMount } from "svelte";
 
-    import ChannelStrip from "./widgets/ChannelStrip.svelte";
-    import ChoiceMenu from "./widgets/ChoiceMenu.svelte";
-    import Playbar from "./widgets/Playbar.svelte";
+    import ChoiceMenu from "app/components/widgets/ChoiceMenu.svelte";
+
     import { Icon, Pause, Play } from "svelte-hero-icons";
+
+    import Playbar from "./Playbar.svelte";
+    import MixConsole from "./MixConsole.svelte";
 
     export const context: AudioPlayerExternalControls = {
         load: onLoadAudio,
@@ -23,8 +25,7 @@
     // component.
     export let audio: AudioEngine;
 
-    // Bindable AudioConsole for external control. You can provide your own.
-    export let audioConsole = new AudioConsole(audio);
+    let audioConsole: AudioConsole;
 
     // ===== State ============================================================
     let isPlaying = false;
@@ -222,29 +223,6 @@
     <ChoiceMenu class="" choices={mixPresets.map(preset => preset.name)}
         onchoose={value => applyMix(mixPresets[value].mix, transitionTime)} />
 
-    <!-- Channel Strips -->
-    <div class="border border-b-2 border-gray-50 rounded-md my-6 shadow-lg">
-        <div class="h-[324px] w-full flex pt-2 pl-2">
-                <div class="overflow-y-hidden overflow-x-auto whitespace-nowrap flex-grow flex">
-
-                    {#each audioConsole.channels as chan, i (chan)}
-                        {#if i > 0}
-                            <ChannelStrip channel={chan} />
-
-                            <!-- Channel divider -->
-                            <div class="inline h-[300px] w-[1px] border-l border-l-gray-100" />
-                        {/if}
-                    {/each}
-
-                </div>
-
-            {#if audioConsole.channels.length > 0}
-                <ChannelStrip channel={audioConsole.channels[0]} />
-            {/if}
-
-        </div>
-
-    </div>
-
+    <MixConsole audio={audio} bind:audioConsole={audioConsole} />
 
 </div>
