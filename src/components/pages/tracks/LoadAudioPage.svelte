@@ -4,6 +4,7 @@
     import debounce from "app/util/debounce";
     import { afterUpdate, onMount } from "svelte";
     import { ArrowDownTray, ArrowRight, ArrowUpTray, EllipsisVertical, ExclamationCircle, Icon, MusicalNote, Plus, Square3Stack3d, XCircle, XMark } from "svelte-hero-icons";
+    import DropFilesCard from "./DropFilesCard.svelte";
 
     // ===== User callbacks ===================================================
     export let onsubmit: (files: File[]) => void = () => {};
@@ -476,18 +477,7 @@
             </div>
 
             <div slot="dragover" class="box-content w-full h-full rounded-md text-gray-300">
-                <div class="absolute w-full h-full rounded-md bg-gray-100 border-0"></div>
-                <div class="absolute w-full h-full flex flex-col items-center justify-center">
-                    <div class="absolute pointer-events-none">
-                        <div class="relative">
-                            <Icon class="z-10 absolute block mb-2 drop-shadow-md" src="{MusicalNote}" size="48" />
-                            <Icon class="z-0 relative block mb-2 text-white translate-y-8 text-gray-50 animate-pulse" src="{Square3Stack3d}" size="48" />
-
-                        </div>
-
-                        <p class="relative text-center text-xs absolute drop-shadow-md translate-y-1">Add files</p>
-                    </div>
-                </div>
+                <DropFilesCard />
             </div>
         </Dropzone>
 
@@ -499,19 +489,7 @@
                     <p class="text-center text-xs"><label for="Layer_1" class="cursor-pointer inline font-bold text-gray-400">Choose audio files</label> or drag them here</p>
                 </label>
                 <div slot="dragover" class="box-content w-full h-full rounded-md text-gray-300">
-                    <div class="absolute w-full h-full rounded-md bg-gray-100 border-l border-l-gray-300"></div>
-                    <div class="absolute w-full h-full flex flex-col items-center justify-center">
-                        <div class="absolute pointer-events-none">
-                            <div class="relative">
-                                <Icon class="z-10 absolute block mb-2 drop-shadow-md" src="{MusicalNote}" size="48" />
-                                <Icon class="z-0 relative block mb-2 text-white translate-y-8 text-gray-50 animate-pulse" src="{Square3Stack3d}" size="48" />
-
-                            </div>
-
-                            <p class="relative text-center text-xs absolute drop-shadow-md translate-y-1">Add files</p>
-                        </div>
-                    </div>
-                </div>
+                    <DropFilesCard />
             </Dropzone>
         {/if}
     </div>
