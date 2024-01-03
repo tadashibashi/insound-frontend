@@ -25,7 +25,7 @@
     // component.
     export let audio: AudioEngine;
 
-    let audioConsole: AudioConsole;
+    let audioConsole: AudioConsole = new AudioConsole(audio);
 
     // ===== State ============================================================
     let isPlaying = false;
@@ -223,6 +223,6 @@
     <ChoiceMenu class="" choices={mixPresets.map(preset => preset.name)}
         onchoose={value => applyMix(mixPresets[value].mix, transitionTime)} />
 
-    <MixConsole audio={audio} bind:audioConsole={audioConsole} />
+    <MixConsole audioConsole={audioConsole} />
 
 </div>

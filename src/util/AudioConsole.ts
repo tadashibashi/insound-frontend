@@ -25,6 +25,11 @@ export class AudioConsole
         this.audio = audio;
     }
 
+    hasAudioEngine(): boolean
+    {
+        return !!this.audio;
+    }
+
     /**
      * Repopulate the console with new channels, applying the following
      * settings to each channel. Channel 0 is the main channel, while the

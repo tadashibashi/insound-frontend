@@ -1,10 +1,16 @@
+<!--
+@file MixConsole.svelte
+@description
+    Interface to control underlying AudioEngine with the appearance of an
+    audio mixing console desk.
+-->
 <script lang="ts">
-    import type { AudioEngine } from "audio/AudioEngine";
     import { AudioConsole } from "app/util/AudioConsole";
     import ChannelStrip from "./ChannelStrip.svelte";
 
-    export let audio: AudioEngine;
-    export let audioConsole = new  AudioConsole(audio);
+    /** Audio console to control */
+    export let audioConsole: AudioConsole;
+
 </script>
 
 <!-- Mix Console -->
