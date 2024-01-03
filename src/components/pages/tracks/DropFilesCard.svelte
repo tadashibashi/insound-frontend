@@ -4,21 +4,21 @@
 
 </script>
 
-<div class="absolute w-full h-full rounded-md bg-gray-100 border-0"></div>
+<div class="Background"></div>
 <div class="absolute w-full h-full flex flex-col items-center justify-center">
     <div class="absolute pointer-events-none">
         <div class="relative">
             <div class="Icon1 z-10 absolute block mb-2 drop-shadow-md">
                 <Icon src="{MusicalNote}" size="48" />
             </div>
-            <div class="Icon2 z-0 relative block mb-2 text-white translate-y-8 text-gray-50">
+            <div class="Icon2 z-0 relative block mb-2 translate-y-8 text-gray-50">
                 <Icon class="animate-pulse" src="{Square3Stack3d}" size="48" />
             </div>
 
 
         </div>
 
-        <p class="Fadein relative text-center text-xs absolute drop-shadow-md translate-y-1">Add files</p>
+        <p class="Fadein relative text-center text-xs drop-shadow-md translate-y-1">Add files</p>
     </div>
 </div>
 
@@ -55,6 +55,18 @@
         }
     }
 
+    @keyframes background-fade-in {
+        0% {
+            background-color: #0000;
+        }
+        50% {
+            background-color:  #eee;
+        }
+        100% {
+            background-color:  #eaeaea;
+        }
+    }
+
     .Icon1 {
         animation: .3s ease-out 1 icon-1;
     }
@@ -65,5 +77,12 @@
 
     .Fadein {
         animation: .3s  ease-in 1 fade-in;
+    }
+
+    .Background {
+        animation:  .3s linear 1 background-fade-in;
+        @apply absolute w-full h-full rounded-md border-0;
+
+        background-color:  #eaeaea;
     }
 </style>
