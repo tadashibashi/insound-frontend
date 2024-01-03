@@ -44,6 +44,16 @@
 
     let progress: number = 0;
 
+    let pointerX: number = 0;
+    let timeAtPointer = 0;
+    $: {
+        if (barEl && isEngaged)
+        {
+            const rect = barEl.getBoundingClientRect();
+            timeAtPointer = Math.max(Math.min((pointerX - rect.x) / rect.width * time.max, time.max), 0);
+        }
+    }
+
     $: if (!isDragging)
     {
         progress = time.progress;
@@ -114,6 +124,12 @@
 
     function handlePointerMove(evt: PointerEvent)
     {
+        if (isEngaged)
+        {
+            const rect = barEl.getBoundingClientRect();
+            pointerX = Math.min(Math.max(rect.x, evt.x), rect.right);
+        }
+
         if (isDragging)
         {
             const progMax = Math.min(1, loopend / time.max);
@@ -137,6 +153,14 @@
             document.removeEventListener("pointermove", handlePointerMove);
         };
     });
+
+    function secondsToFineTime(seconds: number): string
+    {
+        const min = Math.floor(seconds / 60);
+        const sec = (Math.floor(seconds) % 60).toString().padStart(2, "0");
+
+        return `${min}:${sec}`;
+    }
 </script>
 
 <div class={$$props.class}>
@@ -156,7 +180,20 @@
                     (barEl?.getBoundingClientRect().width || 0)}px - 50%));
                 opacity: ${isEngaged ? 100 : 0}%;`
             }
-        />
+        >
+        </div>
+
+        <!-- Hover time display -->
+        <div class={"absolute pointer-events-none " + (isEngaged ? "" : "sr-only")}
+            style={
+                `transform: translateX(calc(${pointerX - (barEl?.getBoundingClientRect().x || 0)}px - 50%));`
+            }
+        >
+            <!-- text bubble -->
+            <div class="-translate-y-[150%] text-gray-400 text-xs">
+                {secondsToFineTime(timeAtPointer)}
+            </div>
+        </div>
 
         <!-- Hovering Markers -->
         <div class="absolute z-30">
