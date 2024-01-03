@@ -43,39 +43,19 @@
         height = rect.height;
     }
 
-    function dragEnterHandler(evt: DragEvent)
+    function dragEnterHandler()
     {
-        evt.preventDefault();
-        updateSize();
-
-        if (timeout !== undefined)
-        {
-            clearTimeout(timeout);
-        }
-
         if (!active) return;
 
-        timeout = setTimeout(() => {
-            _isDraggedOver = true;
-            timeout = undefined;
-        }, TimeoutTime);
+        updateSize();
+        setDragOverStatus(true);
     }
 
-    function dragLeaveHandler(evt: DragEvent)
+    function dragLeaveHandler()
     {
-        evt.preventDefault();
-
-        if (timeout !== undefined)
-        {
-            clearTimeout(timeout);
-        }
-
         if (!active) return;
 
-        timeout = setTimeout(() => {
-            _isDraggedOver = false;
-            timeout = undefined;
-        }, TimeoutTime);
+        setDragOverStatus(false);
     }
 
     function dropHandler(evt: DragEvent)
@@ -86,8 +66,8 @@
 
         if (!evt.dataTransfer || !evt.dataTransfer.files.length) return;
 
+        // collect files from the drop event
         const files: File[] = [];
-
         const fileCount = evt.dataTransfer.files.length;
         for (let i = 0; i < fileCount; ++i)
         {
@@ -96,7 +76,30 @@
 
         _isDraggedOver = false;
 
+        // pass files to the user callback
         onfiles(files);
+    }
+
+    // ----- Helpers ----------------------------------------------------------
+
+    /**
+     * Delay-set the dragover status of this Dropoverzone.
+     * Setting this variable is delayed to help prevent bugs that may arise
+     * from race conditions.
+     */
+    function setDragOverStatus(value: boolean)
+    {
+        // cancel existing timeout if any
+        if (timeout !== undefined)
+        {
+            clearTimeout(timeout);
+        }
+
+        // delay value set
+        timeout = setTimeout(() => {
+            _isDraggedOver = value;
+            timeout = undefined;
+        }, TimeoutTime);
     }
 
 </script>
@@ -104,6 +107,7 @@
 <!-- svelte-ignore a11y-no-static-element-interactions -->
 <div
     class={$$props.class || "relative w-full h-full rounded-md min-w-[min(75vmin,500px)] border-dashed border-[3px] border-gray-200 text-gray-300 select-none"}
+    on:pointerleave={dragLeaveHandler}
 >
     <div class={"w-full h-full " + (_isDraggedOver ? "sr-only" : "opacity-100")}
         bind:this={normalLayer}
@@ -112,11 +116,12 @@
             <slot name="normal" />
     </div>
     {#if _isDraggedOver}
-        <div class=""
+        <div
             style={`width: ${width}px; height: ${height}px;`}
             on:dragleave={dragLeaveHandler}
             on:dragover={dragOverHandler}
             on:drop={dropHandler}
+            on:pointerdown={dragLeaveHandler}
         >
             <slot name="dragover" />
         </div>
