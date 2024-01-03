@@ -38,7 +38,10 @@
 
 </script>
 
-<main class="overflow-x-hidden overflow-y-auto bg-[#fdfdfd] w-screen h-screen">
+<main class="overflow-x-hidden overflow-y-auto bg-[#fdfdfd] w-screen h-screen"
+    on:drop={(evt) => evt.preventDefault()}
+    on:dragover={(evt) => evt.preventDefault()}
+>
     <Router>
         <Route path="/" component={LandingPage} />
         <Route path="/auth/*" component={AuthLayout} />
