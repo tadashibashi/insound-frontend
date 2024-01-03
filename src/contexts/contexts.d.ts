@@ -44,8 +44,9 @@ interface AudioPlayerExternalControls {
 
     /**
      * Get the current mix configuration from the player
+     * @param name name to set for the mix, default: `""` (no name)
      */
-    getCurrentMix(): MixPreset;
+    getCurrentMix(name?: string): MixPreset;
 }
 
 interface AudioSubmissionData
