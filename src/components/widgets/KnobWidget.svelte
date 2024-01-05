@@ -219,7 +219,7 @@
     <!-- Input text box -->
     <NumberInput id={id} value={param.value} min={param.min} max={param.max}
         step={param.step}
-        onchange={inputChangeHandler} show={showNumberInput} delayHide={250} />
+        onchange={inputChangeHandler} show={showNumberInput} />
 </div>
 
 

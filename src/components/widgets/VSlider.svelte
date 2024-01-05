@@ -175,12 +175,12 @@
                         role="slider"
                         aria-valuenow={param.value}
 
-                        class="absolute fader block rounded-sm w-8 -mx-4 h-3 -my-2 shadow-lg shadow-gray-400"
+                        class="absolute fader block rounded-sm w-8 -mx-4 h-3 -my-2 shadow-lg shadow-gray-400 z-10"
                         style={`transform: translateY(${positionY}px);`}
 
                         on:mousedown={faderMouseDownHandler} />
                     <div
-                        class="absolute arrow-left ml-1 pointer-events-none -z-10"
+                        class="absolute arrow-left ml-1 pointer-events-none z-0"
                         style={`transform: translateY(${defaultPositionY}px);`}/>
                 </div>
             </div>
@@ -189,7 +189,7 @@
             <div class="overflow-visible">
                <NumberInput id={id} min={param.min} max={param.max} value={param.value}
                 step={param.step} onchange={inputChangeHandler}
-                show={showNumberInput} delayHide={250}/>
+                show={showNumberInput} />
             </div>
 
             <!-- Label -->
