@@ -8,7 +8,7 @@
 <div class="absolute w-full h-full flex flex-col items-center justify-center">
     <div class="absolute pointer-events-none">
         <div class="relative">
-            <div class="Icon1 z-10 absolute block mb-2 drop-shadow-md">
+            <div class="Icon1 z-10 absolute block mb-2 drop-shadow-md text-gray-400">
                 <Icon src="{MusicalNote}" size="48" />
             </div>
             <div class="Icon2 z-0 relative block mb-2 translate-y-8 text-gray-50">
@@ -18,7 +18,7 @@
 
         </div>
 
-        <p class="Fadein relative text-center text-xs drop-shadow-md translate-y-1">Add files</p>
+        <p class="Fadein-text relative text-center mx-auto text-sm translate-y-2 -translate-x-1 text-gray-500">Add files</p>
     </div>
 </div>
 
@@ -60,10 +60,10 @@
             background-color: #0000;
         }
         50% {
-            background-color:  #eee;
+            background-color:  #dadada;
         }
         100% {
-            background-color:  #eaeaea;
+            background-color:  #dcdcdc;
         }
     }
 
@@ -75,14 +75,15 @@
         animation: .3s ease-out 1 icon-2;
     }
 
-    .Fadein {
+    .Fadein-text {
         animation: .3s  ease-in 1 fade-in;
+        text-shadow: 0 2px 3px #999f;
     }
 
     .Background {
         animation:  .3s linear 1 background-fade-in;
         @apply absolute w-full h-full rounded-md border-0;
 
-        background-color:  #eaeaea;
+        background-color:  #dcdcdc;
     }
 </style>
