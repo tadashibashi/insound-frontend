@@ -21,7 +21,7 @@
             if (progress !== undefined)
             {
                 ctx.fillStyle = (progress > i / len) ?
-                    `rgba(200 200 200 / ${scale * .5}` :
+                    `rgba(224 224 224 / ${scale * .5}` :
                     `rgba(100 100 100 / ${scale * .5})`;
 ;
             }
