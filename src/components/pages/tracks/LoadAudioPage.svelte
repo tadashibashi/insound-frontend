@@ -3,7 +3,9 @@
     import { util } from "app/util";
     import debounce from "app/util/debounce";
     import { afterUpdate, onMount } from "svelte";
-    import { ArrowDownTray, ArrowRight, ArrowUpTray, EllipsisVertical, ExclamationCircle, Icon, MusicalNote, Plus, Square3Stack3d, XCircle, XMark } from "svelte-hero-icons";
+    import { ArrowDownTray, ArrowRight, ArrowUpTray, ArrowUturnLeft,
+        EllipsisVertical, ExclamationCircle, Icon, MusicalNote, XCircle, XMark
+    } from "svelte-hero-icons";
     import DropFilesCard from "./DropFilesCard.svelte";
 
     // ===== User callbacks ===================================================
@@ -329,7 +331,14 @@
 
         // done handling new files, clear the queue
         newFileQueue.length = 0;
+    }
 
+    function resetFiles()
+    {
+        fileInputs = [createInputData()];
+        newFileQueue.length = 0;
+
+        fileInputs = fileInputs;
     }
 
 </script>
@@ -342,6 +351,14 @@
     <div class="w-full h-12 mb-2">
         <p class="text-2xl text-center text-gray-500 selection-none">Sound Layers</p>
     </div>
+
+    <div class="w-2/3 h-8 relative">
+        <button on:click={() => resetFiles()} class={"text-gray-400 hover:bg-gray-100 text-sm hover:text-gray-500 transition-colors duration-200 py-1 px-2 rounded-full absolute right-0 " +
+            (fileInputs.length > 1 ? "" : "sr-only pointer-events-none")}>
+            Reset <Icon class="inline -translate-y-[2px]" src={ArrowUturnLeft} size="16" />
+        </button>
+    </div>
+
 
     <!-- Audio file selection boxes -->
     <div class="max-w-[512px] mx-auto mb-2 rounded-md selection-none">
