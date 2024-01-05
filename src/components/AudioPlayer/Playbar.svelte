@@ -166,14 +166,14 @@
 <div class={$$props.class}>
     <!-- Invisible buffer that makes gui hitbox larger -->
     <div class="relative"
-        style={`height ${height}; padding-top: 24px; cursor: ${active ? "pointer" : "default"};`}
+        style={`height ${height}; cursor: ${active ? "pointer" : "default"};`}
         on:pointerenter={handlePointerEnterBar}
         on:pointerleave={handlePointerLeaveBar}
         on:pointerdown={handlePointerDownBar}
     >
         <!-- Playhead -->
         <div
-            class={"Playhead absolute w-[12px] aspect-square rounded-full z-40 shadow-md shadow-gray-200 " + (active ? "visible": "invisible")}
+            class={"Playhead absolute w-[12px] aspect-square rounded-full z-40 shadow-md shadow-gray-500 " + (active ? "visible": "invisible")}
             style={
                 `background: ${buttonColor};
                 transform: translateY(-33%) translateX(calc(${progress *
@@ -184,13 +184,13 @@
         </div>
 
         <!-- Hover time display -->
-        <div class={"absolute pointer-events-none " + (isEngaged ? "" : "sr-only")}
+        <div class={"absolute pointer-events-none z-10 " + (isEngaged ? "" : "sr-only")}
             style={
                 `transform: translateX(calc(${pointerX - (barEl?.getBoundingClientRect().x || 0)}px - 50%));`
             }
         >
             <!-- text bubble -->
-            <div class="-translate-y-[150%] text-gray-400 text-xs">
+            <div class="-translate-y-[70px] text-gray-400 text-xs">
                 {secondsToFineTime(timeAtPointer)}
             </div>
         </div>
@@ -200,7 +200,7 @@
             {#each markers as m, i (m.text+m.offset+"-overlay")}
                 {#if !(m.text === "LoopStart" || m.text === "LoopEnd") || looping}
                 <TrackMarker x={m.offset/time.max*(barEl?.getBoundingClientRect().width || 0)}
-                    y={-38}
+                    y={-88}
                     time={m.offset}
                     text={m.text}
                     show={ (showMarkers && markers[i].isActive) ?
@@ -212,10 +212,16 @@
             {/each}
         </div>
 
+        <!-- Tall progress -->
+        <div class="absolute h-[50px] w-full -translate-y-full z-0 bg-gray-400 rounded-t-md overflow-hidden">
+            <div class="absolute h-full rounded-tl-md shadow-md"
+                style={`width: ${progress * 100}%; background: ${barColor}; opacity: 25%;`}
+            />
+        </div>
 
         <!-- Bar -->
         <div bind:this={barEl}
-            class="ProgressBar absolute block w-full z-20"
+            class="ProgressBar absolute block w-full z-20 overflow-hidden"
             style={
                 `background: ${active ? bgColor : deactiveBgColor};
                 height: ${height};

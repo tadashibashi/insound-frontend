@@ -15,8 +15,6 @@ export namespace AudioContext {
                 try {
                     if (audioModuleWasInit())
                     {
-                        if (engine.updateHandler)
-                            engine.updateHandler();
                         engine.update();
                     }
                 }

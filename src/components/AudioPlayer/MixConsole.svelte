@@ -42,7 +42,7 @@
 </script>
 
 <!-- Mix Console -->
-<div class="border-l-2 border-l-white border-t-2 border-t-white border-r-2 border-r-gray-50 border-b-2 border-b-gray-50 h-[324px] w-full flex overflow-hidden relative bg-[#fefefe] rounded-md shadow-md">
+<div class="MixConsole">
 
     <!-- left shadow -->
     <div class={"z-50 absolute w-2 h-full -translate-x-2 " + (showLeftShadow ? "ChanShadowRight" : "")}></div>
@@ -64,7 +64,9 @@
 
     <!-- Main channel bus -->
     {#if audioConsole.channels.length > 0}
-        <div class={"inline-flex w-[124px] pt-3 flex justify-center " + (showMainShadow ? "ChanShadowLeft" : "")}>
+        <div class={"inline-flex w-[124px] pt-3 justify-center " +
+            (showMainShadow ? "ChanShadowLeft" : "")}
+        >
             <ChannelStrip class="" channel={audioConsole.channels[0]} />
         </div>
 
@@ -72,8 +74,11 @@
 
 </div>
 
+<style lang="tailwindcss">
+    .MixConsole {
+        @apply border-l-2 border-l-white border-t-2 border-t-white border-r-2 border-r-gray-50 border-b-2 border-b-gray-50 h-[324px] w-full flex overflow-hidden relative bg-[#fefefe] rounded-b-md shadow-md;
+    }
 
-<style>
     .ChanShadowLeft {
         box-shadow: -4px 0 8px #0000000f;
     }

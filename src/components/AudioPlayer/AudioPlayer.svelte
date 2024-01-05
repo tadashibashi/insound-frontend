@@ -14,6 +14,7 @@
 
     import Playbar from "./Playbar.svelte";
     import MixConsole from "./MixConsole.svelte";
+    import SpectrumView from "./SpectrumView.svelte";
 
     export const context: AudioPlayerExternalControls = {
         load: onLoadAudio,
@@ -114,6 +115,7 @@
         audioConsole.clear();
         audioConsole.addChannels(["Main", ...pLayerNames]);
         audioConsole = audioConsole;
+
     }
 
 
@@ -122,6 +124,8 @@
     {
         if (!audio.paused)
         {
+            audio.spectrum.update();
+            audio.spectrum = audio.spectrum;
             time.current = audio.position;
         }
     }
@@ -186,20 +190,10 @@
 
 <!-- Player Container -->
 <div class="relative select-none">
-    <!-- Play/Pause Button -->
-    <button
-        class="drop-shadow-sm w-16 border border-gray-100 rounded-full box-content m-2"
-        on:click={onPressPlay}
-        >
-        {#if isPlaying}
-            <Icon class="text-gray-500" src="{Pause}" />
-        {:else}
-            <Icon class="text-gray-500" src="{Play}" />
-        {/if}
-    </button>
+    <SpectrumView class="z-20 w-full relative" data={audio.spectrum.data} progress={time.progress}/>
 
     <Playbar
-        class="w-full px-2"
+        class="w-full z-0 shadow-md rounded-md"
         active={isAudioLoaded}
         time={time}
         markers={points}
@@ -210,14 +204,31 @@
         onstartseek={onSeekStart}
         onseeking={val => time.current = val} />
 
-    <!-- Time -->
-    <div class="absolute top-[48px] right-1">
-        <p class="text-gray-400">
-            <span>{time.toString()}</span>
-            <span> / </span>
-            <span>{time.toString(time.max)}</span>
-        </p>
+    <!-- Play controls bar -->
+    <div class="w-full h-10 flex items-center bg-gray-400 text-gray-200 mt-1 shadow-md">
+        <!-- Play/Pause Button -->
+        <button
+            class="px-3 h-6 w-6 rounded-md box-content z-50 relative text-gray-200 hover:text-gray-100 transition-transform duration-300"
+            on:click={onPressPlay}
+            >
+            {#if isPlaying}
+                <Icon class="drop-shadow-sm z-50" solid src="{Pause}" />
+            {:else}
+                <Icon class="drop-shadow-sm z-50" solid src="{Play}" />
+            {/if}
+        </button>
+
+        <!-- Time -->
+        <div class="text-xs font-bold">
+            <p class="text-gray-200">
+                <span>{time.toString()}</span>
+                <span> / </span>
+                <span>{time.toString(time.max)}</span>
+            </p>
+        </div>
     </div>
+
+
 
     <!-- Mix preset options -->
     <ChoiceMenu class="" choices={mixPresets.map(preset => preset.name)}
