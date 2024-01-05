@@ -39,15 +39,15 @@
 
     // Set-up and breakdown callbacks
     onMount(() => {
-        document.addEventListener("pointermove",
+        document.addEventListener("drag",
             handlePointerMoveForDraggingInput);
-        document.addEventListener("pointerup",
+        document.addEventListener("drop",
             handlePointerUpForDraggingInput);
 
         return () => {
-            document.removeEventListener("pointermove",
+            document.removeEventListener("drag",
                 handlePointerMoveForDraggingInput);
-            document.removeEventListener("pointerup",
+            document.removeEventListener("drop",
                 handlePointerUpForDraggingInput);
         };
     });
@@ -335,7 +335,7 @@
         <Dropzone class={(fileInputs.length <= 1 ? "sr-only" : "") + " relative w-full h-full"}
             onfiles={handleDroppedFiles}
             bind:isdraggedover={isDraggingOverDropzone}
-            active={fileInputs.length > 1}
+            active={fileInputs.length > 1 && !draggingInput}
             >
 
             <div slot="normal" class="p-2">
@@ -349,7 +349,7 @@
                 {/if}
 
                 <!-- Individual file input row -->
-                <div class={i === fileInputs.length - 1 ? "sr-only" : ("group relative flex items-center mb-2 select-none p-1 rounded-full " + (draggingInput === fileInput ? "bg-gray-100 opacity-50" : ""))}>
+                <div class={i === fileInputs.length - 1 ? "sr-only" : ("group relative flex items-center mb-2 select-none p-1 rounded-full " + (draggingInput === fileInput ? "bg-gray-100 opacity-50" : ""))} draggable={draggingInput === fileInput}>
 
                     <!-- Layer grab point icon -->
                     <div class="inline w-[24px] h-[24px]">
