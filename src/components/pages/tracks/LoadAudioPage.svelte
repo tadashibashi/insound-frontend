@@ -40,15 +40,17 @@
     // Set-up and breakdown callbacks
     onMount(() => {
         document.addEventListener("drag",
-            handlePointerMoveForDraggingInput);
+            handleDraggingForDraggingInput);
         document.addEventListener("drop",
-            handlePointerUpForDraggingInput);
+            handleDropForDraggingInput);
+        window.addEventListener("dragend", handleDragEnd);
 
         return () => {
             document.removeEventListener("drag",
-                handlePointerMoveForDraggingInput);
+                handleDraggingForDraggingInput);
             document.removeEventListener("drop",
-                handlePointerUpForDraggingInput);
+                handleDropForDraggingInput);
+            window.removeEventListener("dragend", handleDragEnd);
         };
     });
 
@@ -59,11 +61,19 @@
     // ----- Drag & Drop ------------------------------------------------------
 
     /** Called when mouse moves while drag-moving an input element */
-    function handlePointerMoveForDraggingInput(evt: MouseEvent)
+    function handleDraggingForDraggingInput(evt: MouseEvent)
+    {
+        if (draggingInput && draggingInputY !== evt.y)
+        {
+            draggingInputY = evt.y;
+        }
+    }
+
+    function handleDragEnd()
     {
         if (draggingInput)
         {
-            draggingInputY = evt.y;
+            draggingInput = null;
         }
     }
 
@@ -71,7 +81,7 @@
      * Handles "dropping" a dragged input. When a successful drop occurs, input
      * will be spliced from fileInputs array, and inserted to new position.
      */
-    function handlePointerUpForDraggingInput(evt: MouseEvent)
+    function handleDropForDraggingInput(evt: MouseEvent)
     {
         if (!draggingInput) return;
 
@@ -92,25 +102,28 @@
 
         // find position to insert to
         let insertTo = spliceFrom;
-        // length minus one - last input used invisibly to collect new files
+        // length minus one - skip last input used invisibly to collect new files
         const length = fileInputs.length - 1;
+
+        let wasSet = false;
         for (let i = 0; i < length; ++i)
         {
-            if (i === length-1) // y greater than last visible input, set it
-            {
-                insertTo = i;
-                break;
-            }
-
             const curInput = fileInputs[i].input;
             if (!curInput) continue;
 
             const checkRect = curInput.getBoundingClientRect();
             if (evt.y < checkRect.top + checkRect.height * .5)
             {
-                insertTo = (i <= spliceFrom) ? i : Math.max(i-1, 0);
+                insertTo = i <= spliceFrom ? i : Math.max(i-1, 0);
+                wasSet = true;
                 break;
             }
+        }
+
+        // check if y was past the last slot, if so, set it to last slot
+        if (!wasSet)
+        {
+            insertTo = length - 1;
         }
 
         if (insertTo === spliceFrom) // same position, no need to mutate array
@@ -118,6 +131,7 @@
             draggingInput = null;
             return;
         }
+        console.log("from", spliceFrom, "to", insertTo);
 
         // successfully got positions, perform op on array
         const temp = [...fileInputs];
