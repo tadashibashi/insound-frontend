@@ -390,6 +390,9 @@
                                 draggingInput = fileInput;
                                 draggingInputY = evt.y;
                             }}
+                            on:pointerup={(evt) => {
+                                draggingInput = null;
+                            }}
                             >
                             {#if !draggingInput || draggingInput === fileInput}
                             <Icon src="{EllipsisVertical}" class="-mr-4" />
