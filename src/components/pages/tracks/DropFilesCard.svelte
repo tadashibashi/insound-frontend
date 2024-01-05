@@ -35,13 +35,13 @@
     }
 
     @keyframes icon-2 {
-        0%, 50% {
-            transform: translateY(2.25rem);
+        0% {
+            transform: translateY(2.1rem) scaleY(.95);
             opacity: 0;
         }
 
         100% {
-            transform:  translateY(2rem);
+            transform:  translateY(2rem) scaleY(1);
             opacity: 100%;
         }
     }
@@ -72,11 +72,11 @@
     }
 
     .Icon2 {
-        animation: .3s ease-out 1 icon-2;
+        animation: .3s ease-in 1 icon-2;
     }
 
     .Fadein-text {
-        animation: .3s  ease-in 1 fade-in;
+        animation: .3s  ease-in-out 1 fade-in;
         text-shadow: 0 2px 3px #999f;
     }
 
