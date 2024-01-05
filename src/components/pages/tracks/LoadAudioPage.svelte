@@ -133,7 +133,6 @@
             draggingInput = null;
             return;
         }
-        console.log("from", spliceFrom, "to", insertTo);
 
         // successfully got positions, perform op on array
         const temp = [...fileInputs];
