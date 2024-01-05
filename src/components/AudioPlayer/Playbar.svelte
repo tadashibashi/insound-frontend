@@ -213,7 +213,7 @@
         </div>
 
         <!-- Tall progress -->
-        <div class="absolute h-[50px] w-full -translate-y-full z-0 bg-gray-400 rounded-t-md overflow-hidden">
+        <div class="absolute h-[50px] w-full -translate-y-full z-0 bg-gray-300 rounded-t-md overflow-hidden">
             <div class="absolute h-full rounded-tl-md shadow-md"
                 style={`width: ${progress * 100}%; background: ${barColor}; opacity: 25%;`}
             />
