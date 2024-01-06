@@ -381,7 +381,17 @@
                 {/if}
 
                 <!-- Individual file input row -->
-                <div class={i === fileInputs.length - 1 ? "sr-only" : ("group relative flex items-center mb-2 select-none p-1 rounded-full " + (draggingInput === fileInput ? "bg-gray-100 shadow-md opacity-50" : ""))} draggable={draggingInput === fileInput ? "true" : "false"} >
+                <div class={ i === fileInputs.length - 1 ? "sr-only" :
+                    ("group relative flex items-center mb-2 select-none p-1 rounded-full " +
+                        (draggingInput === fileInput ?
+                            "bg-gray-100 shadow-md opacity-50" : "")
+                    )}
+                    draggable={draggingInput === fileInput ? "true" : "false"}
+                    on:pointerleave={() => {
+                        if (draggingInput === fileInput)
+                            draggingInput = null;
+                    }}
+                >
 
                     <!-- Layer grab point icon -->
                     <div class="inline w-[24px] h-[24px]">
@@ -392,7 +402,6 @@
                                 draggingInput = fileInput;
                                 draggingInputY = evt.y;
                             }}
-
                             on:pointerup={(evt) => {
                                 draggingInput = null;
                             }}
