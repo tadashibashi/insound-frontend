@@ -15,7 +15,25 @@ button:focus,
     src: url("/static/fonts/monogram.ttf") format("opentype");
 }
 
-.cm-editor .cm-content { font-family: "Monogram"; font-size: 1.4rem; }
+.cm-editor .cm-content { font-family: "Monogram"; font-size: 1.2rem; }
 .cm-line {
     line-height: 1.2rem;
+}
+
+.cm-scroller .cm-gutters {
+    border-right: 1px solid #efefef;
+}
+.cm-gutter.cm-lineNumbers .cm-gutterElement {
+    font-size: .6rem;
+    font-weight: 100;
+    color: #e5e5e5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding-left: 7px;
+    padding-right: 7px;
+}
+
+.cm-gutter.cm-foldGutter .cm-gutterElement {
+    display: none;
 }
