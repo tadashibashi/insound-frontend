@@ -41,21 +41,24 @@
     {
         if (files.length === 0) throw Error("No audio files");
 
-        const promises: Promise<ArrayBuffer>[] = [];
+        const promises: Promise<ArrayBuffer | null>[] = [];
         for (let i = 0; i < files.length; ++i)
         {
-            promises.push(files[i].arrayBuffer());
+            promises.push(
+                new Promise((resolve, reject) => {
+                        files[i].arrayBuffer()
+                            .then(resolve)
+                            .catch(err => resolve(null))
+                    })
+                );
         }
 
-        let buffers: ArrayBuffer[];
-        try {
-            buffers = await Promise.all(promises)
-        }
-        catch(err)
+        let buffers = await Promise.all(promises);
+
+        const errIndices: number[] = [];
+        for (let i = 0; i < buffers.length; ++i)
         {
-            errorTitle = "An error occurred while processing files"
-            errorMessages.push("Conversion from File to ArrayBuffer failed.");
-            return;
+            if (buffers[i] === null) errIndices.push(i);
         }
 
         const names = fileInputs.map(input => input.layername);
@@ -63,7 +66,11 @@
         names.pop();
 
         try {
-            audioContext.load(buffers, names, "");
+            if (errIndices.length > 0)
+            {
+                throw new SoundLoadError(errIndices);
+            }
+            audioContext.load(buffers as ArrayBuffer[], names, "");
         }
         catch(err)
         {
