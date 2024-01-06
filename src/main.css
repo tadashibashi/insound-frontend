@@ -9,3 +9,13 @@ button:focus,
 [contenteditable="true"]:focus {
     outline: none;
 }
+
+@font-face {
+    font-family: "Monogram";
+    src: url("/static/fonts/monogram.ttf") format("opentype");
+}
+
+.cm-editor .cm-content { font-family: "Monogram"; font-size: 1.4rem; }
+.cm-line {
+    line-height: 1.2rem;
+}
