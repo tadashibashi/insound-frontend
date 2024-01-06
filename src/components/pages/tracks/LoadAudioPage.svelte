@@ -259,7 +259,8 @@
                 const name = input.files[i].name;
                 fileInput.filepath = name;
                 fileInput.layername = util.fileNameToLabelName(name);
-                fileInput.isProblematic = false;
+                fileInput.isProblematic = input.files[i].size === 0 ||
+                    !input.files[i].type.startsWith("audio"); // empty file is invalid
 
                 // if last input, add replacement invisible input at end
                 if (index === fileInputs.length - 1)
@@ -325,7 +326,8 @@
             input.files = dt.files;
             fileInput.filepath = newFile.name;
             fileInput.layername = util.fileNameToLabelName(newFile.name);
-            fileInput.isProblematic = false;
+            fileInput.isProblematic = newFile.size === 0 ||
+                !newFile.type.startsWith("audio");
         }
 
         // done handling new files, clear the queue
@@ -379,17 +381,18 @@
                 {/if}
 
                 <!-- Individual file input row -->
-                <div class={i === fileInputs.length - 1 ? "sr-only" : ("group relative flex items-center mb-2 select-none p-1 rounded-full " + (draggingInput === fileInput ? "bg-gray-100 opacity-50" : ""))} draggable={draggingInput === fileInput}>
+                <div class={i === fileInputs.length - 1 ? "sr-only" : ("group relative flex items-center mb-2 select-none p-1 rounded-full " + (draggingInput === fileInput ? "bg-gray-100 shadow-md opacity-50" : ""))} draggable={draggingInput === fileInput ? "true" : "false"} >
 
                     <!-- Layer grab point icon -->
                     <div class="inline w-[24px] h-[24px]">
                         {#if fileInputs.length > 2}
                         <button class={"flex group-hover:opacity-100 text-gray-400 " + (draggingInput === fileInput ? "opacity-100 cursor-grabbing" : "opacity-0 cursor-grab")}
                             type="button"
-                            on:pointerdown={(evt)=> {
+                            on:mousedown={(evt)=> {
                                 draggingInput = fileInput;
                                 draggingInputY = evt.y;
                             }}
+
                             on:pointerup={(evt) => {
                                 draggingInput = null;
                             }}
