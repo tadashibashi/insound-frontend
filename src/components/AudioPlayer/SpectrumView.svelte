@@ -44,7 +44,7 @@
 
 </script>
 
-<div class={($$props.class || "") + " pointer-events-none h-[50px] overflow-hidden"}>
+<div class={($$props.class || "") + " pointer-events-none h-[80px] overflow-hidden"}>
     <canvas class="w-full h-full z-10 pointer-events-none" bind:this={canvas} width="{1024}" height="100">
     </canvas>
 </div>

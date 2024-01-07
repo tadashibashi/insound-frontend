@@ -164,36 +164,16 @@
 </script>
 
 <div class={$$props.class}>
+
     <!-- Invisible buffer that makes gui hitbox larger -->
-    <div class="relative"
+    <div class="relative z-0"
         style={`height ${height}; cursor: ${active ? "pointer" : "default"};`}
         on:pointerenter={handlePointerEnterBar}
         on:pointerleave={handlePointerLeaveBar}
         on:pointerdown={handlePointerDownBar}
     >
-        <!-- Playhead -->
-        <div
-            class={"Playhead absolute w-[12px] aspect-square rounded-full z-40 shadow-md shadow-gray-500 " + (active ? "visible": "invisible")}
-            style={
-                `background: ${buttonColor};
-                transform: translateY(-33%) translateX(calc(${progress *
-                    (barEl?.getBoundingClientRect().width || 0)}px - 50%));
-                opacity: ${isEngaged ? 100 : 0}%;`
-            }
-        >
-        </div>
 
-        <!-- Hover time display -->
-        <div class={"absolute pointer-events-none z-10 " + (isEngaged ? "" : "sr-only")}
-            style={
-                `transform: translateX(calc(${pointerX - (barEl?.getBoundingClientRect().x || 0)}px - 50%));`
-            }
-        >
-            <!-- text bubble -->
-            <div class="-translate-y-[70px] text-gray-400 text-xs">
-                {secondsToFineTime(timeAtPointer)}
-            </div>
-        </div>
+
 
         <!-- Hovering Markers -->
         <div class="absolute z-30">
@@ -212,16 +192,30 @@
             {/each}
         </div>
 
+        <slot name="display" />
+
         <!-- Tall progress -->
-        <div class="absolute h-[50px] w-full -translate-y-full z-0 bg-gray-300 rounded-t-md overflow-hidden">
+        <div class="relative h-[80px] w-full z-0 bg-gray-300 rounded-t-md overflow-hidden">
             <div class="absolute h-full rounded-tl-md shadow-md"
                 style={`width: ${progress * 100}%; background: ${barColor}; opacity: 25%;`}
             />
         </div>
 
+        <!-- Hover time display -->
+        <div class={"absolute pointer-events-none z-10 " + (isEngaged ? "" : "sr-only")}
+            style={
+                `transform: translateX(calc(${pointerX - (barEl?.getBoundingClientRect().x || 0)}px - 50%));`
+            }
+        >
+            <!-- text bubble -->
+            <div class="TextShadow -translate-y-[78px] text-white text-xs">
+                {secondsToFineTime(timeAtPointer)}
+            </div>
+        </div>
+
         <!-- Bar -->
         <div bind:this={barEl}
-            class="ProgressBar absolute block w-full z-20 overflow-hidden"
+            class="ProgressBar absolute block w-full z-40 overflow-hidden"
             style={
                 `background: ${active ? bgColor : deactiveBgColor};
                 height: ${height};
@@ -256,8 +250,6 @@
             </div>
             {/if}
 
-
-
             <!-- Progress -->
             <div class="h-full shadow-sm absolute z-10"
                 style={`width: ${progress * 100}%; background: ${barColor};`}
@@ -284,7 +276,21 @@
                 height: ${height};
                 transform: scaleY(${isEngaged ? 200 : 100}%);`}
         />
+
+        <!-- Playhead -->
+        <div
+            class={"relative translate-y-[calc(100%-2px)] Playhead w-[12px] aspect-square rounded-full z-40 shadow-md shadow-gray-500 " + (active ? "visible": "invisible")}
+            style={
+                `background: ${buttonColor};
+                transform: translateY(-33%) translateX(calc(${progress *
+                    (barEl?.getBoundingClientRect().width || 0)}px - 50%));
+                opacity: ${isEngaged ? 100 : 0}%;`
+            }
+        >
+        </div>
     </div>
+
+
 </div>
 
 <style>
@@ -298,5 +304,8 @@
 
     .Playhead {
         transition: opacity .15s ease-out;
+    }
+    .TextShadow {
+        text-shadow: 0 1px 2px #00000070;
     }
 </style>

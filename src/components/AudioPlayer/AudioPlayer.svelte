@@ -15,6 +15,8 @@
     import Playbar from "./Playbar.svelte";
     import MixConsole from "./MixConsole.svelte";
     import SpectrumView from "./SpectrumView.svelte";
+    import WaveformMorphDisplay from "./WaveformMorphDisplay.svelte";
+    import { WaveMorpher } from "app/util/WaveMorpher";
 
     export const context: AudioPlayerExternalControls = {
         load: onLoadAudio,
@@ -25,6 +27,8 @@
     // Providing the AudioEngine externally ensures it always exists in this
     // component.
     export let audio: AudioEngine;
+
+    let wave = new WaveMorpher(2048);
 
     let audioConsole: AudioConsole = new AudioConsole(audio);
 
@@ -112,10 +116,12 @@
         loopend = audio.engine.getLoopSeconds().loopend;
         audio.setLooping(looping);
 
+        wave.unloadData();
         audioConsole.clear();
         audioConsole.addChannels(["Main", ...pLayerNames]);
         audioConsole = audioConsole;
 
+        wave.loadData(audio, audioConsole);
     }
 
 
@@ -124,10 +130,12 @@
     {
         if (!audio.paused)
         {
-            audio.spectrum.update();
-            audio.spectrum = audio.spectrum;
+
             time.current = audio.position;
         }
+
+        audio.spectrum.update();
+        audio.spectrum = audio.spectrum;
     }
 
     /**
@@ -190,10 +198,10 @@
 
 <!-- Player Container -->
 <div class="relative select-none">
-    <SpectrumView class="z-20 w-full relative" data={audio.spectrum.data} progress={time.progress}/>
+
 
     <Playbar
-        class="w-full z-0 shadow-md rounded-md"
+        class="relative w-full z-10 shadow-md rounded-t-md h-[80px]"
         active={isAudioLoaded}
         time={time}
         markers={points}
@@ -202,10 +210,17 @@
         showMarkers={showMarkers}
         onchange={onSeeked}
         onstartseek={onSeekStart}
-        onseeking={val => time.current = val} />
+        onseeking={val => time.current = val}>
+        <div slot="display">
+            <WaveformMorphDisplay wave={wave} class="absolute pointer-events-none h-[80px] overflow-hidden w-full z-20 opacity-25" />
+            <SpectrumView class="z-10 w-full absolute" data={audio.spectrum.data} progress={time.progress}/>
+        </div>
+    </Playbar>
+
+
 
     <!-- Play controls bar -->
-    <div class="w-full h-10 flex items-center bg-gray-400 text-gray-200 mt-1 shadow-md">
+    <div class="relative w-full h-10 flex items-center bg-gray-400 text-gray-200 shadow-md mt-1">
         <!-- Play/Pause Button -->
         <button
             class="px-3 h-6 w-6 rounded-md box-content z-50 relative text-gray-200 hover:text-gray-100 transition-transform duration-300"
