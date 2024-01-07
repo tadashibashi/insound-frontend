@@ -10,7 +10,7 @@
 
     onMount(() => {
         let program: WebGLProgram | null = null;
-        let bufferIndices: WebGLBuffer | null;
+        let bufferIndices: WebGLBuffer | null = null;
         let bufferWaveData: WebGLBuffer[] = [];
         let uScalesLoc: WebGLUniformLocation | null = null;
         let aWaveLoc: number[] = [];
@@ -23,7 +23,6 @@
 
         let vao = gl.createVertexArray();
 
-        bufferIndices = gl.createBuffer();
 
         // set viewport
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
@@ -56,9 +55,13 @@
             }
             vShaderSource +=
                 "    total = total * u_scales[0];\n" +
+                "    bool isNegative = total < 0.0;\n" +
+                "    total = max(min(log2(log2(abs(total) + 1.0) + 1.0), 1.0), -1.0);\n" +
+                "    if (isNegative)\n" +
+                "        total = -total;\n" +
                 "    float width = float(WIDTH);\n" +
                 "    float index = float(gl_VertexID);\n" +
-                "    gl_Position = vec4(min(max(floor(index/2.0) / width * 2.0 - 1.0, -1.0), 1.0), max(min(log2(log2(total + 1.0) + 1.0), 1.0), -1.0), 0, 1.0);\n" +
+                "    gl_Position = vec4(min(max(floor(index/2.0) / width * 2.0 - 1.0, -1.0), 1.0), total, 0, 1.0);\n" +
                 "}";
 
             // create fragment shader source
@@ -82,7 +85,6 @@
             {
                 aWaveLoc.push(gl.getAttribLocation(program, "a_wave" + i.toString()));
             }
-            console.log("waveLoc", aWaveLoc);
 
             gl.deleteShader(vShader);
             gl.deleteShader(fShader);

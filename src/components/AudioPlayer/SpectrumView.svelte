@@ -11,19 +11,19 @@
     {
         ctx.clearRect(0, 0, canvas.width, canvas.height);
         let num = 0;
-        const len = Math.min(data.length, 1024/4);
+        const len = Math.min(data.length, 1024/8);
 
         for (let i = 0; i < len; ++i, ++num)
         {
             const scale = data[Math.floor(i)] / 255;
-            const height = Math.log1p(scale * 100) * 15;
+            const height = Math.log2(scale + 1) * 90;
+            //const height = scale * 100;
 
             if (progress !== undefined)
             {
-                ctx.fillStyle = (progress > i / len) ?
-                    `rgba(224 224 224 / ${scale * .5}` :
-                    `rgba(100 100 100 / ${scale * .5})`;
-;
+                ctx.fillStyle = progress < i / len ?
+                    `rgba(100 100 100 / ${scale * .75})` :
+                    `rgba(240 240 240 / ${scale * .75})`;
             }
             else
             {
@@ -31,7 +31,7 @@
             }
 
             ctx.beginPath();
-            ctx.roundRect(num * 4, 100 - height, 4, height, 40);
+            ctx.roundRect(num * 8, 100 - height, 4, height, 40);
             ctx.fill();
         }
     }
@@ -44,7 +44,7 @@
 
 </script>
 
-<div class={($$props.class || "") + " pointer-events-none h-[80px] overflow-hidden"}>
+<div class={($$props.class || "") + " pointer-events-none h-[20px] overflow-hidden"}>
     <canvas class="w-full h-full z-10 pointer-events-none" bind:this={canvas} width="{1024}" height="100">
     </canvas>
 </div>

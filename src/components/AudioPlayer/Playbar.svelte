@@ -172,15 +172,21 @@
         on:pointerleave={handlePointerLeaveBar}
         on:pointerdown={handlePointerDownBar}
     >
+        <slot name="display" />
 
-
+        <!-- Tall progress -->
+        <div class="relative h-[80px] w-full z-0 bg-gray-200 overflow-hidden">
+            <div class="absolute h-full shadow-md"
+                style={`width: ${progress * 100}%; background: ${barColor}; opacity: 25%;`}
+            />
+        </div>
 
         <!-- Hovering Markers -->
         <div class="absolute z-30">
             {#each markers as m, i (m.text+m.offset+"-overlay")}
                 {#if !(m.text === "LoopStart" || m.text === "LoopEnd") || looping}
                 <TrackMarker x={m.offset/time.max*(barEl?.getBoundingClientRect().width || 0)}
-                    y={-88}
+                    y={-38}
                     time={m.offset}
                     text={m.text}
                     show={ (showMarkers && markers[i].isActive) ?
@@ -190,15 +196,6 @@
                 />
                 {/if}
             {/each}
-        </div>
-
-        <slot name="display" />
-
-        <!-- Tall progress -->
-        <div class="relative h-[80px] w-full z-0 bg-gray-300 rounded-t-md overflow-hidden">
-            <div class="absolute h-full rounded-tl-md shadow-md"
-                style={`width: ${progress * 100}%; background: ${barColor}; opacity: 25%;`}
-            />
         </div>
 
         <!-- Hover time display -->

@@ -99,7 +99,7 @@
     style={`transform: translate(${x}px, ${y}px);`}
 >
     <!-- Bubble portion -->
-    <div class="w-full h-full text-gray-200 py-[2px] px-3 shadow-lg shadow-white z-0 overflow-hidden whitespace-nowrap"
+    <div class="w-full h-full text-gray-200 py-[2px] px-3 shadow-sm z-0 overflow-hidden whitespace-nowrap"
         on:pointerenter={handlePointerEnterBubble}
         on:pointerleave={handlePointerLeaveBubble}
         bind:this={bubbleDiv}
@@ -120,15 +120,15 @@
                 border-right: 8px solid transparent;`
             }
         />
-        <div class="absolute w-full z-10 bg-white"
+<!--         <div class="absolute w-full bg-gray-300 z-10"
             style={
                 `transform: translateX(${bubbleXOffset}px);`
                 }>
-            <p class="TextShadow text-gray-400 ml-3 shadow-lg">
+            <p class="TextShadow text-white ml-3 shadow-md">
                 <span>{toDigitalTime(time)}</span>
 
             </p>
-        </div>
+        </div> -->
 
     </div>
 

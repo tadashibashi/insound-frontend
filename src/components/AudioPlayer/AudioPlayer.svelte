@@ -199,9 +199,8 @@
 <!-- Player Container -->
 <div class="relative select-none">
 
-
     <Playbar
-        class="relative w-full z-10 shadow-md rounded-t-md h-[80px]"
+        class="relative w-full z-10 shadow-md rounded-t-md h-[100px] bg-gray-400"
         active={isAudioLoaded}
         time={time}
         markers={points}
@@ -212,8 +211,8 @@
         onstartseek={onSeekStart}
         onseeking={val => time.current = val}>
         <div slot="display">
-            <WaveformMorphDisplay wave={wave} class="absolute pointer-events-none h-[80px] overflow-hidden w-full z-20 opacity-25" />
-            <SpectrumView class="z-10 w-full absolute" data={audio.spectrum.data} progress={time.progress}/>
+            <SpectrumView class="z-20 w-full relative opacity-90" data={audio.spectrum.data} progress={time.progress}/>
+            <WaveformMorphDisplay wave={wave} class="rounded-none absolute pointer-events-none h-[80px] overflow-hidden w-full z-30 opacity-75" />
         </div>
     </Playbar>
 
