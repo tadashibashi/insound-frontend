@@ -39,7 +39,12 @@
 
     async function onLoadAudio(files: File[])
     {
-        if (files.length === 0) throw Error("No audio files");
+        if (files.length === 0)
+        {
+            errorTitle = "No audio files loaded";
+            errorMessages = ["Please upload a valid audio file"]
+            return;
+        }
 
         const promises: Promise<ArrayBuffer | null>[] = [];
         for (let i = 0; i < files.length; ++i)
@@ -96,7 +101,6 @@
                 errorMessages.push(err.message);
             }
             errorMessages = errorMessages;
-            return false;
         }
 
         // success, progress the form state
