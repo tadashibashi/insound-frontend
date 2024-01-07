@@ -7,9 +7,10 @@
         EllipsisVertical, ExclamationCircle, Icon, MusicalNote, XCircle, XMark
     } from "svelte-hero-icons";
     import DropFilesCard from "./DropFilesCard.svelte";
+    import SpinningGearIcon from "app/components/icons/SpinningGearIcon.svelte";
 
     // ===== User callbacks ===================================================
-    export let onsubmit: (files: File[]) => void = () => {};
+    export let onsubmit: (files: File[]) => Promise<any> = async() => {};
 
     // ===== State Variables ==================================================
 
@@ -36,6 +37,8 @@
     let draggingInputY: number = 0;
 
     let isDraggingOverDropzone = false;
+
+    let isLoading = false;
 
     // ===== Callbacks ========================================================
 
@@ -163,12 +166,26 @@
     {
         if (submissionProblematic) return;
 
-        fileInputs.forEach(input => input.isProblematic = false);
+        isLoading = true;
 
-        const files = collectFiles();
-        onsubmit(files);
+        setTimeout(() => {
+            try {
+                fileInputs.forEach(input => input.isProblematic = false);
 
-        fileInputs = fileInputs;
+                const files = collectFiles();
+                onsubmit(files)
+                    .then(() => {
+                        fileInputs = fileInputs;
+                        isLoading = false;
+                    })
+                    .catch(err => { throw err; });
+            }
+            catch {
+                isLoading = false;
+            }
+        }, 100);
+
+
     }
 
     // ===== Helpers ==========================================================
@@ -544,11 +561,12 @@
     <div class={"w-full flex justify-center mt-3 " + (isDraggingOverDropzone ? "sr-only" : "")}>
         <button
             class={"px-3 py-1 rounded-full border  transition-colors " +
-                (submissionProblematic ? "bg-gray-100 border-gray-50 text-gray-50 cursor-not-allowed" : "bg-violet-400 border-violet-500 animate-pulse text-white cursor-pointer")}
+                (submissionProblematic ? "bg-gray-100 border-gray-50 text-gray-50 cursor-not-allowed" : "bg-violet-400 border-violet-500 " + (isLoading ? "" : "animate-pulse") + " text-white cursor-pointer")}
             on:click={debounce(handleSubmit, 1000)}
         >
             Next
-            <Icon src={ArrowRight} size="16" class="inline ml-[1px] pb-[1px]" />
+                <SpinningGearIcon show={isLoading} class={isLoading ? "inline-block w-4 h-full text-center translate-y-[2px] text-white" : "sr-only"} />
+                <Icon class={isLoading ? "sr-only" : "inline ml-[1px] pb-[1px]"} src={ArrowRight} size="16" />
         </button>
     </div>
     {/if}
