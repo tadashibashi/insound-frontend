@@ -3,13 +3,13 @@ import type { AudioConsole } from "./AudioConsole";
 
 /**
  * Convert audio vector into a Uint8Array used by the WaveMorpher class
- * @param  vec   Vector of floating point values between -1 and 1
+ * @param  data   Vector of floating point values between -1 and 1
  * @param  width number of "strands" of audio waveform data to display
  */
-async function audioDataToMorpherData(vec: Vector<number>, width: number)
+async function audioDataToMorpherData(data: Float32Array, width: number)
 {
     const res = new Float32Array(width * 2);
-    const size = vec.size();
+    const size = data.length;
     const onePortion = size / width;
     for (let i = 0, resI = 0; i < size; resI += 2)
     {
@@ -22,7 +22,7 @@ async function audioDataToMorpherData(vec: Vector<number>, width: number)
         let avgTotal = 0;
         for (let j = i; j < nextI; ++j)
         {
-            avgTotal += Math.abs(vec.get(j));
+            avgTotal += Math.abs(data[j]);
         }
 
         const total = Math.max(Math.min(avgTotal / onePortion, 1), 0);
@@ -141,9 +141,39 @@ export class WaveMorpher
         for (let i = 0; i < channelCount; ++i)
         {
             promises.push(new Promise(async (resolve, reject) => {
+                let data: Float32Array | null = null;
+
+                await new Promise<void>((res2, rej2) => {
+                    let timeTaken = 0;
+                    let interval = setInterval(() => {
+                        try {
+                            data = audio.getSampleData(i);
+                            clearInterval(interval);
+                            res2();
+                        }
+                        catch(err)
+                        {
+                            console.log(err);
+                        }
+
+                        timeTaken += 200;
+                        if (timeTaken >= 10000)
+                        {
+                            clearInterval(interval);
+                            rej2();
+                        }
+
+                    }, 200);
+                });
+
+                if (!data)
+                {
+                    reject();
+                    return;
+                }
+
                 try {
-                    const vec = audio.engine.getSampleData(i);
-                    audioDataToMorpherData(vec, width)
+                    audioDataToMorpherData(data, width)
                         .then(resolve);
                 }
                 catch(err)
