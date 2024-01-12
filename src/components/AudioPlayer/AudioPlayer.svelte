@@ -8,17 +8,17 @@
 
     import { onMount } from "svelte";
 
-    import { AdjustmentsVertical, ChevronUpDown, Icon, Pause, Play, PlusCircle, XMark } from "svelte-hero-icons";
+    import { AdjustmentsVertical, Icon, Pause, Play, PlusCircle, XMark } from "svelte-hero-icons";
 
     import Playbar from "./Playbar.svelte";
     import MixConsole from "./MixConsole.svelte";
     import SpectrumView from "./SpectrumView.svelte";
     import WaveformMorphDisplay from "./WaveformMorphDisplay.svelte";
     import { WaveMorpher } from "app/util/WaveMorpher";
-    import DropdownMenu from "../widgets/DropdownMenu.svelte";
     import { MultiTrackControl } from "audio/MultiTrackControl";
     import Modal from "../Modal.svelte";
     import MixList from "./MixList.svelte";
+    import VolumeSlider from "./VolumeSlider.svelte";
 
     export const context: AudioPlayerExternalControls = {
         load: onLoadAudio,
@@ -240,6 +240,9 @@
                 <Icon class="drop-shadow-sm z-50" solid src="{Play}" />
             {/if}
         </button>
+
+        <!-- TODO: use local storage to save and grab this value -->
+        <VolumeSlider initVolume={1} onchange={(val) => audio.masterVolume = val} />
 
         <!-- Time -->
         <div class="text-xs font-bold">
