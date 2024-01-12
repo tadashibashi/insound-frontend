@@ -38,7 +38,7 @@
 
 </script>
 
-<main class="overflow-x-hidden overflow-y-auto bg-[#fdfdfd] w-screen h-screen"
+<main class="overflow-x-hidden max-w-[100%] overflow-y-auto bg-[#fdfdfd]"
     on:drop={(evt) => evt.preventDefault()}
     on:dragover={(evt) => evt.preventDefault()}
 >

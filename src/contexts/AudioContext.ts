@@ -20,7 +20,8 @@ export namespace AudioContext {
                 }
                 catch(err)
                 {
-                    engine.reset();
+                    console.error(err);
+                    //engine.reset();
                 }
             }
         }
@@ -35,8 +36,7 @@ export namespace AudioContext {
             return () => {
                 if (interval)
                     clearInterval(interval);
-                const engine = get(audio);
-                engine?.release();
+                get(audio)?.release();
             };
         });
 

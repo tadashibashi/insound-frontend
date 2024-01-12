@@ -1,5 +1,6 @@
-import type { AudioEngine } from "app/audio/src/ts/AudioEngine";
-import type { AudioConsole } from "./AudioConsole";
+import type { AudioEngine } from "audio/AudioEngine";
+import type { AudioConsole } from "audio/AudioConsole";
+import type { MultiTrackControl } from "app/audio/src/ts/MultiTrackControl";
 
 /**
  * Convert audio vector into a Uint8Array used by the WaveMorpher class
@@ -65,12 +66,12 @@ export class WaveMorpher
 
     private handleVolumeChange(index: number, value: number)
     {
-        // if (!this.mConsole || this.mTimeout !== null) return;
+        if (!this.mConsole || this.mTimeout !== null) return;
 
-        // // Timeout to prevent too rapid calls to this function
-        // this.mTimeout = setTimeout(() => {
-        //     this.mTimeout = null;
-        // }, 1000);
+        // Timeout to prevent too rapid calls to this function
+        this.mTimeout = setTimeout(() => {
+            this.mTimeout = null;
+        }, 1);
 
         // this.mTransformed.fill(0);
 
@@ -129,12 +130,12 @@ export class WaveMorpher
     get width() { return this.mWidth; }
 
     /**
-     * Load sound data from the track currently loaded in the audio engine.
-     * @param {AudioEngine} audio engine to get the data from
+     * Load sound data from the track
+     * @param {AudioEngine} track engine to get the data from
      */
-    async loadData(audio: AudioEngine, audioConsole: AudioConsole)
+    async loadData(track: MultiTrackControl, audioConsole: AudioConsole)
     {
-        const channelCount = audio.channelCount;
+        const channelCount = track.channelCount;
         const width = this.mWidth;
 
         const promises: Promise<Float32Array>[] = [];
@@ -147,7 +148,7 @@ export class WaveMorpher
                     let timeTaken = 0;
                     let interval = setInterval(() => {
                         try {
-                            data = audio.getSampleData(i);
+                            data = track.getSampleData(i);
                             clearInterval(interval);
                             res2();
                         }
@@ -190,6 +191,7 @@ export class WaveMorpher
         this.mTransformed = new Float32Array(width);
         this.mIsDirty = true;
         this.mData = await Promise.all(promises);
+
         if (this.onLoadCallback)
             this.onLoadCallback();
     }

@@ -9,8 +9,8 @@
     let canvas: HTMLCanvasElement;
 
     onMount(() => {
+        /** Shader program */
         let program: WebGLProgram | null = null;
-        let bufferIndices: WebGLBuffer | null = null;
         let bufferWaveData: WebGLBuffer[] = [];
         let uScalesLoc: WebGLUniformLocation | null = null;
         let aWaveLoc: number[] = [];
@@ -32,10 +32,10 @@
         gl.clear(gl.COLOR_BUFFER_BIT);
 
         wave.onLoadCallback = () => {
-            aWaveLoc = [];
+
             const length = wave.waveData.length;
 
-            // create vertex shader source
+            // generate vertex shader source
             let vShaderSource = "#version 300 es\n";
 
             for (let i = 0; i < length; ++i)
@@ -45,9 +45,10 @@
             vShaderSource += "const int NUM_CHANNELS = " + (length + 1) + ";\n" +
                 "const int WIDTH = " + wave.width + ";\n" +
                 "uniform float u_scales[NUM_CHANNELS];\n" +
+                "out highp float total;\n" +
                 "void main() {\n";
 
-            vShaderSource += "float total = ";
+            vShaderSource += "total = ";
             for (let i = 0; i < length; ++i)
             {
                 vShaderSource += "    a_wave" + i.toString() + " * u_scales[" + (i+1).toString() + "]" +
@@ -68,9 +69,11 @@
             let fShaderSource = "#version 300 es\n" +
                 "precision highp float;\n" +
                 "uniform float u_scales[" + (length + 1) + "];\n" +
+                "in highp float total;\n" +
                 "out vec4 outColor;\n" +
                 "void main() {\n" +
-                "    outColor = vec4(0.5, 0.5, 0.5, 1.0);\n" +
+                "    float amt = 1.0 - abs(total * 0.75) - 0.25;\n" +
+                "    outColor = vec4(amt, amt, amt, 1.0);\n" +
                 "}";
 
             if (program)
@@ -79,15 +82,18 @@
             const fShader = createShader(gl, fShaderSource, gl.FRAGMENT_SHADER);
 
             program = createProgram(gl, vShader, fShader);
+            gl.detachShader(program, vShader);
+            gl.detachShader(program, fShader);
+            gl.deleteShader(vShader);
+            gl.deleteShader(fShader);
 
             uScalesLoc = gl.getUniformLocation(program, "u_scales");
+
+            aWaveLoc.length = 0;
             for (let i = 0; i < length; ++i)
             {
                 aWaveLoc.push(gl.getAttribLocation(program, "a_wave" + i.toString()));
             }
-
-            gl.deleteShader(vShader);
-            gl.deleteShader(fShader);
 
             gl.useProgram(program);
 
@@ -97,8 +103,8 @@
                 for (const buf of bufferWaveData)
                     gl.deleteBuffer(buf);
             }
-            bufferWaveData = [];
-            for (let i = 0; i < wave.waveData.length; ++i)
+            bufferWaveData.length = 0;
+            for (let i = 0; i < length; ++i)
                 bufferWaveData.push(gl.createBuffer() as WebGLBuffer);
 
             // set initial scales value
@@ -108,7 +114,7 @@
             gl.bindVertexArray(vao);
 
             // set initial wave data buffers
-            for (let i = 0; i < aWaveLoc.length; ++i)
+            for (let i = 0; i < length; ++i)
             {
                 gl.bindBuffer(gl.ARRAY_BUFFER, bufferWaveData[i]);
                 gl.bufferData(gl.ARRAY_BUFFER, wave.waveData[i], gl.STATIC_DRAW);
@@ -123,7 +129,7 @@
                     gl.vertexAttribPointer(aWaveLoc[i], size, type, normalize, stride, offset);
                 }
             }
-            //gl.drawArrays(gl.TRIANGLE_STRIP, 0, wave.width * 2);
+
             gl.drawArrays(gl.LINES, 0, wave.width * 2);
         };
 
@@ -136,7 +142,6 @@
                 const volumes = wave.getCurrentVolumes();
                 gl.uniform1fv(uScalesLoc, volumes, 0);
 
-                //gl.drawArrays(gl.TRIANGLE_STRIP, 0, wave.width * 2);
                 gl.drawArrays(gl.LINES, 0, wave.width * 2);
             }
         };
@@ -148,8 +153,6 @@
                     gl.deleteProgram(program);
                 if (bufferWaveData)
                     gl.deleteBuffer(bufferWaveData);
-                if (bufferIndices)
-                    gl.deleteBuffer(bufferIndices);
                 if (vao)
                     gl.deleteVertexArray(vao);
             }

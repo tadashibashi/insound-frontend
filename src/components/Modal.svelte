@@ -5,7 +5,6 @@
         Dialog
     } from "@rgossiaux/svelte-headlessui";
     import { onMount } from "svelte";
-    import { Icon, XMark } from "svelte-hero-icons";
 
     export let show: boolean;
     export let isCancellable: boolean = true;
@@ -32,7 +31,7 @@
 
 </script>
 
-<TransitionRoot as="div" show={show} class="w-full h-full overflow-hidden fixed" style="z-index: 100;">
+<TransitionRoot as="div" show={show} class="w-screen h-screen overflow-hidden fixed z-50">
     <Dialog as="div" class="z-50">
         <!-- Background -->
         <TransitionChild

@@ -5,7 +5,7 @@
     audio mixing console desk.
 -->
 <script lang="ts">
-    import { AudioConsole } from "app/util/AudioConsole";
+    import { AudioConsole } from "audio/AudioConsole";
     import ChannelStrip from "./ChannelStrip.svelte";
     import { onMount } from "svelte";
 

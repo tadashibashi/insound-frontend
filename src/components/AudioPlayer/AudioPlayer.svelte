@@ -1,22 +1,24 @@
 <script lang="ts">
-    import type { AudioChannelSettings } from "app/util/AudioChannel";
-    import { AudioConsole } from "app/util/AudioConsole";
+    import type { AudioChannelSettings } from "audio/AudioChannel";
+    import { AudioConsole } from "audio/AudioConsole";
     import type { AudioEngine } from "audio/AudioEngine";
-    import type { MixPreset } from "app/util/MixPreset";
+    import type { MixPreset } from "audio/MixPresetMgr";
     import type { SyncPoint } from "audio/SyncPointMgr";
     import { TimeDisplay } from "app/util/TimeDisplay";
 
     import { onMount } from "svelte";
 
-    import ChoiceMenu from "app/components/widgets/ChoiceMenu.svelte";
-
-    import { Icon, Pause, Play } from "svelte-hero-icons";
+    import { AdjustmentsVertical, ChevronUpDown, Icon, Pause, Play, PlusCircle, XMark } from "svelte-hero-icons";
 
     import Playbar from "./Playbar.svelte";
     import MixConsole from "./MixConsole.svelte";
     import SpectrumView from "./SpectrumView.svelte";
     import WaveformMorphDisplay from "./WaveformMorphDisplay.svelte";
     import { WaveMorpher } from "app/util/WaveMorpher";
+    import DropdownMenu from "../widgets/DropdownMenu.svelte";
+    import { MultiTrackControl } from "audio/MultiTrackControl";
+    import Modal from "../Modal.svelte";
+    import MixList from "./MixList.svelte";
 
     export const context: AudioPlayerExternalControls = {
         load: onLoadAudio,
@@ -28,9 +30,11 @@
     // component.
     export let audio: AudioEngine;
 
+    export let track: MultiTrackControl = audio.createTrack();
+
     let wave = new WaveMorpher(2048);
 
-    let audioConsole: AudioConsole = new AudioConsole(audio);
+    let audioConsole: AudioConsole = new AudioConsole(track);
 
     // ===== State ============================================================
     let isPlaying = false;
@@ -45,6 +49,9 @@
 
     let loopend: number = 0;
 
+    let showAddMixModal = false;
+    let mixName = "";
+
     export let showMarkers: boolean = true;
     export let looping: boolean = true;
     export let transitionTime: number = 1;
@@ -55,22 +62,29 @@
     // export let params: Param[] = [];
 
 
-    $: if (looping && audio.isTrackLoaded())
+    $: if (track.isLoaded)
     {
-        audio.setLooping(looping);
+        track.looping = looping;
     }
 
 
     // ----- Callbacks --------------------------------------------------------
 
     onMount(() => {
-       audio.onUpdate(onPlayerUpdate);
+        track.onupdate.addListener(onPlayerUpdate);
+        track.onpause.addListener((paused) => {
+            isPlaying = !paused;
+        });
+
+        return () => {
+            audio.deleteTrack(track);
+        }
     });
 
     // Called when unloading audio track
     function onUnloadAudio()
     {
-        audio.unloadTrack();
+        track.unload();
         audioConsole.clear();
     }
 
@@ -80,62 +94,49 @@
     {
         if (Array.isArray(pData))
         {
-            audio.loadSounds(pData, {
+            track.loadSounds(pData, {
                 script: scriptText
             });
         }
         else
         {
-            audio.loadTrack(pData, {
+            track.loadFSBank(pData, {
                 script: scriptText
             });
         }
 
-        audio.setSyncPointCallback((label, seconds, index) => {
-            if (label === "LoopEnd" && !looping) {
-                audio.setPause(true, 0);
-                audio.suspend();
-                isPlaying = false;
-            }
-
+        track.track.onSyncPoint((label, seconds, index) => {
             points[index].isActive = true;
-        });
-
-        audio.setEndCallback(() => {
-            console.log("End reached!");
         });
 
         isAudioLoaded = true;
         isPlaying = false;
-        time.max = audio.length;
+        time.max = track.length;
 
         time.current = 0;
 
-        points = audio.points.points.map(point => { return{...point, isActive: false} });
+        points = track.syncpoints.points.map(point => { return{...point, isActive: false} });
 
-        loopend = audio.engine.getLoopSeconds().loopend;
-        audio.setLooping(looping);
+        loopend = track.track.getLoopPoint().loopend;
+        track.looping = looping;
 
         wave.unloadData();
         audioConsole.clear();
         audioConsole.addChannels(["Main", ...pLayerNames]);
         audioConsole = audioConsole;
 
-        wave.loadData(audio, audioConsole);
+        wave.loadData(track, audioConsole);
     }
 
 
     // Called 60+ times a second
     function onPlayerUpdate()
     {
-        if (!audio.paused)
+        if (!track.isPaused)
         {
-
-            time.current = audio.position;
+            time.current = track.position;
         }
-
-        audio.spectrum.update();
-        audio.spectrum = audio.spectrum;
+        track.spectrum.data = track.spectrum.data;
     }
 
     /**
@@ -146,12 +147,12 @@
      */
     function onSeeked(cur: number)
     {
-        audio.seek(Math.max(Math.min(cur, audio.length-.001), 0));
+        track.position = Math.max(Math.min(cur, track.length-.001), 0);
 
         // Start playing audio again if it was seek interrupted
         if (wasPlayingBeforeSeek)
         {
-            audio.setPause(false, .1);
+            track.setPause(false, .1);
             isPlaying = true;
             wasPlayingBeforeSeek = false;
         }
@@ -160,22 +161,22 @@
     // Called when seeking begins, user begins dragging playhead
     function onSeekStart()
     {
-        if (!audio.paused)
+        if (!track.isPaused)
             wasPlayingBeforeSeek = true;
-        audio.setPause(true);
+        track.setPause(true);
         isPlaying = false;
     }
 
     // Called when player clicks play/pause button
     function onPressPlay()
     {
-        if (!audio.isTrackLoaded()) return;
-        const newPause = !audio.paused;
+        if (!track.isLoaded) return;
+        const newPause = !track.isPaused;
 
         if (!newPause)
-            audio.setPause(newPause, 0);
+            track.setPause(newPause, 0);
         else
-            audio.setPause(newPause, .1);
+            track.setPause(newPause, .1);
         isPlaying = !newPause;
     }
 
@@ -184,7 +185,7 @@
     // Helper to apply a mix setting to the audio console
     function applyMix(mix: AudioChannelSettings[], transitionTime: number = 0)
     {
-        if (!audio.isTrackLoaded()) return;
+        if (!track.isLoaded) return;
 
         audioConsole.applySettings(mix, transitionTime);
     }
@@ -193,6 +194,15 @@
     function getCurrentMix(name?: string)
     {
         return {name: name || "", mix: audioConsole.getCurrentSettings()};
+    }
+
+    function saveMix()
+    {
+        if (mixName.length === 0) return;
+
+        mixPresets.push(getCurrentMix(mixName));
+        mixPresets = mixPresets;
+        showAddMixModal = false;
     }
 </script>
 
@@ -211,11 +221,10 @@
         onstartseek={onSeekStart}
         onseeking={val => time.current = val}>
         <div slot="display">
-            <SpectrumView class="z-20 w-full relative opacity-90" data={audio.spectrum.data} progress={time.progress}/>
+            <SpectrumView class="z-20 w-full relative opacity-90" data={track.spectrum.data} progress={time.progress}/>
             <WaveformMorphDisplay wave={wave} class="rounded-none absolute pointer-events-none h-[80px] overflow-hidden w-full z-30 opacity-75" />
         </div>
     </Playbar>
-
 
 
     <!-- Play controls bar -->
@@ -240,14 +249,63 @@
                 <span>{time.toString(time.max)}</span>
             </p>
         </div>
+
+        <div class="flex justify-center items-center z-50 text-white absolute w-full pointer-events-none">
+            {#if mixPresets.length > 0}
+            <Icon size="20" class="inline-block me-1" src={AdjustmentsVertical} />
+            <MixList presets={mixPresets}
+                onchoice={(preset, index) => console.log(preset.name, index)}
+                ondrop={(from, to) => {
+                    console.log(from, to);
+                    const temp = [...mixPresets];
+                    const preset = temp[from];
+                    temp.splice(from, 1);
+                    temp.splice(to, 0, preset);
+                    mixPresets = temp;
+                }}
+            />
+            {/if}
+        </div>
+
+        <div class="flex justify-end items-center z-50 text-white absolute w-full pointer-events-none">
+            <button class="pointer-events-auto" on:click={() => showAddMixModal = true}>
+                <Icon src={PlusCircle} size="16" />
+            </button>
+        </div>
+
+
     </div>
 
 
-
-    <!-- Mix preset options -->
-    <ChoiceMenu class="" choices={mixPresets.map(preset => preset.name)}
-        onchoose={value => applyMix(mixPresets[value].mix, transitionTime)} />
-
     <MixConsole audioConsole={audioConsole} />
+    <!-- Mix preset options -->
+<!--     <ChoiceMenu class="" choices={mixPresets.map(preset => preset.name)}
+        onchoose={value => applyMix(mixPresets[value].mix, transitionTime)} /> -->
 
 </div>
+
+<!-- Add mix modal -->
+<Modal bind:show={showAddMixModal} isCancellable={true} onopen={() => mixName = ""}>
+    <div class="w-full h-full fixed flex items-center justify-center">
+
+        <div class="relative bg-white rounded-md w-1/2 min-w-[200px] h-auto pt-4 pb-4">
+            <!-- cancel button -->
+            <button class="absolute top-1 right-1 rounded-full hover:bg-gray-100 transition-colors duration-300 text-gray-400 p-1" on:click={() => showAddMixModal = false }>
+                <Icon src={XMark} size="24" />
+            </button>
+
+            <Icon class="block text-center mx-auto text-gray-400 mb-1" src={AdjustmentsVertical} size="48" />
+            <p class="text-center text-lg mb-1">Save Mix Preset</p>
+            <label class="w-full block ml-4">
+                <p class="inline mr-2 text-gray-400">Name</p>
+                <input class="px-2 border border-gray-100" type="text" bind:value={mixName} minlength="1" />
+            </label>
+
+            <button
+                on:click={saveMix}
+                class={"block mx-auto rounded-full mt-4 mb-2 px-4 py-2 " + (mixName.length > 0 ? "bg-violet-400 text-white cursor-pointer" : "bg-gray-100 text-gray-50 cursor-not-allowed")}>
+                Add Mix
+            </button>
+        </div>
+    </div>
+</Modal>

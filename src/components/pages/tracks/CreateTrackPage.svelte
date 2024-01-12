@@ -4,7 +4,7 @@
     } from "svelte-hero-icons";
 
     import ErrorAlert from "app/components/widgets/ErrorAlert.svelte";
-    import { SoundLoadError } from "app/audio/src/ts/AudioEngine";
+    import { SoundLoadError } from "audio/SoundLoadError";
     import LoadAudioPage from "./LoadAudioPage.svelte";
     import AudioOptionsPage from "./AudioOptionsPage.svelte";
 
@@ -12,6 +12,21 @@
         LoadFiles = 0,
         AudioOptions = 1,
     }
+
+    const defaultScript =
+`--Called after track finishes loading
+function on_ready()
+    print("Track is ready!")
+end
+
+--Called when the playhead crosses a marker
+function on_marker(name, offset)
+    print("Marker: "..name..", "..offset)
+    if name == "LoopStart" then
+        print("Loop started")
+    end
+end
+`;
 
     // ===== Form state =======================================================
 
@@ -75,7 +90,10 @@
             {
                 throw new SoundLoadError(errIndices);
             }
-            audioContext.load(buffers as ArrayBuffer[], names, "");
+            audioContext.load(buffers as ArrayBuffer[], names, defaultScript);
+
+            // success, progress the form state
+            formState = FormState.AudioOptions;
         }
         catch(err)
         {
@@ -102,9 +120,6 @@
             }
             errorMessages = errorMessages;
         }
-
-        // success, progress the form state
-        formState = FormState.AudioOptions;
     }
 
 </script>
@@ -141,6 +156,7 @@
 
 <AudioOptionsPage
     show={formState === FormState.AudioOptions}
+    defaultScript={defaultScript}
     onsubmit={ (data) => { console.log("submitted data:", data);} }
     bind:audioContext={audioContext} />
 

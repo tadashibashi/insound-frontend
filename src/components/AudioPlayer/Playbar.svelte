@@ -165,7 +165,6 @@
 
 <div class={$$props.class}>
 
-    <!-- Invisible buffer that makes gui hitbox larger -->
     <div class="relative z-0"
         style={`height ${height}; cursor: ${active ? "pointer" : "default"};`}
         on:pointerenter={handlePointerEnterBar}
@@ -183,12 +182,12 @@
 
         <!-- Hovering Markers -->
         <div class="absolute z-30">
-            {#each markers as m, i (m.text+m.offset+"-overlay")}
-                {#if !(m.text === "LoopStart" || m.text === "LoopEnd") || looping}
-                <TrackMarker x={m.offset/time.max*(barEl?.getBoundingClientRect().width || 0)}
+            {#each markers as m, i (m.name+"-"+i+"-overlay")}
+                {#if !(m.name === "LoopStart" || m.name === "LoopEnd") || looping}
+                <TrackMarker x={m.offset * .001 / time.max*(barEl?.getBoundingClientRect().width || 0)}
                     y={-38}
                     time={m.offset}
-                    text={m.text}
+                    text={m.name}
                     show={ (showMarkers && markers[i].isActive) ?
                         ((markers[i].isActive = false), true) :
                         false }
@@ -225,13 +224,13 @@
                 style={
                     `height: ${height};`
                 }>
-                {#each markers as {text, offset} (text+offset)}
-                    {#if text === "LoopStart" || text === "LoopEnd"}
+                {#each markers as {name, offset} (name+offset)}
+                    {#if name === "LoopStart" || name === "LoopEnd"}
                         {#if looping}
                             <div class="absolute w-1 h-full bg-blue-400"
                                 style={
                                     `transform: translateX(-50%);
-                                    left: ${offset/time.max * 100}%;
+                                    left: ${(offset*.001)/time.max*100}%;
                                     `
                                 }/>
                         {/if}
@@ -239,7 +238,7 @@
                         <div class="absolute w-1 h-full bg-black"
                             style={
                                 `transform: translateX(-50%);
-                                left: ${offset/time.max * 100}%;
+                                left: ${(offset*.001)/time.max * 100}%;
                                 `
                             }/>
                     {/if}

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { AudioChannel } from "app/util/AudioChannel";
+    import { AudioChannel } from "audio/AudioChannel";
     import VSlider from "app/components/widgets/VSlider.svelte";
     import KnobWidget from "app/components/widgets/KnobWidget.svelte";
     import WidgetLabel from "app/components/widgets/WidgetLabel.svelte";
