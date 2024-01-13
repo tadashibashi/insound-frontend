@@ -41,3 +41,31 @@ export function createProgram(gl: WebGL2RenderingContext,
 
     return program;
 }
+
+export function createShaderProgram(gl: WebGL2RenderingContext, vertexShaderSource: string, fragmentShaderSource: string): WebGLProgram
+{
+    const vShader = createShader(gl, vertexShaderSource, gl.VERTEX_SHADER);
+    let fShader: WebGLShader;
+    try {
+        fShader = createShader(gl, fragmentShaderSource, gl.FRAGMENT_SHADER);
+    }
+    catch(err)
+    {
+        gl.deleteShader(vShader);
+        throw err;
+    }
+
+    let program: WebGLProgram;
+    try {
+        program = createProgram(gl, vShader, fShader);
+        gl.detachShader(program, vShader);
+        gl.detachShader(program, fShader);
+    }
+    finally
+    {
+        gl.deleteShader(vShader);
+        gl.deleteShader(fShader);
+    }
+
+    return program;
+}
