@@ -33,7 +33,7 @@
         {
             volume = level;
             if (onchange)
-                onchange(Math.min(Math.max(Math.log10(volume + 1), 0), 1)); // apply logarithm on result curve
+                onchange(Math.min(Math.max(Math.log2(volume + 1), 0), 1)); // apply logarithm on result curve
         }
     }
 
@@ -59,7 +59,7 @@
 
 <div
     role="group"
-    class="group h-full flex items-center mr-4"
+    class="group h-full flex items-center pr-4"
     on:mouseenter={() => {
         hovering = true;
     }}
