@@ -117,7 +117,6 @@
         audioConsole.addChannels(["Main", ...pLayerNames]);
         audioConsole = audioConsole;
 
-        console.log("There are " + track.channelCount + " channels");
         wave.loadData(track, audioConsole);
     }
 
