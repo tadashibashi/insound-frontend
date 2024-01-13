@@ -370,13 +370,13 @@
         <p class="text-2xl text-center text-gray-500 selection-none">Sound Layers</p>
     </div>
 
+    <!-- Reset tracks button (remove all user-provided files: TODO: position on wide screens too far to the right) -->
     <div class="w-2/3 h-8 relative">
         <button on:click={() => resetFiles()} class={"text-gray-400 hover:bg-gray-100 text-sm hover:text-gray-500 transition-colors duration-200 py-1 px-2 rounded-full absolute right-0 " +
             (fileInputs.length > 1 ? "" : "sr-only pointer-events-none")}>
             Reset <Icon class="inline -translate-y-[2px]" src={ArrowUturnLeft} size="16" />
         </button>
     </div>
-
 
     <!-- Audio file selection boxes -->
     <div class="max-w-[512px] mx-auto mb-2 rounded-md selection-none">
