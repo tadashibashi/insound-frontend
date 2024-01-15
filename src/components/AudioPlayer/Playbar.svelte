@@ -175,9 +175,14 @@
 
         <!-- Tall progress -->
         <div class="relative h-[80px] w-full z-0 bg-gray-200 overflow-hidden">
-            <div class="absolute h-full shadow-md"
-                style={`width: ${progress * 100}%; background: ${barColor}; opacity: 25%;`}
-            />
+            <div class={"absolute h-full border-r-2 rounded-r-sm transition-opacity border-r-black border-t border-t-black bg-gray-800 " +
+                (isEngaged ? "opacity-[.45]" : "opacity-50")}
+                style={`width: calc(${progress * 100}% + 1px);`}
+            >
+                <!-- play cursor edge shadow -->
+                <div class="absolute right-0 w-[2px] h-full bg-[#ffffff30;]" />
+                <div class="absolute -right-[4px] w-[4px] h-full bg-[#ffffff40;] border-t border-t-[#ffffff40] rounded-r-sm" />
+            </div>
         </div>
 
         <!-- Hovering Markers -->
@@ -198,7 +203,7 @@
         </div>
 
         <!-- Hover time display -->
-        <div class={"absolute pointer-events-none z-10 " + (isEngaged ? "" : "sr-only")}
+        <div class={"absolute pointer-events-none z-10 bg-transparent " + (isEngaged ? "" : "sr-only")}
             style={
                 `transform: translateX(calc(${pointerX - (barEl?.getBoundingClientRect().x || 0)}px - 50%));`
             }
@@ -248,7 +253,7 @@
 
             <!-- Progress -->
             <div class="h-full shadow-sm absolute z-10"
-                style={`width: ${progress * 100}%; background: ${barColor};`}
+                style={`width: calc(${progress * 100}% + 1px); background: ${barColor};`}
             />
 
             <!-- Blocker if loopend is less than length -->
