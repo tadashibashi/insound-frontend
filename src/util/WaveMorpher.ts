@@ -47,6 +47,7 @@ export class WaveMorpher
 
     onChangeCallback: (() => void) | null;
     onLoadCallback: (() => void) | null;
+    onUpdateCallback: ((progress: number) => void) | null;
 
     constructor(width: number)
     {
@@ -60,8 +61,15 @@ export class WaveMorpher
         this.mIsDirty = false;
         this.onChangeCallback = null;
         this.onLoadCallback = null;
+        this.onUpdateCallback = null;
 
         this.handleVolumeChange = this.handleVolumeChange.bind(this);
+    }
+
+    update(progress: number)
+    {
+        if (this.onUpdateCallback)
+            this.onUpdateCallback(progress);
     }
 
     private handleVolumeChange(index: number, value: number)
@@ -72,29 +80,6 @@ export class WaveMorpher
         this.mTimeout = setTimeout(() => {
             this.mTimeout = null;
         }, 1);
-
-        // this.mTransformed.fill(0);
-
-        //  // Add channel volumes
-        // const length = this.mData.length;
-        // for (let i = 0; i < length; ++i)
-        // {
-        //     const chan = this.mConsole.channels[i+1];
-        //     const curVolume = chan.volume.value;
-        //     const curData = this.mData[i];
-
-        //     for (let j = 0; j < curData.length; ++j)
-        //     {
-        //         this.mTransformed[j] += curData[j] * curVolume;
-        //     }
-        // }
-
-        // // final scale bus volume
-        // const mainBusVolume = this.mConsole.channels[0].volume.value;
-        // for (let i = 0; i < length; ++i)
-        // {
-        //     this.mTransformed[i] *= mainBusVolume;
-        // }
 
         this.mIsDirty = true;
         if (this.onChangeCallback)
