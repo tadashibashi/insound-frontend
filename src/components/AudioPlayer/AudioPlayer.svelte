@@ -64,11 +64,12 @@
 
     onMount(() => {
         track.onupdate.addListener(onPlayerUpdate);
-        track.onpause.addListener((paused) => {
-            isPlaying = !paused;
-        });
+        track.onpause.addListener(onPause);
 
         return () => {
+            track.onupdate.removeListener(onPlayerUpdate);
+            track.onpause.removeListener(onPause);
+
             audio.deleteTrack(track);
         }
     });
@@ -120,6 +121,11 @@
         wave.loadData(track, audioConsole);
     }
 
+    function onPause(paused: boolean)
+    {
+            isPlaying = !paused;
+    }
+
 
     // Called 60+ times a second
     function onPlayerUpdate()
@@ -127,6 +133,7 @@
         if (!track.isPaused)
         {
             time.current = track.position;
+            wave.update(time.progress);
         }
         track.spectrum.data = track.spectrum.data;
     }
@@ -151,11 +158,12 @@
     }
 
     // Called when seeking begins, user begins dragging playhead
-    function onSeekStart()
+    function onSeekStart(cur: number)
     {
         if (!track.isPaused)
             wasPlayingBeforeSeek = true;
         track.setPause(true);
+        wave.update(cur / time.max);
         isPlaying = false;
     }
 
@@ -188,10 +196,10 @@
         showMarkers={showMarkers}
         onchange={onSeeked}
         onstartseek={onSeekStart}
-        onseeking={val => time.current = val}>
+        onseeking={val => {time.current = val; wave.update(val / time.max);}}>
         <div slot="display">
             <SpectrumView class="z-20 w-full relative opacity-90" data={track.spectrum.data} progress={time.progress}/>
-            <WaveformMorphDisplay wave={wave} class="rounded-none absolute pointer-events-none h-[80px] overflow-hidden w-full z-30 opacity-75" />
+            <WaveformMorphDisplay wave={wave} progress={track.position / track.length} class="rounded-none absolute pointer-events-none h-[80px] overflow-hidden w-full z-30 opacity-75" />
         </div>
     </Playbar>
 
