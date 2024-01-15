@@ -48,6 +48,8 @@
 
     let presetChoice: MixPreset;
 
+    let volumeSliderShow: boolean = false;
+
     export let showMarkers: boolean = true;
     export let looping: boolean = true;
     export let transitionTime: number = 1;
@@ -185,64 +187,65 @@
 
 <!-- Player Container -->
 <div class="relative select-none min-w-[340px]">
-
-    <Playbar
-        class="relative w-full z-10 shadow-md rounded-t-md h-[100px] bg-gray-400"
-        active={isAudioLoaded}
-        time={time}
-        markers={points}
-        loopend={loopend}
-        looping={looping}
-        showMarkers={showMarkers}
-        onchange={onSeeked}
-        onstartseek={onSeekStart}
-        onseeking={val => {time.current = val; wave.update(val / time.max);}}>
-        <div slot="display">
-            <SpectrumView class="z-20 w-full relative opacity-90" data={track.spectrum.data} progress={time.progress}/>
-            <WaveformMorphDisplay wave={wave} progress={track.position / track.length} class="rounded-none absolute pointer-events-none h-[80px] overflow-hidden w-full z-30 opacity-75" />
-        </div>
-    </Playbar>
-
-
-    <!-- Play controls bar -->
-    <div class="relative w-full h-10 flex justify-between items-center bg-gray-400 text-gray-200 shadow-md mt-1">
-
-        <!-- Left side of bar -->
-        <div class="flex items-center">
-
-            <!-- Play/Pause Button -->
-            <button
-                class="px-3 h-6 w-6 rounded-md box-content z-50 relative text-gray-200 hover:text-gray-100 transition-transform duration-300"
-                on:click={onPressPlay}
-                >
-                {#if isPlaying}
-                    <Icon class="drop-shadow-sm z-50" solid src="{Pause}" />
-                {:else}
-                    <Icon class="drop-shadow-sm z-50" solid src="{Play}" />
-                {/if}
-            </button>
-
-            <!-- Volume controls -->
-            <!-- TODO: use local storage to save and grab this value -->
-            <VolumeSlider initVolume={1} onchange={(val) => audio.masterVolume = val} />
-
-            <!-- Time -->
-            <div class="text-[10px] sm:text-xs font-bold">
-                <p class="text-gray-200">
-                    <span>{time.toString()}</span>
-                    <span> / </span>
-                    <span>{time.toString(time.max)}</span>
-                </p>
+    <!-- Upper area -->
+    <div on:pointerleave={() => {volumeSliderShow = false;}}>
+        <Playbar
+            class="relative w-full z-10 shadow-md rounded-t-md h-[100px] bg-gray-400"
+            active={isAudioLoaded}
+            time={time}
+            markers={points}
+            loopend={loopend}
+            looping={looping}
+            showMarkers={showMarkers}
+            onchange={onSeeked}
+            onstartseek={onSeekStart}
+            onseeking={val => {time.current = val; wave.update(val / time.max);}}>
+            <div slot="display">
+                <SpectrumView class="z-20 w-full relative opacity-90" data={track.spectrum.data} progress={time.progress}/>
+                <WaveformMorphDisplay wave={wave} progress={track.position / track.length} class="rounded-none absolute pointer-events-none h-[80px] overflow-hidden w-full z-30 opacity-75" />
             </div>
-        </div>
+        </Playbar>
 
-        <!-- Right side of bar -->
-        <MixList
-            bind:presets={mixPresets}
-            bind:choice={presetChoice}
-            mixConsole={audioConsole}
-            transitionTime={transitionTime}
-        />
+        <!-- Play controls bar -->
+        <div class="relative w-full h-10 flex justify-between items-center bg-gray-400 text-gray-200 shadow-md mt-1">
+
+            <!-- Left side of bar -->
+            <div class="flex items-center">
+
+                <!-- Play/Pause Button -->
+                <button
+                    class="px-3 h-6 w-6 rounded-md box-content z-50 relative text-gray-200 hover:text-gray-100 transition-transform duration-300"
+                    on:click={onPressPlay}
+                    >
+                    {#if isPlaying}
+                        <Icon class="drop-shadow-sm z-50" solid src="{Pause}" />
+                    {:else}
+                        <Icon class="drop-shadow-sm z-50" solid src="{Play}" />
+                    {/if}
+                </button>
+
+                <!-- Volume controls -->
+                <!-- TODO: use local storage to save and grab this value -->
+                <VolumeSlider initVolume={1} onchange={(val) => audio.masterVolume = val} bind:show={volumeSliderShow} />
+
+                <!-- Time -->
+                <div class="text-[10px] sm:text-xs font-bold">
+                    <p class="text-gray-200">
+                        <span>{time.toString()}</span>
+                        <span> / </span>
+                        <span>{time.toString(time.max)}</span>
+                    </p>
+                </div>
+            </div>
+
+            <!-- Right side of bar -->
+            <MixList
+                bind:presets={mixPresets}
+                bind:choice={presetChoice}
+                mixConsole={audioConsole}
+                transitionTime={transitionTime}
+            />
+        </div>
     </div>
 
     <MixConsole audioConsole={audioConsole} />

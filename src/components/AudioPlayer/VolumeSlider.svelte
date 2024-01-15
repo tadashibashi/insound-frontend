@@ -9,7 +9,9 @@
     let lastVolume = volume;
     let hovering = false;
     let dragging = false;
-    $: engaged = hovering || dragging;
+    export let show = false;
+
+    $: if (hovering) show = true;
 
     let tracklineEl: HTMLElement;
 
@@ -63,12 +65,10 @@
     on:mouseenter={() => {
         hovering = true;
     }}
-    on:mouseleave={() => {
-        hovering = false;
-    }}
+    on:mouseleave={() => hovering = false}
 >
     <!-- Volume icon button: mutes/unmutes volume level -->
-    <button class={"h-full flex items-center " + (engaged && volume > 0 ? "text-gray-100" : "")}
+    <button class={"h-full flex items-center " + (show && volume > 0 ? "text-gray-100" : "")}
         aria-roledescription="This button mutes and unmutes the audio; while hovering over it, it opens the volume slider to the right"
         on:click={() => {
             if (volume > 0)
@@ -90,7 +90,7 @@
     <!-- Horizontal slider -->
     <Transition
         class="h-full relative z-40 flex items-center origin-left"
-        show={engaged}
+        show={show || (dragging || hovering)}
         enter="transition-all duration-200 ease-in-out"
         enterFrom="scale-x-0 w-[0px] opacity-0"
         enterTo="scale-x-100 w-[60px] opacity-100"
@@ -106,7 +106,7 @@
             aria-valuemin={0}
             aria-valuemax={1}
             bind:this={tracklineEl}
-            on:pointerdown={() => dragging = true}
+            on:mousedown={() => dragging = true}
         >
             <!-- Track line -->
             <div class="bg-[#b0babf] w-full h-1 rounded-full">
