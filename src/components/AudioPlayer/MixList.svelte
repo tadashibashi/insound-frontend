@@ -2,11 +2,10 @@
     import DropdownMenu from "../widgets/DropdownMenu.svelte";
     import type { MixPreset } from "audio/MixPresetMgr";
     import MixPresetEditMenu from "./MixPresetEditMenu.svelte";
-    import { AdjustmentsVertical, Icon, Plus } from "svelte-hero-icons";
+    import { AdjustmentsVertical, Icon, Plus, ChevronRight } from "svelte-hero-icons";
     import AddMixModal from "./modals/AddMixModal.svelte";
     import type { AudioConsole } from "app/audio/src/ts/AudioConsole";
     import type { AudioChannelSettings } from "app/audio/src/ts/AudioChannel";
-
 
     // ===== Attributes =======================================================
 
@@ -35,7 +34,6 @@
     // ----- Bindable ---------------------------------------------------------
     export let choice: MixPreset | undefined = presets.at(0);
 
-
     // ===== State ============================================================
     let itemEls: HTMLButtonElement[] = [];
     let draggingIndex = -1;
@@ -43,7 +41,6 @@
     let lastY = -1;
 
     let showAddMixModal = false;
-
 
     // ===== Event handlers ===================================================
 
@@ -102,6 +99,14 @@
 
         if (onpatchmix)
             onpatchmix(oldMix, choice.mix);
+    }
+
+    function handleEditName(name: string)
+    {
+        if (!choice) return;
+
+        choice.name = name;
+        presets = presets; // trigger ui update
     }
 
     function handleDragging(evt: DragEvent)
@@ -184,23 +189,23 @@
     }
 </script>
 
-<div class="flex items-center text-white">
-    <DropdownMenu class="pointer-events-auto" dropdownClass="bg-gray-400 border border-gray-300 rounded-sm min-w-[120px] shadow-md absolute right-0" items={presets.map(p => p.name)}>
+<div class="flex items-center">
+    <DropdownMenu class="pointer-events-auto" dropdownClass="bg-violet-100 rounded-sm min-w-[120px] shadow-md absolute right-0 opacity-[.97]" items={presets}>
 
         <!-- Button -->
-        <div slot="button" class="flex justify-between items-center rounded-sm border border-gray-200 bg-gray-300 ps-2 py-[1px] min-w-[120px] h-6">
-            <Icon size="20" class="inline-block me-1" src={AdjustmentsVertical} />
+        <div slot="button" class={"ButtonTextShadow shadow-inner flex justify-between items-center rounded-sm ps-[5px] py-[1px] min-w-[120px] h-6 " +
+            (presets.length ? "bg-violet-100" : "bg-gray-300")}
+        >
+            <Icon size="20" class="inline-block me-1 text-violet-200" src={AdjustmentsVertical} />
             {#if presets.length > 0 && choice}
-                <p class="overflow-hidden text-ellipsis max-w-[96px] text-xs sm:text-sm sm:max-w-[160px]">{choice.name}</p>
+                <p class="px-1 overflow-hidden text-ellipsis max-w-[96px] text-violet-500 text-lg sm:text-xl sm:max-w-[160px]">{choice.name}</p>
 
                 {#if canedit}
                 <MixPresetEditMenu class="p-1"
                     doDeleteMix={handleDeleteMix}
-                    doUpdateName={(name) => {
-                        if (choice)
-                            choice.name = name;
-                    }}
+                    doEditName={handleEditName}
                     doPatchMix={handlePatchMix}
+                    choice={choice}
                 />
                 {/if}
             {/if}
@@ -208,17 +213,16 @@
 
         <!-- Individual Item -->
         <button slot="item" let:item let:i bind:this={itemEls[i]}
-            class={"cursor-pointer text-sm text-left block w-full h-full px-2 py-[1px] border-b-4 border-t-4 " +
-                (draggingIndex === i ? "bg-gray-500 text-gray-200 opacity-75" : "hover:bg-violet-300") + " " +
+            class={"cursor-pointer text-xs text-left block w-full h-full px-2 text-violet-400 py-[1px] border-b-4 border-t-4 " +
+                (draggingIndex === i ? "bg-violet-400 hover:text-violet-50 opacity-75" : "hover:bg-violet-300 hover:text-white") + " " +
                 (dragBeforeTarget === i && draggingIndex !== i ? (draggingIndex <= i ? "border-b-violet-700" : "border-t-violet-700") : "border-b-transparent border-t-transparent") + " " +
                 (dragBeforeTarget > i && i === presets.length - 1 && draggingIndex !== i ? "border-b-violet-700" : "border-b-transparent border-t-transparent")
             }
-            on:click={() => {
-                const preset = presets[i];
+            on:click={(evt) => {
                 if (onchoice)
-                    onchoice(preset, i);
-                choice = preset;
-                applyMix(preset.mix, transitionTime);
+                    onchoice(item, i);
+                choice = item;
+                applyMix(item.mix, transitionTime);
             }}
             on:drag={handleDragging}
             on:dragstart={(evt) => {
@@ -227,16 +231,29 @@
             on:dragend={handleDragEnd}
             draggable={candrag && canedit}
         >
-            {item}
+            {#if choice === item}
+            <Icon src={ChevronRight} size="12" mini class="inline-block"/>
+            {/if}
+            {item.name}
+
         </button>
     </DropdownMenu>
 
     <!-- Add mix button -->
     {#if canedit}
-    <button class="flex justify-center items-center mx-2 w-[16px] h-[16px] pointer-events-auto rounded-full hover:bg-gray-300 text-white hover:text-gray-500" on:click={() => showAddMixModal = true}>
+    <button class="flex transition-colors duration-300 justify-center items-center mx-2 w-[16px] h-[16px] pointer-events-auto rounded-full drop-shadow-md text-gray-100 hover:text-white" on:click={() => showAddMixModal = true}>
         <Icon src={Plus} mini class="m-[1px]" />
     </button>
     {/if}
+
+    <AddMixModal bind:show={showAddMixModal} onsubmit={handleAddMix} />
 </div>
 
-<AddMixModal bind:show={showAddMixModal} onsubmit={handleAddMix} />
+
+
+<style>
+    .ButtonTextShadow {
+        text-shadow: 2px 2px 2px #00000010;
+        font-family: Monogram, monospace;
+    }
+</style>
