@@ -10,7 +10,7 @@
     function handleSubmit(evt: SubmitEvent)
     {
         evt.preventDefault();
-        
+
         const checked = document.querySelector("input[name='mix-source']:checked") as HTMLInputElement;
         if (!checked)
             throw Error("Could not find mix-source checked element");
@@ -62,7 +62,7 @@
             </div>
 
             <button
-                on:click={handleSubmit}
+                type="submit"
                 class={"block mx-auto rounded-full mt-4 mb-2 px-2 py-1 text-sm " + (name.length > 0 ? "bg-violet-400 text-white cursor-pointer" : "bg-gray-100 text-gray-50 cursor-not-allowed")}>
                 Add Mix
             </button>
