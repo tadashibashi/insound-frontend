@@ -63,7 +63,7 @@
                         <p class="text-gray-500 text-sm">Source</p>
                         <p class="text-gray-300 text-xs">From where should the settings be created?</p>
                     </label>
-                    <div class="text-sm w-auto my-1 inline-flex flex-col items-start mx-auto text-sm">
+                    <div class="text-sm w-auto my-1 inline-flex flex-col items-start mx-auto">
                         <label class="block">
                             <input type="radio" name="mix-source" checked value="current" />
                             <p class="inline ml-1 text-gray-400">Current mix settings</p>

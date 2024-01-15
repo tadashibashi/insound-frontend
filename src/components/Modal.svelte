@@ -49,13 +49,13 @@
             class="z-50"
         >
             <button type="button"
-                class="fixed z-50 inset-0 bg-gray-500 bg-opacity-75 transition-opacity overflow-y-auto"
+                class="fixed z-50 inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
                 on:click={() => { if (isCancellable) show = false }}>
             </button>
         </TransitionChild>
 
         <!-- Content -->
-        <DialogOverlay class="fixed inset-0 z-50 w-screen overflow-y-auto">
+        <DialogOverlay class="fixed inset-0 z-50 w-screen overflow-hidden">
             <TransitionChild
                 enter="ease-out duration-300"
                 enterFrom="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"

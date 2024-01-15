@@ -1,9 +1,5 @@
 <script lang="ts">
-    // Edit menu
-    // 1.  Update Preset (ArrowPath)
-    // 2.  Delete Preset (Trash)
-
-    import { ArrowPath, Icon, PencilSquare, Trash, ChatBubbleLeftEllipsis, Check } from "svelte-hero-icons";
+    import { ArrowPath, Icon, PencilSquare, Trash, ChatBubbleLeftEllipsis, Check, type IconSource } from "svelte-hero-icons";
     import DropdownMenu from "../widgets/DropdownMenu.svelte";
     import EditMixNameModal from "./modals/EditMixNameModal.svelte";
     import DeleteMixModal from "./modals/DeleteMixModal.svelte";
@@ -14,7 +10,13 @@
     export let doPatchMix: ((mix: MixPreset) => void) | undefined = undefined;
     export let doDeleteMix: ((mix: MixPreset) => void) | undefined = undefined;
 
+    export let isOpen: boolean = false;
+
     export let choice: MixPreset | undefined;
+    export let disabled = false;
+
+    export let onchoice: ((item: {text: string, icon: IconSource, color: string}, index: number) => void) | undefined = undefined;
+    export let onclick: ((evt: MouseEvent) => void) | undefined = undefined;
 
     const menuItems = [
         { text: "Update Mix", icon: ArrowPath, color: "hover:text-emerald-300"},
@@ -88,13 +90,17 @@
 <div class={($$props.class || "") + " pointer-events-auto"}>
 
     <DropdownMenu
-        class="relative text-violet-300 group"
+        class="relative text-gray-300 group"
         items={menuItems}
-        dropdownClass="bg-violet-50 opacity-[.97] rounded-md shadow-md py-1 absolute right-0 w-[112px]"
+        dropdownClass="bg-gray-50 opacity-[.97] rounded-md shadow-md py-1 absolute right-0 w-[112px]"
+        bind:isOpen={isOpen}
+        disabled={disabled}
+        onchoice={onchoice}
     >
         <!-- Edit button -->
-        <button slot="button" let:open class={"relative flex justify-center items-center rounded-md w-[22px] h-[22px] group-hover:bg-violet-200 group-hover:text-violet-50 " +
-            (open ? "bg-violet-200 text-violet-50" : "")}
+        <button slot="button" let:open class={"relative flex pointer-events-auto justify-center items-center rounded-md w-[22px] h-[22px] group-hover:bg-gray-200 group-hover:text-gray-50 " +
+            (open ? "bg-gray-200 text-gray-50" : "")}
+            on:click={onclick}
         >
             <Transition
                 show={mixUpdateSuccess}
@@ -106,7 +112,7 @@
                 leaveTo="opacity-0"
                 class="absolute"
             >
-                <Icon class="text-violet-500 drop-shadow-sm" src={Check} size="16"/>
+                <Icon class="text-gray-500 drop-shadow-sm" src={Check} size="16"/>
             </Transition>
             <Transition
                 show={!mixUpdateSuccess}
@@ -118,10 +124,11 @@
                 leaveTo="opacity-0"
                 class="absolute"
             >
-                <Icon src={PencilSquare} mini size="16"/>
+                <Icon class="drop-shadow-md" src={PencilSquare} mini size="16"/>
             </Transition>
         </button>
 
+        <!-- Item template -->
         <button class="block" slot="item" let:item let:i on:click={() => doCallback(i)}>
             <div class={"w-full py-1 px-4 flex justify-start items-center z-50 text-base " + (item.color) }>
                 <Icon src={item.icon} class="inline-block mr-2" size="16" />

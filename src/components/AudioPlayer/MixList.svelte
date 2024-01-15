@@ -34,6 +34,8 @@
     // ----- Bindable ---------------------------------------------------------
     export let choice: MixPreset | undefined = presets.at(0);
 
+    let mainButtonEl: HTMLButtonElement;
+
     // ===== State ============================================================
     let itemEls: HTMLButtonElement[] = [];
     let draggingIndex = -1;
@@ -41,6 +43,9 @@
     let lastY = -1;
 
     let showAddMixModal = false;
+
+    let editMenuIsOpen: boolean = false;
+    let mainMenuIsOpen: boolean = false;
 
     // ===== Event handlers ===================================================
 
@@ -190,15 +195,18 @@
 </script>
 
 <div class="flex items-center">
-    <DropdownMenu class="pointer-events-auto" dropdownClass="bg-violet-100 rounded-sm min-w-[120px] shadow-md absolute right-0 opacity-[.97]" items={presets}>
-
+    <DropdownMenu class="pointer-events-auto"
+        dropdownClass="bg-gray-100 rounded-sm min-w-[120px] shadow-md absolute right-0 opacity-[.97]"
+        items={presets}
+    >
         <!-- Button -->
-        <div slot="button" class={"ButtonTextShadow shadow-inner flex justify-between items-center rounded-sm ps-[5px] py-[1px] min-w-[120px] h-6 " +
-            (presets.length ? "bg-violet-100" : "bg-gray-300")}
+        <button type="button" bind:this={mainButtonEl} slot="button" let:open class={"ButtonTextShadow pointer-events-auto shadow-inner flex justify-between items-center rounded-sm ps-[5px] py-[1px] min-w-[120px] h-6 " +
+            (presets.length ? "bg-gray-100" : "bg-gray-300")}
+            on:click={() => console.log("click")}
         >
-            <Icon size="20" class="inline-block me-1 text-violet-200" src={AdjustmentsVertical} />
+            <Icon size="20" class="inline-block me-1 text-gray-200" src={AdjustmentsVertical} />
             {#if presets.length > 0 && choice}
-                <p class="px-1 overflow-hidden text-ellipsis max-w-[96px] text-violet-500 text-lg sm:text-xl sm:max-w-[160px]">{choice.name}</p>
+                <p class="px-1 overflow-hidden text-ellipsis max-w-[96px] text-gray-500 text-lg sm:text-xl sm:max-w-[160px]">{choice.name}</p>
 
                 {#if canedit}
                 <MixPresetEditMenu class="p-1"
@@ -206,17 +214,19 @@
                     doEditName={handleEditName}
                     doPatchMix={handlePatchMix}
                     choice={choice}
+                    bind:isOpen={editMenuIsOpen}
+                    onclick={() => { if (open && mainButtonEl) mainButtonEl.click(); }}
                 />
                 {/if}
             {/if}
-        </div>
+        </button>
 
         <!-- Individual Item -->
         <button slot="item" let:item let:i bind:this={itemEls[i]}
-            class={"cursor-pointer text-xs text-left block w-full h-full px-2 text-violet-400 py-[1px] border-b-4 border-t-4 " +
-                (draggingIndex === i ? "bg-violet-400 hover:text-violet-50 opacity-75" : "hover:bg-violet-300 hover:text-white") + " " +
-                (dragBeforeTarget === i && draggingIndex !== i ? (draggingIndex <= i ? "border-b-violet-700" : "border-t-violet-700") : "border-b-transparent border-t-transparent") + " " +
-                (dragBeforeTarget > i && i === presets.length - 1 && draggingIndex !== i ? "border-b-violet-700" : "border-b-transparent border-t-transparent")
+            class={"cursor-pointer text-xs text-left block w-full h-full px-2 text-gray-400 py-[1px] border-b-4 border-t-4 " +
+                (draggingIndex === i ? "bg-gray-400 hover:text-gray-50 opacity-75" : "hover:bg-gray-300 hover:text-white") + " " +
+                (dragBeforeTarget === i && draggingIndex !== i ? (draggingIndex <= i ? "border-b-gray-700" : "border-t-gray-700") : "border-b-transparent border-t-transparent") + " " +
+                (dragBeforeTarget > i && i === presets.length - 1 && draggingIndex !== i ? "border-b-gray-700" : "border-b-transparent border-t-transparent")
             }
             on:click={(evt) => {
                 if (onchoice)
@@ -241,15 +251,13 @@
 
     <!-- Add mix button -->
     {#if canedit}
-    <button class="flex transition-colors duration-300 justify-center items-center mx-2 w-[16px] h-[16px] pointer-events-auto rounded-full drop-shadow-md text-gray-100 hover:text-white" on:click={() => showAddMixModal = true}>
+    <button class="flex transition-colors duration-300 justify-center items-center mx-2 w-[16px] h-[16px] pointer-events-auto rounded-full drop-shadow-md text-gray-100 hover:text-white" on:click={() => {if (!editMenuIsOpen && !mainMenuIsOpen) showAddMixModal = true}}>
         <Icon src={Plus} mini class="m-[1px]" />
     </button>
     {/if}
 
     <AddMixModal bind:show={showAddMixModal} onsubmit={handleAddMix} />
 </div>
-
-
 
 <style>
     .ButtonTextShadow {
