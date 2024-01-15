@@ -2,18 +2,26 @@
     import { Menu, MenuButton, MenuItem, MenuItems, Transition
     } from "@rgossiaux/svelte-headlessui";
 
+    type T = $$Generic<object>;
+
     // ----- Attributes -------------------------------------------------------
     /**
      * List of item options to show
      */
-    export let items: string[];
+    export let items: T[];
 
+    /**
+     * Class to place on the menu element
+     * (It is appended to "fixed cursor-pointer")
+     */
     export let dropdownClass: string = "bg-white border border-gray-50";
 
+    /** Whether to prevent dropdown menu button from showing menu */
+    export let disabled: boolean = false;
 </script>
 
 <Menu class={($$props.class || "") + " z-50"} let:open>
-    <MenuButton class="flex items-center" disabled={items.length === 0} on:click={e => e.stopPropagation()}>
+    <MenuButton class="flex items-center" disabled={disabled || items.length === 0} on:click={e => e.stopPropagation()}>
         <slot name="button" {open} />
     </MenuButton>
 
@@ -30,7 +38,7 @@
             class={"fixed cursor-pointer " + dropdownClass}
             on:click={e => e.stopPropagation()}
         >
-            {#each items as item, i ("choice-" + i + "-" + item)}
+            {#each items as item, i (item)}
                 <MenuItem on:click={e => e.stopPropagation()} ><slot name="item" {open} {item} {i} /></MenuItem>
             {/each}
         </MenuItems>
