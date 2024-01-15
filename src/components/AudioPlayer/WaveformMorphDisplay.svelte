@@ -2,7 +2,7 @@
     import { WaveMorpher } from "app/util/WaveMorpher";
     import { onMount } from "svelte";
 
-    import { createProgram, createShader, createShaderProgram } from "app/util/gl";
+    import { createShaderProgram } from "app/util/gl";
 
     export let wave: WaveMorpher;
 
@@ -13,6 +13,7 @@
         let program: WebGLProgram | null = null;
         let bufferWaveData: WebGLBuffer[] = [];
         let uScalesLoc: WebGLUniformLocation | null = null;
+        let uProgressLoc: WebGLUniformLocation | null = null;
         let aWaveLoc: number[] = [];
 
         const gl = canvas.getContext("webgl2");
@@ -22,6 +23,7 @@
         }
 
         let vao: WebGLVertexArrayObject | null;
+        let progress = 0;
 
         // set viewport
         gl.viewport(0, 0, gl.canvas.width, gl.canvas.height);
@@ -39,6 +41,7 @@
             program = createShaderProgram(gl, source.vertex, source.fragment);
 
             uScalesLoc = gl.getUniformLocation(program, "u_scales");
+            uProgressLoc = gl.getUniformLocation(program, "u_progress");
 
             aWaveLoc.length = 0;
             for (let i = 0; i < length; ++i)
@@ -91,18 +94,28 @@
             gl.drawArrays(gl.LINES, 0, wave.width * 2);
         };
 
+        wave.onUpdateCallback = (prog: number) => {
+            progress = prog;
+            render();
+        };
+
         wave.onChangeCallback = () => {
-            if (program)
+            render();
+        };
+
+        function render() {
+            if (program && gl)
             {
                 gl.clear(gl.COLOR_BUFFER_BIT);
                 gl.bindVertexArray(vao);
 
                 const volumes = wave.getCurrentVolumes();
                 gl.uniform1fv(uScalesLoc, volumes, 0);
+                gl.uniform1f(uProgressLoc, progress);
 
                 gl.drawArrays(gl.LINES, 0, wave.width * 2);
             }
-        };
+        }
 
         () => {
             if (gl)
@@ -120,6 +133,8 @@
         }
     });
 
+
+
     function genShaderSource(wave: WaveMorpher): {vertex: string, fragment: string}
     {
         const length = wave.waveData.length;
@@ -134,7 +149,9 @@
         vertex += "const int NUM_CHANNELS = " + (length + 1) + ";\n" +
             "const int WIDTH = " + wave.width + ";\n" +
             "uniform float u_scales[NUM_CHANNELS];\n" +
+            "uniform float u_position;\n" +
             "out highp float total;\n" +
+            "out highp float xPos;\n" +
             "void main() {\n";
 
         vertex += "total = ";
@@ -152,16 +169,20 @@
             "    float width = float(WIDTH);\n" +
             "    float index = float(gl_VertexID);\n" +
             "    gl_Position = vec4(min(max(floor(index/2.0) / width * 2.0 - 1.0, -1.0), 1.0), total, 0, 1.0);\n" +
+            "    xPos = gl_Position.x;\n" +
             "}";
 
         // create fragment shader source
         let fragment = "#version 300 es\n" +
             "precision highp float;\n" +
             "uniform float u_scales[" + (length + 1) + "];\n" +
+            "uniform float u_progress;\n" +
+            "in highp float xPos;\n" +
             "in highp float total;\n" +
             "out vec4 outColor;\n" +
             "void main() {\n" +
-            "    float amt = 1.0 - abs(total * 0.75) - 0.25;\n" +
+            "    bool beforePlayhead = u_progress * 2.0 - 1.0 > xPos;\n" +
+            "    float amt = beforePlayhead ? .95 : (1.0 - abs(total * 0.75) - 0.25);\n" +
             "    outColor = vec4(amt, amt, amt, 1.0);\n" +
             "}";
 
