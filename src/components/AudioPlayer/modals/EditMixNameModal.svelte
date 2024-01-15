@@ -1,11 +1,11 @@
 <script lang="ts">
     import Modal from "app/components/Modal.svelte";
-    import { AdjustmentsVertical, Icon, XMark } from "svelte-hero-icons";
+    import { ChatBubbleLeftEllipsis, Icon, XMark } from "svelte-hero-icons";
 
-    export let onsubmit: ((name: string, copyCurrent: boolean) => void) | undefined = undefined;
+    export let onsubmit: ((name: string) => void) | undefined = undefined;
     export let show = true;
 
-    let name: string = "";
+    export let name: string = "";
 
     function handleSubmit(evt: SubmitEvent)
     {
@@ -13,20 +13,15 @@
 
         if (!name) return;
 
-        const checked = document.querySelector("input[name='mix-source']:checked") as HTMLInputElement;
-        if (!checked)
-            throw Error("Could not find mix-source checked element");
-
         if (onsubmit)
         {
-            onsubmit(name, (checked.value === "current"));
+            onsubmit(name);
             show = false;
         }
     }
 </script>
 
-
-<Modal bind:show={show} isCancellable={true} onopen={() => name = ""}>
+<Modal bind:show={show} isCancellable={true}>
     <div class="w-full h-full fixed">
 
         <form
@@ -42,38 +37,20 @@
                 <Icon src={XMark} size="24" />
             </button>
 
-            <div class="ModalGridOuter mb-3">
+            <div class="ModalGridOuter mb-4">
                 <!-- Mix icon -->
-                <Icon class="block mx-auto rounded-full bg-violet-100 text-violet-300 p-[6px]" src={AdjustmentsVertical} size="40" />
+                <Icon class="block mx-auto rounded-full bg-emerald-100 text-emerald-300 p-[6px]" src={ChatBubbleLeftEllipsis} size="40" />
 
                 <!-- Right side -->
                 <div>
                     <!-- Title -->
-                    <p class="sm:text-left text-center sm:mt-0 mt-1 mb-3 text text-gray-500 text-base font-bold">Create Mix Preset</p>
+                    <p class="sm:text-left text-center sm:mt-0 mt-1 mb-3 text text-gray-500 text-base font-bold">Edit Preset Name</p>
                     <!-- <p class="text-xs text-left sm:text-left text-center text-gray-300 mb-2">Add a new preset to the mix list</p> -->
 
                     <!-- Name text input -->
                     <label class="w-full text-sm text-gray-500 flex flex-col">
-                        <p class="mb-1 text-sm">Name</p>
                         <input class="px-2 py-1 border border-gray-100 rounded-md" type="text" bind:value={name} minlength="1" required />
                     </label>
-
-                    <!-- Mix source radio input -->
-                    <label for="mix-source" class="block mt-3 selection-none">
-                        <p class="text-gray-500 text-sm">Source</p>
-                        <p class="text-gray-300 text-xs">From where should the settings be created?</p>
-                    </label>
-                    <div class="text-sm w-auto my-1 inline-flex flex-col items-start mx-auto text-sm">
-                        <label class="block">
-                            <input type="radio" name="mix-source" checked value="current" />
-                            <p class="inline ml-1 text-gray-400">Current mix settings</p>
-                        </label>
-
-                        <label class="block">
-                            <input type="radio" name="mix-source" value="default" />
-                            <p class="inline ml-1 text-gray-400">New default mix</p>
-                        </label>
-                    </div>
                 </div>
             </div>
 
@@ -87,8 +64,8 @@
                 </button>
                 <button
                     type="submit"
-                    class={"rounded-full px-3 py-1 text-sm sm:text-base bg-violet-400 text-white cursor-pointer"}>
-                    Create
+                    class={"rounded-full px-3 py-1 text-sm sm:text-base bg-emerald-400 text-white cursor-pointer"}>
+                    Update
                 </button>
             </div>
         </form>
