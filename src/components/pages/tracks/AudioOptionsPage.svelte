@@ -48,7 +48,7 @@
     + (show ? "opacity-100" : "opacity-0 pointer-events-none")}>
 
     <!-- Inner container -->
-    <div class="sm:w-3/4 w-full p-4">
+    <div class="sm:w-5/6 w-full p-4">
 
         <!-- Options -->
         <table>
