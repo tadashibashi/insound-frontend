@@ -14,17 +14,28 @@
     let shadowTop: boolean = false;
     let shadowBottom: boolean = false;
     let scrollerEl: HTMLElement;
+    let undoDepth = 0;
+    let redoDepth = 0;
 
     function handleCheckScroll(evt: Event)
     {
         const contentDOM = editor.view.contentDOM;
         const vScrollbarVisible = (contentDOM.scrollHeight > editorParentEl.clientHeight);
+        // Can use this if you want to support side shadows
         // const hScrollbarVisible = (contentDOM.scrollWidth > editorParentEl.clientWidth);
 
         shadowTop = vScrollbarVisible && scrollerEl.scrollTop > 0;
         shadowBottom = vScrollbarVisible && scrollerEl.scrollTop < contentDOM.scrollHeight - editorParentEl.clientHeight - 24;
-        if (shadowBottom)
-            console.log(shadowBottom);
+    }
+
+    function updateUndoDepth()
+    {
+        undoDepth = editor.undoDepth;
+    }
+
+    function updateRedoDepth()
+    {
+        redoDepth = editor.redoDepth;
     }
 
     onMount(() => {
@@ -36,20 +47,27 @@
         }
 
         // Get the editor element that contains scrolling
-        const tempScrollerEl = document.querySelector(`#${editor.id}.cm-editor .cm-scroller`);
-        if (tempScrollerEl)
-            scrollerEl = tempScrollerEl as HTMLElement;
-        else
-            throw Error("Could not find editor scroller element!");
+        scrollerEl = editor.scrollDOM;
 
         // Set up scrolling callbacks
         scrollerEl.addEventListener("scroll", handleCheckScroll);
-        window.addEventListener("keydown", handleCheckScroll); // keydown can cause text to increase div height
+        editor.contentDOM.addEventListener("keydown", handleCheckScroll); // keydown can cause text to increase div height
+        editor.contentDOM.addEventListener("keyup", updateUndoDepth);
+        editor.onundo.addListener(updateUndoDepth);
+        editor.onredo.addListener(updateRedoDepth);
+
+        // capture on mount only
+        const tempDoLoadScript = doloadscript || (() => {});
+        editor.onsave.addListener(tempDoLoadScript);
 
         // Teardown callbacks
         return () => {
             scrollerEl.removeEventListener("scroll", handleCheckScroll);
-            window.removeEventListener("keydown", handleCheckScroll);
+            editor.contentDOM.removeEventListener("keydown", handleCheckScroll);
+            editor.contentDOM.removeEventListener("keyup", updateUndoDepth);
+            editor.onundo.removeListener(updateUndoDepth);
+            editor.onredo.removeListener(updateRedoDepth);
+            editor.onsave.removeListener(tempDoLoadScript);
         };
     });
 
@@ -61,7 +79,8 @@
     >
         <!-- Undo button -->
         <button
-            class="block mr-3 text-xs text-gray-500 border-gray-200 border rounded-full px-2 mt-1 cursor-pointer"
+            class={"block mr-3 text-xs border rounded-full px-2 mt-1 cursor-pointer border-gray-200 " +
+                (undoDepth > 0 ? "text-gray-500" : "text-gray-200")}
             on:click={() => editor.undo()}
         >
             <Icon src={ArrowUturnLeft} size="14" />
@@ -69,7 +88,8 @@
 
         <!-- Redo button -->
         <button
-            class="block mr-3 text-xs text-gray-500 border-gray-200 border rounded-full px-2 mt-1 cursor-pointer"
+            class={"block mr-3 text-xs border-gray-200 border rounded-full px-2 mt-1 cursor-pointer " +
+                (redoDepth > 0 ? "text-gray-500" : "text-gray-200")}
             on:click={() => editor.redo()}
         >
             <Icon src={ArrowUturnRight} size="14" />

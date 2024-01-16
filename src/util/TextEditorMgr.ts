@@ -1,5 +1,5 @@
 import { EditorView } from "codemirror";
-import { undo as editorUndo, redo as editorRedo } from "@codemirror/commands";
+import { undo as editorUndo, redo as editorRedo, undoDepth, redoDepth } from "@codemirror/commands";
 import { indentUnit } from "@codemirror/language";
 import { EditorState, type Extension } from "@codemirror/state";
 import { keymap, type KeyBinding } from "@codemirror/view";
@@ -8,7 +8,6 @@ import { Callback } from "audio/Callback";
 import {
     createDefaultExtensions,
     createDefaultKeyMap } from "./TextEditorDefaults";
-import { util } from ".";
 
 export interface TextEditorConfig {
     /** No need to add indent, or keymap extensions if indicated in config */
@@ -22,29 +21,31 @@ export class TextEditorMgr
 {
     private m_view: EditorView;
     private m_extensions: Extension[];
-    private m_id: string;
-
     readonly onsave: Callback<[string]>;
+
+    /** Only captures when explicitly running member func not shortcut */
+    readonly onundo: Callback<[]>;
+    readonly onredo: Callback<[]>;
 
     get view() { return this.m_view; }
     get parent() { return this.m_view.dom; }
-    get id() { return this.m_id; }
+    get scrollDOM() { return this.m_view.scrollDOM; }
+    get contentDOM() { return this.m_view.contentDOM; }
 
     constructor(config: TextEditorConfig = {})
     {
         this.m_view = new EditorView;
-        this.m_id = util.genRandHex(4) + '-' + util.genRandHex(4);
-        this.m_view.dom.id = this.m_id;
-
-        this.m_extensions = config.extensions ?? createDefaultExtensions();
-        this.m_extensions.push(indentUnit.of(" ".repeat(config.indent ?? 4)));
-        this.m_extensions.push(keymap.of(config.keymap ??
+        this.m_extensions = [keymap.of(config.keymap ??
             createDefaultKeyMap(this.m_view,
-                (text) => this.onsave.invoke(text))
-            )
-        );
+                (text) => this.onsave.invoke(text),
+                () => this.onundo.invoke(),
+                () => this.onredo.invoke()
+            )), ...(config.extensions ?? createDefaultExtensions())];
+        this.m_extensions.push(indentUnit.of(" ".repeat(config.indent ?? 4)));
 
         this.onsave = new Callback;
+        this.onundo = new Callback;
+        this.onredo = new Callback;
 
         this.text = config.text ?? "";
     }
@@ -54,7 +55,14 @@ export class TextEditorMgr
             doc: value,
             extensions: this.m_extensions,
         }));
+    }
 
+    get undoDepth() {
+        return undoDepth(this.m_view.state);
+    }
+
+    get redoDepth() {
+        return redoDepth(this.m_view.state);
     }
 
     get text(): string {
@@ -64,11 +72,13 @@ export class TextEditorMgr
     undo()
     {
         editorUndo(this.m_view);
+        this.onundo.invoke();
     }
 
     redo()
     {
         editorRedo(this.m_view);
+        this.onredo.invoke();
     }
 
     /**
