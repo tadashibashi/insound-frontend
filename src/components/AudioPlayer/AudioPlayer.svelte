@@ -4,11 +4,8 @@
     import type { MixPreset } from "audio/MixPresetMgr";
     import type { SyncPoint } from "audio/SyncPointMgr";
     import { TimeDisplay } from "app/util/TimeDisplay";
-
     import { onMount } from "svelte";
-
     import { Icon, Pause, Play } from "svelte-hero-icons";
-
     import Playbar from "./Playbar.svelte";
     import MixConsole from "./MixConsole.svelte";
     import SpectrumView from "./SpectrumView.svelte";
@@ -17,6 +14,8 @@
     import { MultiTrackControl } from "audio/MultiTrackControl";
     import MixList from "./MixList.svelte";
     import VolumeSlider from "./VolumeSlider.svelte";
+    import AudioScriptEditor from "./AudioScriptEditor.svelte";
+    import type { TextEditorMgr } from "app/util/TextEditorMgr";
 
     export const context: AudioPlayerExternalControls = {
         load: onLoadAudio,
@@ -28,6 +27,11 @@
     export let audio: AudioEngine;
 
     export let track: MultiTrackControl = audio.createTrack();
+
+    export let defaultScript = "";
+
+    let tabIndex = 2;
+    const tabs = ["Mixer", "Markers", "Script"];
 
     let wave = new WaveMorpher(2048);
 
@@ -50,6 +54,8 @@
 
     let volumeSliderShow: boolean = false;
 
+    let textEditor: TextEditorMgr;
+
     export let showMarkers: boolean = true;
     export let looping: boolean = true;
     export let transitionTime: number = 1;
@@ -67,10 +73,12 @@
     onMount(() => {
         track.onupdate.addListener(onPlayerUpdate);
         track.onpause.addListener(onPause);
+        track.onseek.addListener(updateSeekUI);
 
         return () => {
             track.onupdate.removeListener(onPlayerUpdate);
             track.onpause.removeListener(onPause);
+            track.onseek.removeListener(updateSeekUI);
 
             audio.deleteTrack(track);
         }
@@ -182,72 +190,110 @@
         isPlaying = !newPause;
     }
 
+    function onScriptReload()
+    {
+        track.updateScript(textEditor.text);
+    }
 
+    function updateSeekUI(val: number)
+    {
+        time.current = val;
+        wave.update(val / time.max);
+    }
 </script>
 
-<!-- Player Container -->
-<div class="relative select-none min-w-[340px]">
-    <!-- Upper area -->
-    <div on:pointerleave={() => {volumeSliderShow = false;}}>
-        <Playbar
-            class="relative w-full z-10 shadow-md rounded-t-md h-[100px] bg-gray-400"
-            active={isAudioLoaded}
-            time={time}
-            markers={points}
-            loopend={loopend}
-            looping={looping}
-            showMarkers={showMarkers}
-            onchange={onSeeked}
-            onstartseek={onSeekStart}
-            onseeking={val => {time.current = val; wave.update(val / time.max);}}>
-            <div slot="display">
-                <SpectrumView class="z-20 w-full relative opacity-90" data={track.spectrum.data} progress={time.progress}/>
-                <WaveformMorphDisplay wave={wave} progress={track.position / track.length} class="rounded-none absolute pointer-events-none h-[80px] overflow-hidden w-full z-30 opacity-75" />
-            </div>
-        </Playbar>
-
-        <!-- Play controls bar -->
-        <div class="relative w-full h-10 flex justify-between items-center bg-gray-400 text-gray-200 shadow-md mt-1">
-
-            <!-- Left side of bar -->
-            <div class="flex items-center">
-
-                <!-- Play/Pause Button -->
-                <button
-                    class="px-3 h-6 w-6 rounded-md box-content z-50 relative text-gray-200 hover:text-gray-100 transition-transform duration-300"
-                    on:click={onPressPlay}
-                    >
-                    {#if isPlaying}
-                        <Icon class="drop-shadow-sm z-50" solid src="{Pause}" />
-                    {:else}
-                        <Icon class="drop-shadow-sm z-50" solid src="{Play}" />
-                    {/if}
-                </button>
-
-                <!-- Volume controls -->
-                <!-- TODO: use local storage to save and grab this value -->
-                <VolumeSlider initVolume={1} onchange={(val) => audio.masterVolume = val} bind:show={volumeSliderShow} />
-
-                <!-- Time -->
-                <div class="text-[10px] sm:text-xs font-bold">
-                    <p class="text-gray-200">
-                        <span>{time.toString()}</span>
-                        <span> / </span>
-                        <span>{time.toString(time.max)}</span>
-                    </p>
+<!-- Outer Container -->
+<div class="bg-white border border-gray-300 rounded-md shadow-lg">
+    <!-- Player Container -->
+    <div class="relative select-none min-w-[340px] shadow-md rounded-md">
+        <!-- Upper area -->
+        <div on:pointerleave={() => {volumeSliderShow = false;}}>
+            <Playbar
+                class="relative w-full z-10 rounded-t-md h-[100px] bg-gray-400"
+                active={isAudioLoaded}
+                time={time}
+                markers={points}
+                loopend={loopend}
+                looping={looping}
+                showMarkers={showMarkers}
+                onchange={onSeeked}
+                onstartseek={onSeekStart}
+                onseeking={updateSeekUI}>
+                <div slot="display">
+                    <SpectrumView class="z-20 w-full relative opacity-90" data={track.spectrum.data} progress={time.progress}/>
+                    <WaveformMorphDisplay wave={wave} progress={track.position / track.length} class="border-t-2 border-t-[#00000030] shadow-inner rounded-none absolute pointer-events-none h-[80px] overflow-hidden w-full z-30 opacity-75" />
                 </div>
-            </div>
+            </Playbar>
 
-            <!-- Right side of bar -->
-            <MixList
-                bind:presets={mixPresets}
-                bind:choice={presetChoice}
-                mixConsole={audioConsole}
-                transitionTime={transitionTime}
+            <!-- Play controls bar -->
+            <div class="relative w-full h-10 flex justify-between items-center bg-gray-400 text-gray-200 shadow-md mt-1">
+
+                <!-- Left side of bar -->
+                <div class="flex items-center">
+
+                    <!-- Play/Pause Button -->
+                    <button
+                        class="px-3 h-6 w-6 rounded-md box-content z-50 relative text-gray-200 hover:text-gray-100 transition-transform duration-300"
+                        on:click={onPressPlay}
+                        >
+                        {#if isPlaying}
+                            <Icon class="drop-shadow-sm z-50" solid src="{Pause}" />
+                        {:else}
+                            <Icon class="drop-shadow-sm z-50" solid src="{Play}" />
+                        {/if}
+                    </button>
+
+                    <!-- Volume controls -->
+                    <!-- TODO: use local storage to save and grab this value -->
+                    <VolumeSlider initVolume={1} onchange={(val) => audio.masterVolume = val} bind:show={volumeSliderShow} />
+
+                    <!-- Time -->
+                    <div class="text-[10px] sm:text-xs font-bold">
+                        <p class="text-gray-200">
+                            <span>{time.toString()}</span>
+                            <span> / </span>
+                            <span>{time.toString(time.max)}</span>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Right side of bar -->
+                <MixList
+                    bind:presets={mixPresets}
+                    bind:choice={presetChoice}
+                    mixConsole={audioConsole}
+                    transitionTime={transitionTime}
+                />
+            </div>
+        </div>
+
+        <div class={tabIndex === 0 ? "" : "sr-only"}>
+            <MixConsole audioConsole={audioConsole} />
+        </div>
+
+        <div class={tabIndex === 1 ? "h-[324px] overflow-y-auto" : "sr-only"}>
+            <p>Coming soon...</p>
+        </div>
+
+        <div class={ (tabIndex === 2 ? "h-[324px] overflow-y-auto" : "sr-only")}>
+            <AudioScriptEditor
+                bind:editor={textEditor}
+                value={defaultScript}
+                doloadscript={onScriptReload}
             />
         </div>
     </div>
 
-    <MixConsole audioConsole={audioConsole} />
+    <!-- Tab menu for showing different parts of player -->
+    <div class="flex text-center cursor-pointer select-none bg-gray-100 overflow-hidden rounded-b-md min-w-[340px]">
+        {#each tabs as tab, i ("tab-" + tab)}
+        <button class={" bg-[#fefefe] inset-0 border-r text-center w-48 border-gray-100 px-8 py-1 transition-colors  " +
+            (i === tabIndex ? "text-gray-400 font-bold bg-[#fefefe] shadow-md z-40" : "text-gray-300 bg-gray-50")}
+            on:click={() => tabIndex = i}
+        >
+            {tab}
+        </button>
+        {/each}
+    </div>
 </div>
 

@@ -1,15 +1,14 @@
 <script lang="ts">
     import { getContext } from "svelte";
-    import TextEditor from "app/components/TextEditor/TextEditor.svelte";
-    import type { EditorView } from "codemirror";
     import type { MixPreset } from "audio/MixPresetMgr";
     import AudioPlayer from "app/components/AudioPlayer/AudioPlayer.svelte";
     import Switch from "app/components/widgets/Switch.svelte";
+    import type { TextEditorMgr } from "app/util/TextEditorMgr";
 
     const audio = getContext("audio");
 
     // ===== Element bindings =================================================
-    let textEditorView: EditorView;
+    let textEditor: TextEditorMgr;
 
     // ===== User callbacks ===================================================
     export let audioContext: AudioPlayerExternalControls;
@@ -31,7 +30,7 @@
         onsubmit({
             looping,
             mixPresets,
-            script: textEditorView.state.doc.toString(),
+            script: textEditor.text,
             showMarkers,
             transitionTime,
         });
@@ -44,7 +43,7 @@
 
 
 <!-- Outer container -->
-<div class={"absolute w-full mt-4 transition-opacity duration-300 flex justify-center "
+<div class={"absolute w-full mt-4 transition-opacity duration-300 flex justify-center bg-transparent "
     + (show ? "opacity-100" : "opacity-0 pointer-events-none")}>
 
     <!-- Inner container -->
@@ -85,17 +84,10 @@
                 mixPresets={mixPresets}
                 showMarkers={showMarkers}
                 transitionTime={transitionTime}
+                defaultScript={defaultScript}
                 bind:context={audioContext}
             />
         {/if}
-
-        <!-- Script Editor -->
-        <h2 class="text-xl mb-3 ml-2">Script</h2>
-        <TextEditor
-            bind:view={textEditorView}
-            onSave={()=> console.log("saved.")}
-            value={defaultScript}
-        />
 
         <!-- Submit Button -->
         <button type="button" class="block mx-auto mt-4 px-2 py-1 bg-violet-700 text-white rounded-md"
