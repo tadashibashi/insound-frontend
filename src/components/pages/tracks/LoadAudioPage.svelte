@@ -362,7 +362,7 @@
 </script>
 
 <div
-    class={"absolute flex flex-col items-center justify-center w-full transition-opacity duration-300 select-none " +
+    class={"absolute flex flex-col items-center justify-center w-full transition-opacity duration-300 select-none bg-transparent " +
         (show ? "opacity-100" : "opacity-0 pointer-events-none") + " " +
         (draggingInput ? "cursor-move" : "")}
 >

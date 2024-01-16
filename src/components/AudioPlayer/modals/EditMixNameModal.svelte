@@ -25,7 +25,7 @@
     <div class="w-full h-full fixed">
 
         <form
-            class="relative bg-white rounded-md sm:w-[360px] w-[300px] px-6 py-6 translate-x-[calc(50vw-50%)] mt-[24vmin] shadow-lg"
+            class="relative bg-white rounded-md sm:w-[360px] w-[300px] px-6 py-6 translate-x-[calc(50vw-50%)] mt-[24vmin] shadow-md"
             on:submit={handleSubmit}
         >
             <!-- cancel button -->
@@ -39,7 +39,7 @@
 
             <div class="ModalGridOuter mb-4">
                 <!-- Mix icon -->
-                <Icon class="block mx-auto rounded-full bg-emerald-100 text-emerald-300 p-[6px]" src={ChatBubbleLeftEllipsis} size="40" />
+                <Icon class="block mx-auto rounded-full bg-gray-100 text-gray-300 p-[6px]" src={ChatBubbleLeftEllipsis} size="40" />
 
                 <!-- Right side -->
                 <div>
@@ -49,7 +49,7 @@
 
                     <!-- Name text input -->
                     <label class="w-full text-sm text-gray-500 flex flex-col">
-                        <input class="px-2 py-1 border border-gray-100 rounded-md" type="text" bind:value={name} minlength="1" required />
+                        <input class="px-2 py-1 border border-gray-100 rounded-md shadow-inner" type="text" bind:value={name} minlength="1" required />
                     </label>
                 </div>
             </div>
@@ -64,7 +64,7 @@
                 </button>
                 <button
                     type="submit"
-                    class={"rounded-full px-3 py-1 text-sm sm:text-base bg-emerald-400 text-white cursor-pointer"}>
+                    class={"rounded-full px-3 py-1 text-sm sm:text-base bg-gray-400 text-white cursor-pointer"}>
                     Update
                 </button>
             </div>

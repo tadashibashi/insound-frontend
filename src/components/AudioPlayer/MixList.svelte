@@ -202,7 +202,6 @@
         <!-- Button -->
         <button type="button" bind:this={mainButtonEl} slot="button" let:open class={"ButtonTextShadow pointer-events-auto shadow-inner flex justify-between items-center rounded-sm ps-[5px] py-[1px] min-w-[120px] h-6 " +
             (presets.length ? "bg-gray-100" : "bg-gray-300")}
-            on:click={() => console.log("click")}
         >
             <Icon size="20" class="inline-block me-1 text-gray-200" src={AdjustmentsVertical} />
             {#if presets.length > 0 && choice}

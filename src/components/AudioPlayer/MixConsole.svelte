@@ -74,9 +74,9 @@
 
 </div>
 
-<style lang="tailwindcss">
+<style>
     .MixConsole {
-        @apply border-l-2 border-l-white border-t-2 border-t-white border-r-2 border-r-gray-50 border-b-2 border-b-gray-50 h-[324px] w-full flex overflow-hidden relative bg-[#fefefe] rounded-b-md shadow-md;
+        @apply h-[324px] w-full flex overflow-hidden relative bg-[#fefefe];
     }
 
     .ChanShadowLeft {

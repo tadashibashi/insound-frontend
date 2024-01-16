@@ -30,7 +30,7 @@
     <div class="w-full h-full fixed">
 
         <form
-            class="relative bg-white rounded-md sm:w-[360px] w-[300px] px-6 py-6 translate-x-[calc(50vw-50%)] mt-[24vmin] shadow-lg"
+            class="relative bg-white rounded-md sm:w-[360px] w-[300px] px-6 py-6 translate-x-[calc(50vw-50%)] mt-[24vmin] shadow-md"
             on:submit={handleSubmit}
         >
             <!-- cancel button -->
@@ -55,7 +55,7 @@
                     <!-- Name text input -->
                     <label class="w-full text-sm text-gray-500 flex flex-col">
                         <p class="mb-1 text-sm">Name</p>
-                        <input class="px-2 py-1 border border-gray-100 rounded-md" type="text" bind:value={name} minlength="1" required />
+                        <input class="px-2 py-1 border border-gray-100 rounded-md shadow-inner" type="text" bind:value={name} minlength="1" required />
                     </label>
 
                     <!-- Mix source radio input -->
