@@ -15,6 +15,8 @@ button:focus,
     src: url("/static/fonts/monogram.ttf") format("opentype");
 }
 
+.cm-editor { height: 100%; }
+.cm-editor.cm-focused { outline: none; }
 .cm-editor .cm-content { font-family: "Monogram"; font-size: 1.2rem; }
 .cm-line {
     line-height: 1.2rem;
