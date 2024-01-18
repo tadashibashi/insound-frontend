@@ -47,42 +47,15 @@
     + (show ? "opacity-100" : "opacity-0 pointer-events-none")}>
 
     <!-- Inner container -->
-    <div class="sm:w-5/6 w-full p-4">
-
-        <!-- Options -->
-        <table>
-            <tbody>
-                <tr>
-                     <!-- Show Markers -->
-                    <td class="p-1">
-                        <label for="show-markers-input" class="block text-xs font-bold select-none">
-                            Show Markers
-                        </label>
-                    </td>
-                    <td>
-                        <Switch id="show-markers-input" bind:enabled={showMarkers} description="Option whether to show audio markers to end viewer." />
-                    </td>
-
-                    <!-- Looping -->
-                    <td class="p-1">
-                        <label for="is-looping-input" class="ml-4 block text-xs font-bold select-none">
-                            Looping
-                        </label>
-                    </td>
-                    <td>
-                        <Switch id="is-looping-input" bind:enabled={looping} description="Option whether to set track to looping"/>
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+    <div class="sm:w-5/6 w-full h-full p-4">
 
         <!-- Audio player + mix console -->
         {#if $audio}
             <AudioPlayer
                 audio={$audio}
-                looping={looping}
+                bind:looping={looping}
                 mixPresets={mixPresets}
-                showMarkers={showMarkers}
+                bind:showMarkers={showMarkers}
                 transitionTime={transitionTime}
                 defaultScript={defaultScript}
                 bind:context={audioContext}
@@ -96,5 +69,4 @@
             Submit
         </button>
     </div>
-
 </div>
