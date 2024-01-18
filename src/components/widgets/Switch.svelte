@@ -11,6 +11,10 @@
 
     export let id: string | undefined = undefined;
 
+    export let width = "46px";
+    export let height = "25px";
+    export let xpad = "5%";
+
     function clickHandler()
     {
         enabled = !enabled;
@@ -41,15 +45,19 @@
     id={id}
     checked={enabled}
     on:click={clickHandler}
-    class={`${enabled ? 'bg-violet-500' : 'bg-gray-200'}
-      relative inline-flex h-[25px] w-[46px] shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2  focus-visible:ring-white/75`}
+    class={`${enabled ? 'bg-violet-300' : 'bg-gray-200'} relative shadow-inner inline-flex items-center shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none focus-visible:ring-2  focus-visible:ring-white/75`}
+    style={`height: ${height}; width: ${width};`}
     >
+
     {#if description.length > 0}
     <span class="sr-only">{description}</span>
     {/if}
     <span
-      aria-hidden="true"
-      class={`${enabled ? 'translate-x-5' : 'translate-x-0'}
-        pointer-events-none inline-block h-[21px] w-[21px] transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out`}
+        aria-hidden="true"
+        class={`pointer-events-none h-full relative aspect-square inline-block transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out`}
+        style={`
+            transform: translateX( ${ enabled ? `calc(${width} - calc(${height} + ${xpad}))` : xpad} );
+        `}
+
     />
 </Switch>
