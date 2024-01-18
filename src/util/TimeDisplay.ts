@@ -1,7 +1,7 @@
 /**
  * Convert number of seconds into hh:mm format
  */
-function toDigitalTime(seconds: number): string
+export function toDigitalTime(seconds: number): string
 {
     seconds = Math.floor(seconds);
 
