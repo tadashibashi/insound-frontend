@@ -203,7 +203,7 @@
         </div>
 
         <!-- Hover time display -->
-        <div class={"absolute pointer-events-none z-10 bg-transparent " + (isEngaged ? "" : "sr-only")}
+        <div class={"absolute pointer-events-none  z-10 bg-transparent " + (isEngaged ? "" : "sr-only")}
             style={
                 `transform: translateX(calc(${pointerX - (barEl?.getBoundingClientRect().x || 0)}px - 50%));`
             }

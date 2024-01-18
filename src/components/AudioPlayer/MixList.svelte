@@ -223,7 +223,7 @@
         <!-- Individual Item -->
         <button slot="item" let:item let:i bind:this={itemEls[i]}
             class={"cursor-pointer text-xs text-left block w-full h-full px-2 text-gray-400 py-[1px] border-b-4 border-t-4 " +
-                (draggingIndex === i ? "bg-gray-400 hover:text-gray-50 opacity-75" : "hover:bg-gray-300 hover:text-white") + " " +
+                (draggingIndex === i ? "bg-gray-400 hover:text-gray-50 opacity-75 hover:cursor-grabbing" : "hover:bg-gray-300 hover:text-white") + " " +
                 (dragBeforeTarget === i && draggingIndex !== i ? (draggingIndex <= i ? "border-b-gray-700" : "border-t-gray-700") : "border-b-transparent border-t-transparent") + " " +
                 (dragBeforeTarget > i && i === presets.length - 1 && draggingIndex !== i ? "border-b-gray-700" : "border-b-transparent border-t-transparent")
             }
@@ -250,8 +250,8 @@
 
     <!-- Add mix button -->
     {#if canedit}
-    <button class="flex transition-colors duration-300 justify-center items-center mx-2 w-[16px] h-[16px] pointer-events-auto rounded-full drop-shadow-md text-gray-100 hover:text-white" on:click={() => {if (!editMenuIsOpen && !mainMenuIsOpen) showAddMixModal = true}}>
-        <Icon src={Plus} mini class="m-[1px]" />
+    <button class="flex transition-colors duration-300 justify-center items-center mx-2 w-[20px] h-[20px] pointer-events-auto rounded-full drop-shadow-md text-gray-100 hover:text-white hover:bg-[rgb(148,155,160)]" on:click={() => {if (!editMenuIsOpen && !mainMenuIsOpen) showAddMixModal = true}}>
+        <Icon src={Plus} mini class="m-[3px]" />
     </button>
     {/if}
 
