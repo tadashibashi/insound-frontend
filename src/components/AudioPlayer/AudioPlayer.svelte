@@ -16,6 +16,7 @@
     import VolumeSlider from "./VolumeSlider.svelte";
     import AudioScriptEditor from "./AudioScriptEditor.svelte";
     import type { TextEditorMgr } from "app/util/TextEditorMgr";
+    import MarkerControl from "./MarkerControl.svelte";
 
     export const context: AudioPlayerExternalControls = {
         load: onLoadAudio,
@@ -272,7 +273,9 @@
         </div>
 
         <div class={tabIndex === 1 ? "h-[324px] overflow-y-auto" : "sr-only"}>
-            <p>Coming soon...</p>
+            <MarkerControl markers={track.syncpoints} track={track}
+                bind:looping={looping} bind:showMarkers={showMarkers}
+            />
         </div>
 
         <div class={ (tabIndex === 2 ? "h-[324px] overflow-y-auto" : "sr-only")}>
