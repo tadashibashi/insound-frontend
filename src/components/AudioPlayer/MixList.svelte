@@ -2,7 +2,7 @@
     import DropdownMenu from "../widgets/DropdownMenu.svelte";
     import type { MixPreset } from "audio/MixPresetMgr";
     import MixPresetEditMenu from "./MixPresetEditMenu.svelte";
-    import { AdjustmentsVertical, Icon, Plus, ChevronRight } from "svelte-hero-icons";
+    import { AdjustmentsVertical, Icon, Plus, ChevronRight, ChevronLeft } from "svelte-hero-icons";
     import AddMixModal from "./modals/AddMixModal.svelte";
     import type { AudioConsole } from "app/audio/src/ts/AudioConsole";
     import type { AudioChannelSettings } from "app/audio/src/ts/AudioChannel";
@@ -224,8 +224,7 @@
         <button slot="item" let:item let:i bind:this={itemEls[i]}
             class={"cursor-pointer text-xs text-left block w-full h-full px-2 text-gray-400 py-[1px] border-b-4 border-t-4 " +
                 (draggingIndex === i ? "bg-gray-400 hover:text-gray-50 opacity-75 hover:cursor-grabbing" : "hover:bg-gray-300 hover:text-white") + " " +
-                (dragBeforeTarget === i && draggingIndex !== i ? (draggingIndex <= i ? "border-b-gray-700" : "border-t-gray-700") : "border-b-transparent border-t-transparent") + " " +
-                (dragBeforeTarget > i && i === presets.length - 1 && draggingIndex !== i ? "border-b-gray-700" : "border-b-transparent border-t-transparent")
+                (dragBeforeTarget === i && draggingIndex !== i ? (draggingIndex < i ? "border-b-gray-400 border-t-transparent" : "border-t-gray-400 border-b-transparent") : (dragBeforeTarget > i && i === presets.length - 1 && draggingIndex !== i ? "border-b-gray-400 border-t-transparent" : "border-b-transparent border-t-transparent"))
             }
             on:click={(evt) => {
                 if (onchoice)
@@ -241,9 +240,11 @@
             draggable={candrag && canedit}
         >
             {#if choice === item}
-            <Icon src={ChevronRight} size="12" mini class="inline-block"/>
+                <Icon src={ChevronRight} size="12" mini class="inline-block"/> {item.name} <Icon src={ChevronLeft} size="12" mini class="inline-block"/>
+            {:else}
+                {item.name}
             {/if}
-            {item.name}
+
 
         </button>
     </DropdownMenu>
