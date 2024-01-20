@@ -1,4 +1,3 @@
-import type { AudioEngine } from "audio/AudioEngine";
 import type { AudioConsole } from "audio/AudioConsole";
 import type { MultiTrackControl } from "app/audio/src/ts/MultiTrackControl";
 
@@ -48,6 +47,7 @@ export class WaveMorpher
     onChangeCallback: (() => void) | null;
     onLoadCallback: (() => void) | null;
     onUpdateCallback: ((progress: number) => void) | null;
+    onUnloadCallback: (() => void) | null;
 
     constructor(width: number)
     {
@@ -62,6 +62,7 @@ export class WaveMorpher
         this.onChangeCallback = null;
         this.onLoadCallback = null;
         this.onUpdateCallback = null;
+        this.onUnloadCallback = null;
 
         this.handleVolumeChange = this.handleVolumeChange.bind(this);
     }
@@ -127,31 +128,7 @@ export class WaveMorpher
         for (let i = 0; i < channelCount; ++i)
         {
             promises.push(new Promise(async (resolve, reject) => {
-                let data: Float32Array | null = null;
-
-                await new Promise<void>((res2, rej2) => {
-                    let timeTaken = 0;
-                    let interval = setInterval(() => {
-                        try {
-                            data = track.getSampleData(i);
-                            clearInterval(interval);
-                            res2();
-                        }
-                        catch(err)
-                        {
-                            console.log(err);
-                        }
-
-                        timeTaken += 200;
-                        if (timeTaken >= 10000)
-                        {
-                            clearInterval(interval);
-                            rej2();
-                        }
-
-                    }, 200);
-                });
-
+                let data = track.getSampleData(i);
                 if (!data)
                 {
                     reject();
@@ -193,5 +170,8 @@ export class WaveMorpher
         // reset data buffers
         this.mData = [];
         this.mTransformed.fill(0);
+
+        if (this.onUnloadCallback)
+            this.onUnloadCallback();
     }
 }
