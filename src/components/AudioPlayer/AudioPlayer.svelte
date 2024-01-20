@@ -90,6 +90,7 @@
     {
         track.unload();
         audioConsole.clear();
+        wave.unloadData();
     }
 
     // Callback fired when audio is loaded

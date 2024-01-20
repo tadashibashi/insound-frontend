@@ -94,12 +94,20 @@
             gl.drawArrays(gl.LINES, 0, wave.width * 2);
         };
 
+        wave.onUnloadCallback = () => {
+            
+        };
+
         wave.onUpdateCallback = (prog: number) => {
+            if (wave.waveData.length === 0) return;
+
             progress = prog;
             render();
         };
 
         wave.onChangeCallback = () => {
+            if (wave.waveData.length === 0) return;
+
             render();
         };
 
