@@ -1,19 +1,19 @@
 <script lang="ts">
     import type { TimeDisplay } from "app/util/TimeDisplay";
-    import type { SyncPoint } from "audio/SyncPointMgr";
     import { onMount } from "svelte";
     import TrackMarker from "./TrackMarker.svelte";
+    import type { MarkerMgr } from "audio/MarkerMgr";
 
     // ----- Attributes -------------------------------------------------------
     /** Bar height when not engaged with. Grows to  */
     export let height: string = "4px";
     export let deactiveBgColor: string = "#fafafa";
-    export let barColor: string = "#555";
-    export let buttonColor: string = "#555";
+    export let barColor: string = "#777";
+    export let buttonColor: string = "#777";
     export let bgColor: string = "#ddd";
 
     export let showMarkers: boolean = true;
-    export let markers: (SyncPoint & {isActive: boolean})[] = [];
+    export let markers: MarkerMgr;
 
     /** Active state: show playhead + allow movement */
     export let active: boolean = false;
@@ -175,8 +175,8 @@
 
         <!-- Tall progress -->
         <div class="relative h-[80px] w-full z-0 bg-gray-200 overflow-hidden">
-            <div class={"absolute h-full border-r-2 rounded-r-sm transition-opacity border-r-black border-t border-t-black bg-gray-800 " +
-                (isEngaged ? "opacity-[.45]" : "opacity-50")}
+            <div class={"absolute h-full border-r-2 rounded-r-sm transition-opacity border-r-black border-t border-t-black bg-gray-400 " +
+                (isEngaged ? "opacity-[1]" : "opacity-[1]")}
                 style={`width: calc(${progress * 100}% + 1px);`}
             >
                 <!-- play cursor edge shadow -->
@@ -187,14 +187,13 @@
 
         <!-- Hovering Markers -->
         <div class="absolute z-30">
-            {#each markers as m, i (m.name+"-"+i+"-overlay")}
+            {#each markers.array as m, i (m.name+"-"+i+"-overlay")}
                 {#if !(m.name === "LoopStart" || m.name === "LoopEnd") || looping}
-                <TrackMarker x={m.offset * .001 / time.max*(barEl?.getBoundingClientRect().width || 0)}
+                <TrackMarker x={m.position * .001 / time.max*(barEl?.getBoundingClientRect().width || 0)}
                     y={-38}
-                    time={m.offset}
+                    time={m.position}
                     text={m.name}
-                    show={ (showMarkers && markers[i].isActive) ?
-                        ((markers[i].isActive = false), true) :
+                    show={ (showMarkers) ? true :
                         false }
                     delayHide={showMarkers ? 3000 : 0}
                 />
@@ -229,13 +228,13 @@
                 style={
                     `height: ${height};`
                 }>
-                {#each markers as {name, offset} (name+offset)}
+                {#each markers.array as {name, position} (name+position)}
                     {#if name === "LoopStart" || name === "LoopEnd"}
                         {#if looping}
-                            <div class="absolute w-1 h-full bg-blue-400"
+                            <div class="absolute w-1 h-full bg-orange-200"
                                 style={
                                     `transform: translateX(-50%);
-                                    left: ${(offset*.001)/time.max*100}%;
+                                    left: ${(position*.001)/time.max*100}%;
                                     `
                                 }/>
                         {/if}
@@ -243,7 +242,7 @@
                         <div class="absolute w-1 h-full bg-black"
                             style={
                                 `transform: translateX(-50%);
-                                left: ${(offset*.001)/time.max * 100}%;
+                                left: ${(position*.001)/time.max * 100}%;
                                 `
                             }/>
                     {/if}

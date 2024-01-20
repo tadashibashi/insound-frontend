@@ -2,7 +2,6 @@
     import { AudioConsole } from "audio/AudioConsole";
     import type { AudioEngine } from "audio/AudioEngine";
     import type { MixPreset } from "audio/MixPresetMgr";
-    import type { SyncPoint } from "audio/SyncPointMgr";
     import { TimeDisplay } from "app/util/TimeDisplay";
     import { onMount } from "svelte";
     import { Icon, Pause, Play } from "svelte-hero-icons";
@@ -27,7 +26,8 @@
     // component.
     export let audio: AudioEngine;
 
-    export let track: MultiTrackControl = audio.createTrack();
+    // Bindable
+    export const track: MultiTrackControl = audio.createTrack();
 
     export let defaultScript = "";
 
@@ -41,8 +41,6 @@
     // ===== State ============================================================
     let isPlaying = false;
     let isAudioLoaded = false;
-
-    let points: (SyncPoint & {isActive: boolean})[] = [];
 
     // used to detect if user started drag seeking while audio was playing
     let wasPlayingBeforeSeek = false;
@@ -97,30 +95,27 @@
     function onLoadAudio(pData: ArrayBuffer | ArrayBuffer[],
         pLayerNames: string[], scriptText: string)
     {
+        // Load audio data into track
         if (Array.isArray(pData))
         {
+            // Array of buffers means separate audio files / sounds
             track.loadSounds(pData, {
                 script: scriptText
             });
         }
         else
         {
+            // One buffer means a bank
             track.loadFSBank(pData, {
                 script: scriptText
             });
         }
-
-        track.track.onSyncPoint((label, seconds, index) => {
-            points[index].isActive = true;
-        });
 
         isAudioLoaded = true;
         isPlaying = false;
         time.max = track.length;
 
         time.current = 0;
-
-        points = track.syncpoints.points.map(point => { return{...point, isActive: false} });
 
         loopend = track.track.getLoopPoint().loopend;
         track.looping = looping;
@@ -211,10 +206,10 @@
         <!-- Upper area -->
         <div on:pointerleave={() => {volumeSliderShow = false;}}>
             <Playbar
-                class="relative w-full z-10 rounded-t-md h-[100px] bg-gray-400"
+                class="relative w-full z-10 rounded-t-md h-[100px] bg-gray-300"
                 active={isAudioLoaded}
                 time={time}
-                markers={points}
+                markers={track.markers}
                 loopend={loopend}
                 looping={looping}
                 showMarkers={showMarkers}
@@ -223,7 +218,7 @@
                 onseeking={updateSeekUI}>
                 <div slot="display">
                     <SpectrumView class="z-20 w-full relative opacity-90" data={track.spectrum.data} progress={time.progress}/>
-                    <WaveformMorphDisplay wave={wave} progress={track.position / track.length} class="border-t-2 border-t-[#00000030] shadow-inner rounded-none absolute pointer-events-none h-[80px] overflow-hidden w-full z-30 opacity-75" />
+                    <WaveformMorphDisplay wave={wave} progress={track.position / track.length} class="border-t-2 border-t-[#00000030] shadow-inner rounded-none absolute pointer-events-none h-[80px] overflow-hidden w-full z-30 opacity-80 z-10" />
                 </div>
             </Playbar>
 
@@ -274,7 +269,7 @@
         </div>
 
         <div class={tabIndex === 1 ? "h-[324px] overflow-y-auto" : "sr-only"}>
-            <MarkerControl markers={track.syncpoints} track={track}
+            <MarkerControl markers={track.markers} track={track}
                 bind:looping={looping} bind:showMarkers={showMarkers}
             />
         </div>
