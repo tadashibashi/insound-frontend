@@ -44,14 +44,14 @@
 
     // Set-up and breakdown callbacks
     onMount(() => {
-        document.addEventListener("drag",
+        window.addEventListener("dragover",
             handleDraggingForDraggingInput);
         document.addEventListener("drop",
             handleDropForDraggingInput);
         window.addEventListener("dragend", handleDragEnd);
 
         return () => {
-            document.removeEventListener("drag",
+            window.removeEventListener("dragover",
                 handleDraggingForDraggingInput);
             document.removeEventListener("drop",
                 handleDropForDraggingInput);
@@ -384,7 +384,7 @@
         <Dropzone class={(fileInputs.length <= 1 ? "sr-only" : "") + " relative w-full h-full"}
             onfiles={handleDroppedFiles}
             bind:isdraggedover={isDraggingOverDropzone}
-            active={fileInputs.length > 1 && !draggingInput}
+            active={fileInputs.length > 1 && draggingInput === null}
             >
 
             <div slot="normal" class="p-2">
@@ -394,7 +394,7 @@
                 {#if draggingInput && draggingInput !== fileInput && draggingInput !== fileInputs[i-1] &&
                     fileInput.input && draggingInputY < fileInput.input.getBoundingClientRect().y + fileInput.input.getBoundingClientRect().height*.5 &&
                     draggingInputY > fileInput.input.getBoundingClientRect().y - fileInput.input.getBoundingClientRect().height*.5 }
-                    <div class="absolute w-full border border-blue-500 rounded-full -translate-y-1"></div>
+                    <div class="absolute w-full border border-violet-500 rounded-full -translate-y-1"></div>
                 {/if}
 
                 <!-- Individual file input row -->
@@ -404,10 +404,6 @@
                             "bg-gray-100 shadow-md opacity-50" : "")
                     )}
                     draggable={draggingInput === fileInput ? "true" : "false"}
-                    on:pointerleave={() => {
-                        if (draggingInput === fileInput)
-                            draggingInput = null;
-                    }}
                 >
 
                     <!-- Layer grab point icon -->
@@ -525,7 +521,7 @@
                 {#if draggingInput && i === fileInputs.length - 2 &&
                     fileInput !== draggingInput && fileInput.input &&
                     draggingInputY > fileInput.input.getBoundingClientRect().y + fileInput.input.getBoundingClientRect().height * .5}
-                    <div class="absolute w-full border border-blue-500 rounded-full -translate-y-1"></div>
+                    <div class="absolute w-full border border-violet-500 rounded-full -translate-y-1"></div>
                 {/if}
 
                 {#if i === fileInputs.length-1 && fileInputs.length > 1}
