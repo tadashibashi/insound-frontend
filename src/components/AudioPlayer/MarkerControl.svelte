@@ -14,8 +14,24 @@
 
     const id = util.genRandHex(6);
 
-    /** Current selected marker index, or -1 if null */
     let selection: AudioMarker | null;
+
+    let cursor = 0;
+
+    /** Find marker cursor index, minus LoopStart/LoopEnd */
+    function findCursor(current: number)
+    {
+        let cursor = 0;
+        for (let i = 0; i < current; ++i)
+        {
+            const curName = markers.array[i].name;
+            if (curName === "LoopStart" || curName === "LoopEnd")
+                continue;
+            ++cursor;
+        }
+
+        return cursor;
+    }
 
     function handleLoad()
     {
@@ -54,6 +70,8 @@
         // Applies input change
         function handleChange()
         {
+            if (node.readOnly) return;
+
             node.readOnly = true;
             window.getSelection()?.removeAllRanges();
 
@@ -70,7 +88,11 @@
 
                 if (field === "name") // update marker name
                 {
-                    marker.name = node.value;
+                    // Prevent naming LoopStart and LoopEnd (TODO: notify the user that LoopStart/LoopEnd are reserved names)
+                    if (node.value === "LoopStart" || node.value === "LoopEnd")
+                        node.value = marker.name;
+                    else
+                        marker.name = node.value;
                 }
                 else if (field === "offset") // update marker offset
                 {
@@ -78,7 +100,7 @@
                     if (isNaN(newOffset))
                         newOffset = 0;
 
-                    markers.updatePositionByIndex(index, newOffset);
+                    node.readOnly = true;
 
                     if (marker.name === "LoopStart")
                     {
@@ -86,6 +108,7 @@
                         if (end < newOffset)
                             newOffset = end;
                         newOffset = Math.max(Math.min(newOffset, track.length * 1000), 0);
+
                         track.setLoopPoint(newOffset, end);
 
                         return;
@@ -96,8 +119,17 @@
                         if (start > newOffset)
                             newOffset = start;
                         newOffset = Math.max(Math.min(newOffset, track.length * 1000), 0);
+
                         track.setLoopPoint(start, newOffset);
                         return;
+                    }
+
+                    markers.updatePositionByIndex(index, newOffset);
+                    node.value = marker.position.toString();
+
+                    if (marker === selection)
+                    {
+                        track.position = newOffset * .001;
                     }
                 }
             }
@@ -141,11 +173,18 @@
         };
     }
 
+    function handleCursorChanged(newCursor: number, oldCursor: number)
+    {
+        cursor = findCursor(markers.current);
+    }
+
     onMount(() => {
         track.onload.addListener(handleLoad);
+        markers.oncursorchanged.addListener(handleCursorChanged);
 
         return () => {
             track.onload.removeListener(handleLoad);
+            markers.oncursorchanged.removeListener(handleCursorChanged);
         };
     });
 </script>
@@ -190,7 +229,7 @@
     <div class="w-full text-xs border border-gray-200 bg-gray-50 border-b-transparent flex flex-col" on:focusout={() => selection = null}>
 
         <!-- Header row -->
-        <div class="TableRow bg-gray-200 text-gray-500 cursor-default w-full h-[32px] overflow-y-scroll">
+        <div class="TableRow hide-scrollbar bg-gray-200 text-gray-500 cursor-default w-full h-[32px] overflow-y-scroll">
             <div class="text-center py-2 border-r h-full border-r-gray-300 overflow-ellipsis font-light overflow-hidden">
                 <div class="text-center">Name</div>
             </div>
@@ -203,11 +242,16 @@
         <!-- Body -->
         <div class="block text-gray-700 overflow-y-scroll h-[264px]">
 
+
+            <div class={"absolute transition-transform h-0 border border-violet-100 w-full" + (cursor === -1 ? "sr-only" : "")}
+                style={`transform: translateY(${cursor * 24}px);`}
+            />
+
             {#each markers.array as marker, i (marker)}
             {#if marker.name !== "LoopStart" && marker.name !== "LoopEnd"}
             <button
               class={ "TableRow cursor-pointer " + (selection === marker ? "read-only:bg-violet-300 read-only:text-white" :  (i % 2 === 0 ? "bg-gray-100" : "bg-gray-50")) }
-              on:click={() => {track.position = marker.position * .001; selection = marker; }}
+              on:click={() => {track.position = marker.position * .001; selection = marker;}}
             >
                 <!-- data: marker name -->
                 <div class="px-[6vmin] border-r border-r-gray-200 overflow-ellipsis whitespace-nowrap">
@@ -267,5 +311,9 @@
     input::-webkit-outer-spin-button,
     input::-webkit-inner-spin-button {
         -webkit-appearance: none;
+    }
+
+    .hide-scrollbar::-webkit-scrollbar {
+        opacity: 0;
     }
 </style>
