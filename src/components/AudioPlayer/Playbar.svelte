@@ -2,7 +2,7 @@
     import type { TimeDisplay } from "app/util/TimeDisplay";
     import { onMount } from "svelte";
     import TrackMarker from "./TrackMarker.svelte";
-    import type { MarkerMgr } from "audio/MarkerMgr";
+    import type { AudioMarker, MarkerMgr } from "audio/MarkerMgr";
 
     // ----- Attributes -------------------------------------------------------
     /** Bar height when not engaged with. Grows to  */
@@ -43,6 +43,8 @@
     let isHovering: boolean = false;
 
     let progress: number = 0;
+
+    let markerDisplayList: boolean[] = [];
 
     let pointerX: number = 0;
     let timeAtPointer = 0;
@@ -144,13 +146,26 @@
         }
     }
 
+    function handleMarker(marker: AudioMarker)
+    {
+        const index = markers.findIndex(marker);
+        if (index !== -1)
+        {
+            markerDisplayList[index] = true;
+        }
+    }
+
     onMount(() => {
         document.addEventListener("pointerup", handlePointerUpGlobal);
         document.addEventListener("pointermove", handlePointerMove);
 
+        markers.onmarker.addListener(handleMarker);
+
         return () => {
             document.removeEventListener("pointerup", handlePointerUpGlobal);
             document.removeEventListener("pointermove", handlePointerMove);
+
+            markers.onmarker.removeListener(handleMarker);
         };
     });
 
@@ -174,26 +189,26 @@
         <slot name="display" />
 
         <!-- Tall progress -->
-        <div class="relative h-[80px] w-full z-0 bg-gray-200 overflow-hidden">
-            <div class={"absolute h-full border-r-2 rounded-r-sm transition-opacity border-r-black border-t border-t-black bg-gray-400 " +
-                (isEngaged ? "opacity-[1]" : "opacity-[1]")}
+        <div class="relative h-[80px] w-full z-0 bg-gray-300 overflow-hidden">
+            <div class={"absolute h-full border-r-2 border-r-gray-300 rounded-r-sm transition-opacity bg-black " +
+                (isEngaged ? "opacity-[.1]" : "opacity-[.05]")}
                 style={`width: calc(${progress * 100}% + 1px);`}
             >
                 <!-- play cursor edge shadow -->
                 <div class="absolute right-0 w-[2px] h-full bg-[#ffffff30;]" />
-                <div class="absolute -right-[4px] w-[4px] h-full bg-[#ffffff40;] border-t border-t-[#ffffff40] rounded-r-sm" />
             </div>
         </div>
 
         <!-- Hovering Markers -->
         <div class="absolute z-30">
             {#each markers.array as m, i (m.name+"-"+i+"-overlay")}
-                {#if !(m.name === "LoopStart" || m.name === "LoopEnd") || looping}
+                {#if !(m.name === "LoopStart" || m.name === "LoopEnd")}
                 <TrackMarker x={m.position * .001 / time.max*(barEl?.getBoundingClientRect().width || 0)}
                     y={-38}
                     time={m.position}
                     text={m.name}
-                    show={ (showMarkers) ? true :
+                    show={ (showMarkers) ?
+                        (markerDisplayList[i] ? (markerDisplayList[i] = false, true) : false) :
                         false }
                     delayHide={showMarkers ? 3000 : 0}
                 />
@@ -202,7 +217,7 @@
         </div>
 
         <!-- Hover time display -->
-        <div class={"absolute pointer-events-none  z-10 bg-transparent " + (isEngaged ? "" : "sr-only")}
+        <div class={"absolute pointer-events-none z-10 bg-transparent " + (isEngaged ? "" : "sr-only")}
             style={
                 `transform: translateX(calc(${pointerX - (barEl?.getBoundingClientRect().x || 0)}px - 50%));`
             }
@@ -228,10 +243,10 @@
                 style={
                     `height: ${height};`
                 }>
-                {#each markers.array as {name, position} (name+position)}
+                {#each markers.array as {name, position}, i (name+position+"-"+i)}
                     {#if name === "LoopStart" || name === "LoopEnd"}
                         {#if looping}
-                            <div class="absolute w-1 h-full bg-orange-200"
+                            <div class="absolute w-1 h-full bg-amber-200"
                                 style={
                                     `transform: translateX(-50%);
                                     left: ${(position*.001)/time.max*100}%;
