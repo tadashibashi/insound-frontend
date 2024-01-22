@@ -190,7 +190,7 @@
             "out vec4 outColor;\n" +
             "void main() {\n" +
             "    bool beforePlayhead = u_progress * 2.0 - 1.0 > xPos;\n" +
-            "    float amt = beforePlayhead ? .95 : (1.0 - abs(total * 0.75) - 0.25);\n" +
+            "    float amt = beforePlayhead ? .9 : (1.0 - abs(total * 0.75) - 0.25);\n" +
             "    outColor = vec4(amt, amt, amt, 1.0);\n" +
             "}";
 

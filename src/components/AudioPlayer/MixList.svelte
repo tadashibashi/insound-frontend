@@ -251,7 +251,7 @@
 
     <!-- Add mix button -->
     {#if canedit}
-    <button class="flex transition-colors duration-300 justify-center items-center mx-2 w-[20px] h-[20px] pointer-events-auto rounded-full drop-shadow-md text-gray-100 hover:text-white hover:bg-[rgb(148,155,160)]" on:click={() => {if (!editMenuIsOpen && !mainMenuIsOpen) showAddMixModal = true}}>
+    <button class="flex transition-colors duration-300 justify-center items-center mx-2 w-[20px] h-[20px] pointer-events-auto rounded-full drop-shadow-md text-gray-50 hover:text-white hover:bg-gray-400 hover:bg-opacity-25" on:click={() => {if (!editMenuIsOpen && !mainMenuIsOpen) showAddMixModal = true}}>
         <Icon src={Plus} mini class="m-[3px]" />
     </button>
     {/if}

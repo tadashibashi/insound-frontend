@@ -109,7 +109,7 @@
             on:mousedown={() => dragging = true}
         >
             <!-- Track line -->
-            <div class="bg-[#b0babf] w-full h-1 rounded-full">
+            <div class="bg-[#c0c0c0] w-full h-1 rounded-full">
                 <!-- Knob slider -->
                 <button
                 class={`absolute inline-block w-2 h-2 rounded-full shadow-lg ${(volume > 0 ? "bg-gray-100" : "bg-gray-200")}`}
