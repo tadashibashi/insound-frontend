@@ -4,7 +4,7 @@
     import type { MixPreset } from "audio/MixPresetMgr";
     import { TimeDisplay } from "app/util/TimeDisplay";
     import { onMount } from "svelte";
-    import { Icon, Pause, Play } from "svelte-hero-icons";
+    import { Cog6Tooth, Icon, Pause, Play } from "svelte-hero-icons";
     import Playbar from "./Playbar.svelte";
     import MixConsole from "./MixConsole.svelte";
     import SpectrumView from "./SpectrumView.svelte";
@@ -54,6 +54,8 @@
     let volumeSliderShow: boolean = false;
 
     let textEditor: TextEditorMgr;
+
+    let showEditorPane = true;
 
     export let showMarkers: boolean = true;
     export let looping: boolean = true;
@@ -206,7 +208,7 @@
         <!-- Upper area -->
         <div on:pointerleave={() => {volumeSliderShow = false;}}>
             <Playbar
-                class="relative w-full z-10 rounded-t-md h-[100px] bg-gray-300"
+                class="relative w-full z-10 rounded-t-md h-[100px] bg-gray-400"
                 active={isAudioLoaded}
                 time={time}
                 markers={track.markers}
@@ -218,19 +220,19 @@
                 onseeking={updateSeekUI}>
                 <div slot="display">
                     <SpectrumView class="z-20 w-full relative opacity-90" data={track.spectrum.data} progress={time.progress}/>
-                    <WaveformMorphDisplay wave={wave} progress={track.position / track.length} class="border-t-2 border-t-[#00000030] shadow-inner rounded-none absolute pointer-events-none h-[80px] overflow-hidden w-full z-30 opacity-80 z-10" />
+                    <WaveformMorphDisplay wave={wave} progress={track.position / track.length} class="shadow-inner rounded-none absolute pointer-events-none h-[80px] overflow-hidden w-full z-30 opacity-90" />
                 </div>
             </Playbar>
 
             <!-- Play controls bar -->
-            <div class="relative w-full h-10 flex justify-between items-center bg-gray-400 text-gray-200 shadow-md mt-1">
+            <div class="relative w-full h-10 flex justify-between items-center bg-gray-400 text-gray-50 shadow-md mt-1">
 
                 <!-- Left side of bar -->
                 <div class="flex items-center">
 
                     <!-- Play/Pause Button -->
                     <button
-                        class="px-3 h-6 w-6 rounded-md box-content z-50 relative text-gray-200 hover:text-gray-100 transition-transform duration-300"
+                        class="px-3 h-6 w-6 rounded-md box-content z-50 relative hover:text-white transition-transform duration-300"
                         on:click={onPressPlay}
                         >
                         {#if isPlaying}
@@ -246,7 +248,7 @@
 
                     <!-- Time -->
                     <div class="text-[10px] sm:text-xs font-bold">
-                        <p class="text-gray-200">
+                        <p class="text-gray-100">
                             <span>{time.toString()}</span>
                             <span> / </span>
                             <span>{time.toString(time.max)}</span>
@@ -254,45 +256,60 @@
                     </div>
                 </div>
 
+                <div class="flex">
+                    <MixList
+                        bind:presets={mixPresets}
+                        bind:choice={presetChoice}
+                        mixConsole={audioConsole}
+                        transitionTime={transitionTime}
+                    />
+
+                    <button class="me-2 hover:text-white" on:click={() => showEditorPane = !showEditorPane}><Icon src={Cog6Tooth} size="16" solid /></button>
+                </div>
                 <!-- Right side of bar -->
-                <MixList
-                    bind:presets={mixPresets}
-                    bind:choice={presetChoice}
-                    mixConsole={audioConsole}
-                    transitionTime={transitionTime}
+
+            </div>
+        </div>
+
+        <div
+            class={"transition-all origin-top " + (showEditorPane ? "scale-y-100 opacity-100 h-[324px]" : "scale-y-0 opacity-0 h-0")}
+        >
+            <div class={tabIndex === 0 ? "" : "sr-only"}>
+                <MixConsole audioConsole={audioConsole} />
+            </div>
+
+            <div class={tabIndex === 1 ? "h-[324px] overflow-y-auto" : "sr-only"}>
+                <MarkerControl markers={track.markers} track={track}
+                    bind:looping={looping} bind:showMarkers={showMarkers}
+                />
+            </div>
+
+            <div class={ (tabIndex === 2 ? "h-[324px] overflow-y-auto" : "sr-only")}>
+                <AudioScriptEditor
+                    bind:editor={textEditor}
+                    value={defaultScript}
+                    doloadscript={onScriptReload}
                 />
             </div>
         </div>
 
-        <div class={tabIndex === 0 ? "" : "sr-only"}>
-            <MixConsole audioConsole={audioConsole} />
-        </div>
-
-        <div class={tabIndex === 1 ? "h-[324px] overflow-y-auto" : "sr-only"}>
-            <MarkerControl markers={track.markers} track={track}
-                bind:looping={looping} bind:showMarkers={showMarkers}
-            />
-        </div>
-
-        <div class={ (tabIndex === 2 ? "h-[324px] overflow-y-auto" : "sr-only")}>
-            <AudioScriptEditor
-                bind:editor={textEditor}
-                value={defaultScript}
-                doloadscript={onScriptReload}
-            />
-        </div>
     </div>
 
+
     <!-- Tab menu for showing different parts of player -->
-    <div class="flex text-center cursor-pointer select-none bg-gray-100 overflow-hidden rounded-b-md min-w-[340px]">
-        {#each tabs as tab, i ("tab-" + tab)}
-        <button class={" bg-[#fefefe] inset-0 border-r text-center w-48 border-gray-100 px-8 py-1 transition-colors  " +
-            (i === tabIndex ? "text-gray-400 font-bold bg-[#fefefe] shadow-md z-40" : "text-gray-300 bg-gray-50")}
-            on:click={() => tabIndex = i}
-        >
-            {tab}
-        </button>
-        {/each}
+    <div
+        class={"transition-opacity " + (showEditorPane ? "opacity-100" : "sr-only opacity-0")}
+    >
+        <div class="flex text-center cursor-pointer select-none bg-gray-100 overflow-hidden rounded-b-md min-w-[340px]">
+            {#each tabs as tab, i ("tab-" + tab)}
+            <button class={" bg-[#fefefe] inset-0 border-r text-center w-48 border-gray-100 px-8 py-1 transition-colors  " +
+                (i === tabIndex ? "text-gray-400 font-bold bg-[#fefefe] shadow-md z-40" : "text-gray-300 bg-gray-50")}
+                on:click={() => tabIndex = i}
+            >
+                {tab}
+            </button>
+            {/each}
+        </div>
     </div>
 </div>
 
