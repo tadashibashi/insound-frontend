@@ -110,8 +110,6 @@
                         newOffset = Math.max(Math.min(newOffset, track.length * 1000), 0);
 
                         track.setLoopPoint(newOffset, end);
-
-                        return;
                     }
                     else if (marker.name === "LoopEnd")
                     {
