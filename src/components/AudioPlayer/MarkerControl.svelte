@@ -201,18 +201,51 @@
         };
     }
 
+    // TODO: remove this once array is free of loop markers
     function handleCursorChanged(newCursor: number, oldCursor: number)
     {
         cursor = findCursor(markers.current);
     }
 
+    /** Grab marker from current position and name it by number of markers */
+    function addMarker()
+    {
+        const marker = markers.push({
+            name: "Marker " + (markers.length - 2), // - 2 to offset from loop markers
+            position: track.position * 1000,
+        });
+
+        selection = marker;
+    }
+
+    /** Delete current selected marker */
+    function deleteMarker()
+    {
+        if (selection)
+        {
+            markers.erase(selection);
+            selection = null;
+            entered = null;
+        }
+    }
+
+    /** Handle shortcuts for the marker control window */
+    function handleKeyDown(evt: KeyboardEvent) {
+        if (evt.key === "Delete" || evt.key === "Backspace")
+        {
+            deleteMarker();
+        }
+    }
+
     onMount(() => {
         track.onload.addListener(handleLoad);
         markers.oncursorchanged.addListener(handleCursorChanged);
+        window.addEventListener("keydown", handleKeyDown);
 
         return () => {
             track.onload.removeListener(handleLoad);
             markers.oncursorchanged.removeListener(handleCursorChanged);
+            window.removeEventListener("keydown", handleKeyDown);
         };
     });
 </script>
@@ -229,12 +262,37 @@
             <label for={id + "-switch-markers"} class="me-2">Show Markers</label>
             <Switch width="32px" height="16px" bind:enabled={showMarkers} />
         </div>
+
+        <!-- Add / Delete buttons -->
+        <div class="flex gap-1">
+            <!-- Add marker button -->
+            <div class="flex items-center">
+                <button
+                    class="rounded-full border border-gray-200 text-gray-400 text-xs px-2 py-[1px] whitespace-nowrap"
+                    on:click={addMarker}
+                >
+                    Add
+                </button>
+            </div>
+
+            <!-- Delete marker button -->
+            <div class="flex items-center">
+                <button
+                    class="rounded-full border text-xs px-2 py-[1px] whitespace-nowrap {selection ? "text-gray-400 border-gray-200 cursor-pointer" : "text-gray-200 border-gray-100 cursor-default"}"
+                    on:mousedown={deleteMarker}
+                >
+                    Delete
+                </button>
+            </div>
+        </div>
+
+
         <!-- Loop Options -->
         <div class="h-full flex items-center">
             <label for={id + "-switch-looping"} class="text-xs me-2">Loop</label>
             <Switch id={id + "-switch-looping"} width="32px" height="16px" bind:enabled={looping} />
 
-            <label class={"ps-3 pe-1 text-xs font-light transition-colors " + (looping ? "" : "text-gray-100")}>
+            <label class="ps-3 pe-1 text-xs font-light transition-colors {looping ? "" : "text-gray-100"}">
                 from
                 <input use:setupLoopInput class="w-20 ps-2 py-[1px] rounded-md border border-gray-100 read-only:bg-transparent select-none bg-white px-1"
                     type="number"
