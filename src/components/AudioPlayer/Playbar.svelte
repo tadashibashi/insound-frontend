@@ -21,7 +21,8 @@
     /** Time to represent in the bar */
     export let time: TimeDisplay;
     /** Current loop end in seconds */
-    export let loopend: number;
+    $: loopend = markers.loopEnd?.position || .001;
+    $: loopstart = markers.loopStart?.position || 0;
 
     export let looping: boolean = true;
 
@@ -244,24 +245,29 @@
                     `height: ${height};`
                 }>
                 {#each markers.array as {name, position}, i (name+position+"-"+i)}
-                    {#if name === "LoopStart" || name === "LoopEnd"}
-                        {#if looping}
-                            <div class="absolute w-1 h-full bg-amber-200"
-                                style={
-                                    `transform: translateX(-50%);
-                                    left: ${(position*.001)/time.max*100}%;
-                                    `
-                                }/>
-                        {/if}
-                    {:else}
-                        <div class="absolute w-1 h-full bg-black"
-                            style={
-                                `transform: translateX(-50%);
-                                left: ${(position*.001)/time.max * 100}%;
-                                `
-                            }/>
-                    {/if}
+                    <div class="absolute w-1 h-full bg-black"
+                        style={
+                            `transform: translateX(-50%);
+                            left: ${(position*.001)/time.max * 100}%;
+                            `
+                        }/>
                 {/each}
+
+                {#if looping}
+                    <div class="absolute w-1 h-full bg-amber-200"
+                        style={
+                            `transform: translateX(-50%);
+                            left: ${(loopstart*.001)/time.max*100}%;
+                            `
+                        }/>
+                    <div class="absolute w-1 h-full bg-amber-200"
+                        style={
+                            `transform: translateX(-50%);
+                            left: ${(loopend*.001)/time.max*100}%;
+                            `
+                        }/>
+                {/if}
+
             </div>
             {/if}
 

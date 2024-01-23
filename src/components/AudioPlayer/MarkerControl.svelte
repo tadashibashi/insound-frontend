@@ -10,7 +10,8 @@
     export let looping: boolean = true;
     export let showMarkers: boolean = true;
 
-    let loopPoints: {loopstart: number, loopend: number} = { loopstart: 0, loopend: 0 };
+    $: loopstart = markers.loopStart;
+    $: loopend = markers.loopEnd;
 
     const id = util.genRandHex(6);
 
@@ -22,22 +23,11 @@
     /** Find marker cursor index, minus LoopStart/LoopEnd */
     function findCursor(current: number)
     {
-        let cursor = 0;
-        for (let i = 0; i < current; ++i)
-        {
-            const curName = markers.array[i].name;
-            if (curName === "LoopStart" || curName === "LoopEnd")
-                continue;
-            ++cursor;
-        }
-
-        return cursor;
+        return current;
     }
 
     function handleLoad()
     {
-        loopPoints = track.loopPoints;
-
         // just notify an update to the ui
         markers = markers;
     }
@@ -45,8 +35,47 @@
     /** Action for loop point input elements */
     function setupLoopInput(node: HTMLInputElement)
     {
+        function handleInputChangeLoop(node: HTMLInputElement)
+        {
+            const name = node.dataset["index"];
+            let value = parseFloat(node.value);
+            if (isNaN(value))
+            {
+                throw Error("Loop offset input is invalid.");
+            }
+
+            if (name === "LoopStart")
+            {
+                // must come before loopend
+                const loopEnd = markers.loopEnd;
+                if (loopEnd && loopEnd.position <= value)
+                {
+                    value = loopEnd.position - .001;
+                }
+
+                markers.loopStart = {
+                    name: "LoopStart",
+                    position: value,
+                };
+            }
+            else // LoopEnd
+            {
+                // must come after loopstart
+                const loopStart = markers.loopStart;
+                if (loopStart && loopStart.position >= value)
+                {
+                    value = loopStart.position + .001;
+                }
+
+                markers.loopEnd = {
+                    name: "LoopEnd",
+                    position: value,
+                };
+            }
+        }
+
         // use general input setup
-        const inputCallbacks = setupInput(node);
+        const inputCallbacks = setupInput(node, handleInputChangeLoop);
 
         // add single-click callback as well
         const handleClick = () => {
@@ -87,67 +116,42 @@
         };
     }
 
-    /** Action for input elements */
-    function setupInput(node: HTMLInputElement)
+    function handleInputChangeMarker(node: HTMLInputElement)
     {
-        function handleBlur(evt: FocusEvent)
+        if (node.readOnly) return;
+
+        node.readOnly = true;
+        window.getSelection()?.removeAllRanges();
+
+        const value = (node.dataset["value"] || "");
+        const field = (node.dataset["field"]);
+        const index = parseInt(node.dataset["index"] || "");
+        if (isNaN(index))
+            throw Error("Could not parse Marker input index");
+
+        if (node.value !== value)
         {
-            handleChange();
-        }
+            const marker = markers.array.at(index);
+            if (!marker) return;
 
-        // Applies input change
-        function handleChange()
-        {
-            if (node.readOnly) return;
-
-            node.readOnly = true;
-            window.getSelection()?.removeAllRanges();
-
-            const value = (node.dataset["value"] || "");
-            const field = (node.dataset["field"]);
-            const index = parseInt(node.dataset["index"] || "");
-            if (isNaN(index))
-                throw Error("Could not parse Marker input index");
-
-            if (node.value !== value)
+            switch(field)
             {
-                const marker = markers.array.at(index);
-                if (!marker) return;
-
-                if (field === "name") // update marker name
+                case "name":
                 {
                     // Prevent naming LoopStart and LoopEnd (TODO: notify the user that LoopStart/LoopEnd are reserved names)
                     if (node.value === "LoopStart" || node.value === "LoopEnd")
                         node.value = marker.name;
                     else
                         marker.name = node.value;
+
+                    break;
                 }
-                else if (field === "offset") // update marker offset
+
+                case "offset":
                 {
                     let newOffset = parseFloat(node.value);
                     if (isNaN(newOffset))
                         newOffset = 0;
-
-                    node.readOnly = true;
-
-                    if (marker.name === "LoopStart")
-                    {
-                        const end = loopPoints.loopend;
-                        if (end < newOffset)
-                            newOffset = end;
-                        newOffset = Math.max(Math.min(newOffset, track.length * 1000), 0);
-                        loopPoints.loopstart = newOffset;
-                        track.setLoopPoint(newOffset, end);
-                    }
-                    else if (marker.name === "LoopEnd")
-                    {
-                        const start = loopPoints.loopstart;
-                        if (start > newOffset)
-                            newOffset = start;
-                        newOffset = Math.max(Math.min(newOffset, track.length * 1000), 0);
-                        loopPoints.loopend = newOffset;
-                        track.setLoopPoint(start, newOffset);
-                    }
 
                     markers.updatePositionByIndex(index, newOffset);
                     node.value = marker.position.toString();
@@ -157,10 +161,24 @@
                     {
                         track.position = newOffset * .001;
                     }
+                break;
                 }
-
-                entered = marker;
+                default:
+                    throw Error("Invalid field name: \"" + field + "\"");
             }
+
+            entered = marker;
+        }
+    }
+
+
+    /** Action for input elements */
+    function setupInput(node: HTMLInputElement, handleInputChange: (node: HTMLInputElement) => void)
+    {
+        // Handles blur event after inputting
+        function handleBlur(evt: FocusEvent)
+        {
+            handleInputChange(node);
         }
 
         function handleDoubleClick()
@@ -175,6 +193,7 @@
             node.readOnly = false;
         }
 
+        // Checks for "Enter" key when inputting
         function handleKeyDown(evt: KeyboardEvent)
         {
             evt.stopPropagation();
@@ -182,7 +201,7 @@
 
             if (evt.key === "Enter")
             {
-                handleChange();
+                handleInputChange(node);
             }
         }
 
@@ -198,20 +217,19 @@
                 node.removeEventListener("dblclick", handleDoubleClick);
                 node.removeEventListener("keydown", handleKeyDown);
             }
-        };
+        }
     }
 
-    // TODO: remove this once array is free of loop markers
     function handleCursorChanged(newCursor: number, oldCursor: number)
     {
-        cursor = findCursor(markers.current);
+        cursor = newCursor;
     }
 
     /** Grab marker from current position and name it by number of markers */
     function addMarker()
     {
         const marker = markers.push({
-            name: "Marker " + (markers.length - 2), // - 2 to offset from loop markers
+            name: "Marker " + (markers.length + 1),
             position: track.position * 1000,
         });
 
@@ -296,9 +314,9 @@
                 from
                 <input use:setupLoopInput class="w-20 ps-2 py-[1px] rounded-md border border-gray-100 read-only:bg-transparent select-none bg-white px-1"
                     type="number"
-                    data-index={markers.findIndexByName("LoopStart")}
-                    data-value={loopPoints.loopstart}
-                    value={loopPoints.loopstart}
+                    data-index={"LoopStart"}
+                    data-value={loopstart?.position || 0}
+                    value={loopstart?.position || 0}
                     data-field="offset"
                     disabled={!looping}
                 />
@@ -307,9 +325,9 @@
                 to
                 <input use:setupLoopInput class="w-20 ps-2 py-[1px] rounded-md border border-gray-100 read-only:bg-transparent select-none bg-white px-1"
                     type="number"
-                    data-index={markers.findIndexByName("LoopEnd")}
-                    data-value={loopPoints.loopend}
-                    value={loopPoints.loopend}
+                    data-index={"LoopEnd"}
+                    data-value={loopend?.position || 0}
+                    value={loopend?.position || 0}
                     data-field="offset"
                     disabled={!looping}
                 />
@@ -335,7 +353,7 @@
         </div>
 
         <!-- Body -->
-        <div class="block text-gray-700 overflow-y-scroll h-[264px]">
+        <div class="block text-gray-700 overflow-y-scroll h-[260px]">
 
 
             <div class={"absolute transition-transform h-0 border border-violet-100 w-full" + (cursor === -1 ? "sr-only" : "")}
@@ -343,14 +361,13 @@
             />
 
             {#each markers.array as marker, i (marker)}
-            {#if marker.name !== "LoopStart" && marker.name !== "LoopEnd"}
             <button
               class={ "TableRow cursor-pointer " + (selection === marker ? "read-only:bg-violet-300 read-only:text-white" :  (i % 2 === 0 ? "bg-gray-100" : "bg-gray-50")) }
               on:mousedown={() => {track.position = marker.position * .001; selection = marker;}}
             >
                 <!-- data: marker name -->
                 <div class="px-[6vmin] border-r border-r-gray-200 overflow-ellipsis whitespace-nowrap">
-                    <input use:setupInput
+                    <input use:setupInput={handleInputChangeMarker}
                         class={"w-full h-full rounded-md read-only:cursor-pointer read-only:select-none px-2 py-1 overflow-ellipsis overflow-hidden read-only:bg-transparent text-gray-500 bg-white " +
                             (selection === marker ? "read-only:text-white text-gray-500 read-only:shadow-none shadow-inner" : "text-gray-500")}
                         value={marker.name}
@@ -360,7 +377,7 @@
 
                 <!-- data: marker position -->
                 <div class="px-[6vmin] w-auto overflow-ellipsis whitespace-nowrap">
-                    <input use:setupInput
+                    <input use:setupInput={handleInputChangeMarker}
                         type="number"
                         min="0"
                         step="1"
@@ -371,13 +388,12 @@
                         spellcheck="false" />
                 </div>
             </button>
-            {/if}
             {/each}
 
             <!-- Any trailing empty rows -->
-            {#if (13 - markers.length > 0)}
-                {#each {length: 13 - markers.length} as _, i ("extra-row-" + i)}
-                    <button class="TableRow {(markers.length - 1 + i) % 2 === 0 ? "bg-gray-100" : "bg-gray-50"}" on:pointerdown={() => selection = null}>
+            {#if (11 - markers.length > 0)}
+                {#each {length: 11 - markers.length} as _, i ("extra-row-" + i)}
+                    <button class="TableRow {(markers.length - 1 + i) % 2 !== 0 ? "bg-gray-100" : "bg-gray-50"}" on:pointerdown={() => selection = null}>
                         <div class="border-r border-r-gray-200 px-[6vmin]"><input class="bg-transparent w-full inline-block opacity-100 px-2 py-1" disabled /></div>
                         <div class="px-[6vmin]"><input class="bg-transparent w-full opacity-100 px-2 py-1 inline-block" disabled /></div>
                     </button>
