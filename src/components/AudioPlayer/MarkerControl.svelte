@@ -14,7 +14,8 @@
 
     const id = util.genRandHex(6);
 
-    let selection: AudioMarker | null;
+    let selection: AudioMarker | null = null;
+    let entered: AudioMarker | null = null;
 
     let cursor = 0;
 
@@ -64,9 +65,36 @@
         }
     }
 
+    function setupTable(node: HTMLElement)
+    {
+        function handleWindowClick(evt: MouseEvent)
+        {
+            if (!evt.target) return;
+
+            if (!node.contains(evt.target as Node))
+            {
+                selection = null;
+                entered = null;
+            }
+        }
+
+        window.addEventListener("click", handleWindowClick);
+
+        return {
+            destroy() {
+                window.removeEventListener("click", handleWindowClick);
+            }
+        };
+    }
+
     /** Action for input elements */
     function setupInput(node: HTMLInputElement)
     {
+        function handleBlur(evt: FocusEvent)
+        {
+            handleChange();
+        }
+
         // Applies input change
         function handleChange()
         {
@@ -108,7 +136,7 @@
                         if (end < newOffset)
                             newOffset = end;
                         newOffset = Math.max(Math.min(newOffset, track.length * 1000), 0);
-
+                        loopPoints.loopstart = newOffset;
                         track.setLoopPoint(newOffset, end);
                     }
                     else if (marker.name === "LoopEnd")
@@ -117,19 +145,21 @@
                         if (start > newOffset)
                             newOffset = start;
                         newOffset = Math.max(Math.min(newOffset, track.length * 1000), 0);
-
+                        loopPoints.loopend = newOffset;
                         track.setLoopPoint(start, newOffset);
-                        return;
                     }
 
                     markers.updatePositionByIndex(index, newOffset);
                     node.value = marker.position.toString();
 
+                    // set the track position to match the selected marker
                     if (marker === selection)
                     {
                         track.position = newOffset * .001;
                     }
                 }
+
+                entered = marker;
             }
         }
 
@@ -158,13 +188,13 @@
 
         node.readOnly = true;
 
-        node.addEventListener("blur", handleChange);
+        node.addEventListener("blur", handleBlur);
         node.addEventListener("dblclick", handleDoubleClick);
         node.addEventListener("keydown", handleKeyDown);
 
         return {
             destroy() {
-                node.removeEventListener("blur", handleChange);
+                node.removeEventListener("blur", handleBlur);
                 node.removeEventListener("dblclick", handleDoubleClick);
                 node.removeEventListener("keydown", handleKeyDown);
             }
@@ -187,8 +217,14 @@
     });
 </script>
 
-<div class="bg-white w-full h-full overflow-hidden">
+<!-- svelte-ignore a11y-no-noninteractive-element-interactions -->
+<!-- svelte-ignore a11y-click-events-have-key-events -->
+<div class="bg-white w-full h-full overflow-hidden" role="group"
+    on:click={evt => evt.stopImmediatePropagation()}
+>
     <div class="flex justify-between items-center bg-gray-50 text-gray-400 border-t border-t-gray-100 h-[32px]">
+
+        <!-- Show Markers option -->
         <div class="text-xs ms-2 h-full flex items-center">
             <label for={id + "-switch-markers"} class="me-2">Show Markers</label>
             <Switch width="32px" height="16px" bind:enabled={showMarkers} />
@@ -224,7 +260,10 @@
     </div>
 
     <!-- Table -->
-    <div class="w-full text-xs border border-gray-200 bg-gray-50 border-b-transparent flex flex-col" on:focusout={() => selection = null}>
+    <div class="w-full text-xs border border-gray-200 bg-gray-50 border-b-transparent flex flex-col"
+        on:focusout={evt => {if (!evt.relatedTarget) {selection = entered;} } }
+        use:setupTable
+    >
 
         <!-- Header row -->
         <div class="TableRow hide-scrollbar bg-gray-200 text-gray-500 cursor-default w-full h-[32px] overflow-y-scroll">
@@ -249,7 +288,7 @@
             {#if marker.name !== "LoopStart" && marker.name !== "LoopEnd"}
             <button
               class={ "TableRow cursor-pointer " + (selection === marker ? "read-only:bg-violet-300 read-only:text-white" :  (i % 2 === 0 ? "bg-gray-100" : "bg-gray-50")) }
-              on:click={() => {track.position = marker.position * .001; selection = marker;}}
+              on:mousedown={() => {track.position = marker.position * .001; selection = marker;}}
             >
                 <!-- data: marker name -->
                 <div class="px-[6vmin] border-r border-r-gray-200 overflow-ellipsis whitespace-nowrap">
@@ -280,10 +319,10 @@
             <!-- Any trailing empty rows -->
             {#if (13 - markers.length > 0)}
                 {#each {length: 13 - markers.length} as _, i ("extra-row-" + i)}
-                    <div class={ "TableRow  " + ((markers.length - 1 + i) % 2 === 0 ? "bg-gray-100" : "bg-gray-50")}>
+                    <button class="TableRow {(markers.length - 1 + i) % 2 === 0 ? "bg-gray-100" : "bg-gray-50"}" on:pointerdown={() => selection = null}>
                         <div class="border-r border-r-gray-200 px-[6vmin]"><input class="bg-transparent w-full inline-block opacity-100 px-2 py-1" disabled /></div>
                         <div class="px-[6vmin]"><input class="bg-transparent w-full opacity-100 px-2 py-1 inline-block" disabled /></div>
-                    </div>
+                    </button>
 
                 {/each}
             {/if}
