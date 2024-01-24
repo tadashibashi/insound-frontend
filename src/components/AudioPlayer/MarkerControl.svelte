@@ -9,6 +9,10 @@
     export let track: MultiTrackControl;
     export let looping: boolean = true;
     export let showMarkers: boolean = true;
+    export let editMode: boolean = false;
+
+    /** Whether key commands and inputs should work, aka when in view/focused*/
+    let active: boolean = true;
 
     $: loopstart = markers.loopStart;
     $: loopend = markers.loopEnd;
@@ -20,12 +24,6 @@
 
     let cursor = 0;
 
-    /** Find marker cursor index, minus LoopStart/LoopEnd */
-    function findCursor(current: number)
-    {
-        return current;
-    }
-
     function handleLoad()
     {
         // just notify an update to the ui
@@ -35,6 +33,12 @@
     /** Action for loop point input elements */
     function setupLoopInput(node: HTMLInputElement)
     {
+        if (!editMode) // don't setup input for interactivity if no editing
+        {
+            node.readOnly = true;
+            return;
+        }
+
         function handleInputChangeLoop(node: HTMLInputElement)
         {
             const name = node.dataset["index"];
@@ -79,6 +83,8 @@
 
         // add single-click callback as well
         const handleClick = () => {
+            if (!active) return;
+
             node.readOnly = false;
         };
 
@@ -87,7 +93,7 @@
         return {
             destroy() {
                 // call destroy on setup input return value too
-                inputCallbacks.destroy();
+                inputCallbacks?.destroy();
 
                 node.removeEventListener("click", handleClick);
             }
@@ -98,7 +104,7 @@
     {
         function handleWindowClick(evt: MouseEvent)
         {
-            if (!evt.target) return;
+            if (!evt.target || !active) return;
 
             if (!node.contains(evt.target as Node))
             {
@@ -175,6 +181,12 @@
     /** Action for input elements */
     function setupInput(node: HTMLInputElement, handleInputChange: (node: HTMLInputElement) => void)
     {
+        if (!editMode) // don't setup input for interactivity if no editing
+        {
+            node.readOnly = true;
+            return;
+        }
+
         // Handles blur event after inputting
         function handleBlur(evt: FocusEvent)
         {
@@ -248,10 +260,18 @@
     }
 
     /** Handle shortcuts for the marker control window */
-    function handleKeyDown(evt: KeyboardEvent) {
+    function handleKeyDown(evt: KeyboardEvent)
+    {
+        if (!active) return;
+
         if (evt.key === "Delete" || evt.key === "Backspace")
         {
             deleteMarker();
+        }
+
+        if ( (evt.metaKey && evt.key === "+") || (evt.altKey && evt.key === "'") ) // logic pro key command
+        {
+            addMarker();
         }
     }
 
@@ -281,6 +301,7 @@
             <Switch width="32px" height="16px" bind:enabled={showMarkers} />
         </div>
 
+        {#if editMode}
         <!-- Add / Delete buttons -->
         <div class="flex gap-1">
             <!-- Add marker button -->
@@ -303,7 +324,7 @@
                 </button>
             </div>
         </div>
-
+        {/if}
 
         <!-- Loop Options -->
         <div class="h-full flex items-center">
@@ -353,10 +374,11 @@
         </div>
 
         <!-- Body -->
-        <div class="block text-gray-700 overflow-y-scroll h-[260px]">
+        <div class="block text-gray-700 overflow-y-scroll h-[260px]"
+        >
 
-
-            <div class={"absolute transition-transform h-0 border border-violet-100 w-full" + (cursor === -1 ? "sr-only" : "")}
+            <!-- cursor -->
+            <div class={"relative transition-transform h-0 border border-violet-100 w-full z-10 " + (cursor === -1 ? "sr-only" : "")}
                 style={`transform: translateY(${cursor * 24}px);`}
             />
 
