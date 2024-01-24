@@ -47,8 +47,6 @@
 
     let time: TimeDisplay = new TimeDisplay;
 
-    let loopend: number = 0;
-
     let presetChoice: MixPreset;
 
     let volumeSliderShow: boolean = false;
@@ -119,7 +117,6 @@
 
         time.current = 0;
 
-        loopend = track.track.getLoopPoint().loopend;
         track.looping = looping;
 
         wave.unloadData();
@@ -212,7 +209,7 @@
                 active={isAudioLoaded}
                 time={time}
                 markers={track.markers}
-                loopend={loopend}
+                loopend={track.markers.loopEnd?.position || 0}
                 looping={looping}
                 showMarkers={showMarkers}
                 onchange={onSeeked}
