@@ -4,7 +4,7 @@
     import type { MixPreset } from "audio/MixPresetMgr";
     import { TimeDisplay } from "app/util/TimeDisplay";
     import { onMount } from "svelte";
-    import { Cog6Tooth, Icon, Pause, Play } from "svelte-hero-icons";
+    import { ChevronLeft, Cog6Tooth, Icon, Pause, Play } from "svelte-hero-icons";
     import Playbar from "./Playbar.svelte";
     import MixConsole from "./MixConsole.svelte";
     import SpectrumView from "./SpectrumView.svelte";
@@ -244,7 +244,7 @@
                     <VolumeSlider initVolume={1} onchange={(val) => audio.masterVolume = val} bind:show={volumeSliderShow} />
 
                     <!-- Time -->
-                    <div class="text-[10px] sm:text-xs font-bold">
+                    <div class="text-[10px] visible max-sm:hidden font-bold">
                         <p class="text-gray-100">
                             <span>{time.toString()}</span>
                             <span> / </span>
@@ -261,9 +261,14 @@
                         transitionTime={transitionTime}
                     />
 
-                    <button class="me-2 hover:text-white" on:click={() => showEditorPane = !showEditorPane}><Icon src={Cog6Tooth} size="16" solid /></button>
+                    <button class="hover:text-white" on:click={() => showEditorPane = !showEditorPane}>
+                        <div class="relative flex items-center justify-center w-8">
+                            <Icon class="absolute duration-500 transition-all {showEditorPane ? "-rotate-180 opacity-0" : "opacity-100 rotate-180"}" src={Cog6Tooth} size="16" solid />
+                            <Icon class="absolute duration-500 transition-all {showEditorPane ? "-rotate-90 opacity-100" : "rotate-0 opacity-0"}" src={ChevronLeft} size="16" solid />
+                        </div>
+
+                    </button>
                 </div>
-                <!-- Right side of bar -->
 
             </div>
         </div>
