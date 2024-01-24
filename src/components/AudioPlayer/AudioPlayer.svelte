@@ -16,6 +16,7 @@
     import AudioScriptEditor from "./AudioScriptEditor.svelte";
     import type { TextEditorMgr } from "app/util/TextEditorMgr";
     import MarkerControl from "./MarkerControl.svelte";
+    import { StorageName } from "app/consts";
 
     export const context: AudioPlayerExternalControls = {
         load: onLoadAudio,
@@ -216,22 +217,35 @@
                 onstartseek={onSeekStart}
                 onseeking={updateSeekUI}>
                 <div slot="display">
-                    <SpectrumView class="z-20 w-full relative opacity-90" data={track.spectrum.data} progress={time.progress}/>
-                    <WaveformMorphDisplay wave={wave} progress={track.position / track.length} class="shadow-inner rounded-none absolute pointer-events-none h-[80px] overflow-hidden w-full z-30 opacity-90" />
+                    <SpectrumView class="z-20 w-full relative opacity-90"
+                        data={track.spectrum.data}
+                        progress={time.progress}
+                    />
+                    <WaveformMorphDisplay
+                        class="shadow-inner rounded-none absolute
+                            pointer-events-none h-[80px] overflow-hidden
+                            w-full z-30 opacity-90"
+                        wave={wave}
+                        progress={track.position / track.length}
+                    />
                 </div>
             </Playbar>
 
             <!-- Play controls bar -->
-            <div class="relative w-full h-10 flex justify-between items-center bg-gray-400 text-gray-50 shadow-md mt-1">
+            <div class="relative w-full h-10 flex justify-between items-center
+                bg-gray-400 text-gray-50 shadow-md mt-1"
+            >
 
                 <!-- Left side of bar -->
                 <div class="flex items-center">
 
                     <!-- Play/Pause Button -->
                     <button
-                        class="px-3 h-6 w-6 rounded-md box-content z-50 relative hover:text-white transition-transform duration-300"
+                        class="px-3 h-6 w-6 rounded-md box-content z-50
+                            relative hover:text-white transition-transform
+                            duration-300"
                         on:click={onPressPlay}
-                        >
+                    >
                         {#if isPlaying}
                             <Icon class="drop-shadow-sm z-50" solid src="{Pause}" />
                         {:else}
@@ -240,8 +254,13 @@
                     </button>
 
                     <!-- Volume controls -->
-                    <!-- TODO: use local storage to save and grab this value -->
-                    <VolumeSlider initVolume={1} onchange={(val) => audio.masterVolume = val} bind:show={volumeSliderShow} />
+                    <VolumeSlider
+                        initVolume={ parseFloat(localStorage.getItem(StorageName.MasterVolume) ?? "1") }
+                        onchange={(val) => {
+                                audio.masterVolume = val;
+                                localStorage.setItem(StorageName.MasterVolume, audio.masterVolume.toString());
+                            }}
+                        bind:show={volumeSliderShow} />
 
                     <!-- Time -->
                     <div class="text-[10px] visible max-sm:hidden font-bold">
@@ -263,8 +282,14 @@
 
                     <button class="hover:text-white" on:click={() => showEditorPane = !showEditorPane}>
                         <div class="relative flex items-center justify-center w-8">
-                            <Icon class="absolute duration-500 transition-all {showEditorPane ? "-rotate-180 opacity-0" : "opacity-100 rotate-180"}" src={Cog6Tooth} size="16" solid />
-                            <Icon class="absolute duration-500 transition-all {showEditorPane ? "-rotate-90 opacity-100" : "rotate-0 opacity-0"}" src={ChevronLeft} size="16" solid />
+                            <Icon class="absolute duration-500 ease-in-out transition-all
+                                    {showEditorPane ? "-rotate-180 opacity-0" : "opacity-100 rotate-180"}
+                                "
+                                src={Cog6Tooth} size="16" solid />
+                            <Icon class="absolute duration-500 ease-in-out transition-all
+                                    {showEditorPane ? "-rotate-90 opacity-100" : "rotate-0 opacity-0"}
+                                "
+                                src={ChevronLeft} size="16" solid />
                         </div>
 
                     </button>
@@ -273,20 +298,33 @@
             </div>
         </div>
 
-        <div
-            class={"transition-all origin-top " + (showEditorPane ? "scale-y-100 opacity-100 h-[324px]" : "scale-y-0 opacity-0 h-0")}
+        <div class="transition-all origin-top
+                {showEditorPane ? "scale-y-100 opacity-100 h-[324px]" :
+                        "scale-y-0 opacity-0 h-0"}
+            "
         >
-            <div class={tabIndex === 0 ? "" : "sr-only -z-50"}>
+            <div class="
+                    {(tabIndex === 0) ? "" : "sr-only -z-50"}
+                "
+            >
                 <MixConsole audioConsole={audioConsole} />
             </div>
 
-            <div class={tabIndex === 1 ? "h-[324px] overflow-y-auto" : "sr-only -z-50"}>
+            <div class="
+                {tabIndex === 1 ? "h-[324px] overflow-y-auto" :
+                        "sr-only -z-50"}
+                "
+            >
                 <MarkerControl markers={track.markers} track={track}
                     bind:looping={looping} bind:showMarkers={showMarkers}
                 />
             </div>
 
-            <div class={ (tabIndex === 2 ? "h-[324px] overflow-y-auto" : "sr-only -z-50")}>
+            <div class="
+                    { (tabIndex === 2) ? "h-[324px] overflow-y-auto" :
+                        "sr-only -z-50" }
+                "
+            >
                 <AudioScriptEditor
                     bind:editor={textEditor}
                     value={defaultScript}
