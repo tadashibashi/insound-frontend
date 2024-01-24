@@ -399,7 +399,7 @@
 
                 <!-- Individual file input row -->
                 <div class={ i === fileInputs.length - 1 ? "sr-only" :
-                    ("group relative flex items-center mb-2 select-none p-1 rounded-full " +
+                    ("group w-full relative flex items-center mb-2 select-none p-1 rounded-full z-10 " +
                         (draggingInput === fileInput ?
                             "bg-gray-100 shadow-md opacity-50" : "")
                     )}
@@ -507,7 +507,7 @@
                     <!-- Delete layer button -->
                     {#if fileInputs.length > 1}
                     <button
-                        class={"rounded border bg-red-300 border-red-300 ml-2 opacity-0 " +
+                        class={"rounded border bg-red-300 border-red-400 ml-2 opacity-0 z-50 " +
                             (draggingInput ? "group-hover:opacity-0" : "group-hover:opacity-100")}
                         type="button"
                         on:click={() => removeInputSlot(i)}

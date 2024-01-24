@@ -271,17 +271,17 @@
         <div
             class={"transition-all origin-top " + (showEditorPane ? "scale-y-100 opacity-100 h-[324px]" : "scale-y-0 opacity-0 h-0")}
         >
-            <div class={tabIndex === 0 ? "" : "sr-only"}>
+            <div class={tabIndex === 0 ? "" : "sr-only -z-50"}>
                 <MixConsole audioConsole={audioConsole} />
             </div>
 
-            <div class={tabIndex === 1 ? "h-[324px] overflow-y-auto" : "sr-only"}>
+            <div class={tabIndex === 1 ? "h-[324px] overflow-y-auto" : "sr-only -z-50"}>
                 <MarkerControl markers={track.markers} track={track}
                     bind:looping={looping} bind:showMarkers={showMarkers}
                 />
             </div>
 
-            <div class={ (tabIndex === 2 ? "h-[324px] overflow-y-auto" : "sr-only")}>
+            <div class={ (tabIndex === 2 ? "h-[324px] overflow-y-auto" : "sr-only -z-50")}>
                 <AudioScriptEditor
                     bind:editor={textEditor}
                     value={defaultScript}
