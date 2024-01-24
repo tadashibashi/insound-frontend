@@ -57,7 +57,7 @@ end
         if (files.length === 0)
         {
             errorTitle = "No audio files loaded";
-            errorMessages = ["Please upload a valid audio file"]
+            errorMessages = ["Please upload a valid audio file"];
             return;
         }
 
@@ -75,10 +75,13 @@ end
 
         let buffers = await Promise.all(promises);
 
-        const errIndices: number[] = [];
+        const errInfo: {index: number, reason: string}[] = [];
         for (let i = 0; i < buffers.length; ++i)
         {
-            if (buffers[i] === null) errIndices.push(i);
+            if (buffers[i] === null) errInfo.push({
+                index: i,
+                reason: "not a file"
+            });
         }
 
         const names = fileInputs.map(input => input.layername);
@@ -86,9 +89,9 @@ end
         names.pop();
 
         try {
-            if (errIndices.length > 0)
+            if (errInfo.length > 0)
             {
-                throw new SoundLoadError(errIndices);
+                throw new SoundLoadError(errInfo);
             }
             audioContext.load(buffers as ArrayBuffer[], names, defaultScript);
 
@@ -99,12 +102,12 @@ end
         {
             if (err instanceof SoundLoadError)
             {
-                errorTitle = "Audio engine failed to accept the following";
-                const fileNames = err.getErrorMessage(names);
-                for (let i = 0; i < fileNames.length; ++i)
+                errorTitle = "File Loading Error";
+                for (let i = 0; i < err.info.length; ++i)
                 {
-                    errorMessages.push(`Layer ${err.soundIndices[i] + 1}: ${fileNames[i]}`);
-                    const input = fileInputs[err.soundIndices[i]];
+                    const fileIndex = err.info[i].index;
+                    errorMessages.push(`${fileInputs[fileIndex].filepath}: ${err.info[i].reason}`);
+                    const input = fileInputs[fileIndex];
                     if (input)
                     {
                         input.isProblematic = true;

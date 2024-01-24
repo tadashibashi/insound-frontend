@@ -190,7 +190,7 @@
 
     // ===== Helpers ==========================================================
 
-    /** Create a default InputData object */
+    /** Create a default blank InputData object */
     function createInputData()
     {
         return {
