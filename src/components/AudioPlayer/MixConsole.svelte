@@ -11,7 +11,9 @@
 
     /** Audio console to control */
     export let audioConsole: AudioConsole;
+
     export let active: boolean = true;
+    export let editMode: boolean = true;
 
     let channelDiv: HTMLDivElement;
     let showMainShadow: boolean = false;
@@ -56,7 +58,7 @@
         class="overflow-y-hidden overflow-x-auto whitespace-nowrap flex-grow flex">
         {#each audioConsole.channels as chan, i (chan)}
             {#if i > 0}
-                <ChannelStrip channel={chan} />
+                <ChannelStrip channel={chan} readonly={!editMode} />
 
                 <!-- Channel divider -->
                 <div class="inline border-l border-l-gray-100 my-4"></div>
