@@ -27,6 +27,8 @@
     // component.
     export let audio: AudioEngine;
 
+    export let editMode: boolean = true;
+
     // Bindable
     export const track: MultiTrackControl = audio.createTrack();
 
@@ -278,6 +280,7 @@
                         bind:choice={presetChoice}
                         mixConsole={audioConsole}
                         transitionTime={transitionTime}
+                        editMode={editMode}
                     />
 
                     <button class="hover:text-white" on:click={() => showEditorPane = !showEditorPane}>
@@ -312,6 +315,7 @@
             >
                 <MixConsole audioConsole={audioConsole}
                     active={tabIndex === 0}
+                    editMode={editMode}
                 />
             </div>
 
@@ -324,6 +328,7 @@
                 <MarkerControl markers={track.markers} track={track}
                     bind:looping={looping} bind:showMarkers={showMarkers}
                     active={tabIndex === 1}
+                    editMode={editMode}
                 />
             </div>
 
@@ -336,6 +341,7 @@
                     bind:editor={textEditor}
                     value={defaultScript}
                     doloadscript={onScriptReload}
+                    editMode={editMode}
                 />
             </div>
 
