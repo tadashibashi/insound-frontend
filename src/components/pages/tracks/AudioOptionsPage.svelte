@@ -2,7 +2,6 @@
     import { getContext } from "svelte";
     import type { MixPreset } from "audio/MixPresetMgr";
     import AudioPlayer from "app/components/AudioPlayer/AudioPlayer.svelte";
-    import Switch from "app/components/widgets/Switch.svelte";
     import type { TextEditorMgr } from "app/util/TextEditorMgr";
 
     const audio = getContext("audio");
@@ -37,10 +36,6 @@
     }
 
 </script>
-
-<!-- Modals -->
-
-
 
 <!-- Outer container -->
 <div class={"absolute w-full mt-4 transition-opacity duration-300 flex justify-center bg-transparent "

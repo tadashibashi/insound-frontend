@@ -21,7 +21,6 @@ export namespace AudioContext {
                 catch(err)
                 {
                     console.error(err);
-                    //engine.reset();
                 }
             }
         }
