@@ -12,7 +12,7 @@
     export let editMode: boolean = false;
 
     /** Whether key commands and inputs should work, aka when in view/focused*/
-    let active: boolean = true;
+    export let active: boolean = true;
 
     $: loopstart = markers.loopStart;
     $: loopend = markers.loopEnd;
@@ -208,7 +208,6 @@
         // Checks for "Enter" key when inputting
         function handleKeyDown(evt: KeyboardEvent)
         {
-            evt.stopPropagation();
             if (node.readOnly === true) return;
 
             if (evt.key === "Enter")
@@ -263,13 +262,12 @@
     function handleKeyDown(evt: KeyboardEvent)
     {
         if (!active) return;
-
         if (evt.key === "Delete" || evt.key === "Backspace")
         {
             deleteMarker();
         }
 
-        if ( (evt.metaKey && evt.key === "+") || (evt.altKey && evt.key === "'") ) // logic pro key command
+        if ( (evt.metaKey && evt.key === "+") || (evt.altKey && evt.code === "Quote") ) // logic pro key command
         {
             addMarker();
         }
@@ -278,12 +276,22 @@
     onMount(() => {
         track.onload.addListener(handleLoad);
         markers.oncursorchanged.addListener(handleCursorChanged);
-        window.addEventListener("keydown", handleKeyDown);
+
+        const cachedEditMode = editMode;
+        if (cachedEditMode)
+        {
+            window.addEventListener("keydown", handleKeyDown);
+        }
 
         return () => {
             track.onload.removeListener(handleLoad);
             markers.oncursorchanged.removeListener(handleCursorChanged);
-            window.removeEventListener("keydown", handleKeyDown);
+
+            if (cachedEditMode)
+            {
+                window.removeEventListener("keydown", handleKeyDown);
+            }
+
         };
     });
 </script>
@@ -374,11 +382,11 @@
         </div>
 
         <!-- Body -->
-        <div class="block text-gray-700 overflow-y-scroll h-[260px]"
+        <div class="block text-gray-700 bg-gray-100 overflow-y-scroll h-[260px]"
         >
 
             <!-- cursor -->
-            <div class={"relative transition-transform h-0 border border-violet-100 w-full z-10 " + (cursor === -1 ? "sr-only" : "")}
+            <div class={"relative transition-transform h-0 border border-violet-100 w-full z-10 " + (cursor === -1 || markers.length === 0 ? "sr-only" : "")}
                 style={`transform: translateY(${cursor * 24}px);`}
             />
 
@@ -413,8 +421,8 @@
             {/each}
 
             <!-- Any trailing empty rows -->
-            {#if (11 - markers.length > 0)}
-                {#each {length: 11 - markers.length} as _, i ("extra-row-" + i)}
+            {#if (10 - markers.length > 0)}
+                {#each {length: 10 - markers.length} as _, i ("extra-row-" + i)}
                     <button class="TableRow {(markers.length - 1 + i) % 2 !== 0 ? "bg-gray-100" : "bg-gray-50"}" on:pointerdown={() => selection = null}>
                         <div class="border-r border-r-gray-200 px-[6vmin]"><input class="bg-transparent w-full inline-block opacity-100 px-2 py-1" disabled /></div>
                         <div class="px-[6vmin]"><input class="bg-transparent w-full opacity-100 px-2 py-1 inline-block" disabled /></div>
