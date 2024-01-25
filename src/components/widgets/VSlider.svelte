@@ -20,6 +20,9 @@
     /** Whether to show the label name. Default `true`  */
     export let showName = true;
 
+    /** When true, inputs and events are deactivated */
+    export let readonly = false;
+
 
     // ----- State ------------------------------------------------------------
 
@@ -67,6 +70,8 @@
     // Fires when number box's input changes
     function inputChangeHandler(value: number)
     {
+        if (readonly) return false;
+
         param.value = value;
         if (param.wasUpdated)
         {
@@ -92,7 +97,7 @@
 
     function mousemoveHandler(evt: MouseEvent)
     {
-        if (!isDragging) return;
+        if (!isDragging || readonly) return;
 
         const rect = trackLine.getBoundingClientRect();
 
@@ -104,11 +109,15 @@
 
     function faderMouseDownHandler(evt: Event)
     {
+        if (readonly) return;
+
         isDragging = true;
     }
 
     function containerMouseEnterHandler(evt: Event)
     {
+        if (readonly) return;
+
         isHovering = true;
         showNumberInput = true;
     }
@@ -122,6 +131,8 @@
 
     function containerDblClickHandler(evt: MouseEvent)
     {
+        if (readonly) return;
+
         if (evt.metaKey)
         {
             param.value = param.defaultValue;
@@ -131,6 +142,8 @@
 
     function handleSetCallback(index: number, value: number)
     {
+        if (readonly) return;
+
         positionY = valueToPosition(value);
         param = param;
     }
@@ -154,7 +167,7 @@
 </script>
 
 <div class={$$props.class}
-    role="group" aria-roledescription="houses a ui slider"
+    role="group" aria-roledescription="contains a slider"
     on:mouseenter={containerMouseEnterHandler}
     on:mouseleave={containerMouseLeaveHandler}
     on:dblclick={containerDblClickHandler}
@@ -175,7 +188,10 @@
                         role="slider"
                         aria-valuenow={param.value}
 
-                        class="absolute fader block rounded-sm w-8 -mx-4 h-3 -my-2 shadow-lg shadow-gray-400 z-10"
+                        class="absolute fader block rounded-sm w-8 -mx-4 h-3
+                            -my-2 shadow-lg shadow-gray-400 z-10
+                            { readonly ? "cursor-default" : "cursor-pointer" }
+                            "
                         style={`transform: translateY(${positionY}px);`}
 
                         on:mousedown={faderMouseDownHandler} />

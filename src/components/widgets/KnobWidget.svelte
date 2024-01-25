@@ -10,6 +10,9 @@
     export let showName: boolean = true;
     export let labelClass: string = "";
 
+    /** When true, inputs and events are deactivated */
+    export let readonly = false;
+
     let rotation: number = 0;
 
     let button: HTMLButtonElement;
@@ -29,6 +32,8 @@
 
     function inputChangeHandler(value: number)
     {
+        if (readonly) return false;
+
         param.value = value;
         if (param.wasUpdated)
         {
@@ -43,6 +48,8 @@
 
     function mouseEnterHandler()
     {
+        if (readonly) return;
+
         isHovering = true;
         showNumberInput = true;
     }
@@ -56,6 +63,8 @@
 
     function dblclickHandler(evt: MouseEvent)
     {
+        if (readonly) return;
+
         if (evt.metaKey)
         {
             param.value = param.defaultValue;
@@ -66,6 +75,8 @@
 
     function mousedownHandler(evt: MouseEvent)
     {
+        if (readonly) return;
+
         isDragging = true;
     }
 
@@ -82,7 +93,7 @@
 
     function mousemoveHandler(evt: MouseEvent)
     {
-        if (!isDragging) return;
+        if (!isDragging || readonly) return;
 
         let angle = posToAngle(evt.x, evt.y);
         if (angle > AngleMax && angle < AngleMin)
@@ -205,7 +216,11 @@
 
         <!-- Main knob -->
         <button
-            class={"rounded-full w-full border border-gray-200 bg-[#fcfcfc] aspect-square flex items-center justify-end ring-inset ring-2 ring-gray-100 z-10 drop-shadow-sm"}
+            class="rounded-full w-full border border-gray-200 bg-[#fcfcfc]
+                aspect-square flex items-center justify-end
+                ring-inset ring-2 ring-gray-100 z-10 drop-shadow-sm
+                { readonly ? "cursor-default" :"cursor-pointer" }
+            "
             bind:this={button}
             on:mousedown={mousedownHandler}
             style={`transform: rotate(${rotation}deg);`}
