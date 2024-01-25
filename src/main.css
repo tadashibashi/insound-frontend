@@ -11,13 +11,13 @@ button:focus,
 }
 
 @font-face {
-    font-family: "Monogram";
-    src: url("/static/fonts/monogram.ttf") format("opentype");
+    font-family: "Pixel Code Pro";
+    src: url("/static/fonts/CHNOPixelCodePro-Regular.woff2") format("woff2");
 }
 
 .cm-editor { height: 100%; }
 .cm-editor.cm-focused { outline: none; }
-.cm-editor .cm-content { font-family: "Monogram"; font-size: 1.2rem; }
+.cm-editor .cm-content { font-family: "Pixel Code Pro", monospace; font-size: 12px; }
 .cm-line {
     line-height: 1.2rem;
 }

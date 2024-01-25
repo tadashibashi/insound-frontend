@@ -200,12 +200,17 @@
         items={presets}
     >
         <!-- Button -->
-        <button type="button" bind:this={mainButtonEl} slot="button" let:open class={"ButtonTextShadow pointer-events-auto shadow-inner flex justify-between items-center rounded-sm ps-[5px] py-[1px] min-w-[120px] h-6 " +
-            (presets.length ? "bg-gray-100" : "bg-gray-300")}
+        <button type="button" bind:this={mainButtonEl} slot="button" let:open
+            class="flex justify-between items-center
+                pointer-events-auto
+                ButtonTextShadow shadow-inner rounded-sm
+                ps-[5px] py-[1px] min-w-[120px] h-6
+                {presets.length ? "bg-gray-100" : "bg-gray-300"}
+            "
         >
             <Icon size="20" class="inline-block me-1 text-gray-200" src={AdjustmentsVertical} />
             {#if presets.length > 0 && choice}
-                <p class="px-1 overflow-hidden text-ellipsis max-w-[96px] text-gray-500 text-lg sm:text-xl sm:max-w-[160px]">{choice.name}</p>
+                <p class="px-1 overflow-hidden text-ellipsis max-w-[96px] text-gray-500 text-xs sm:text-sm sm:max-w-[160px]">{choice.name}</p>
 
                 {#if canedit}
                 <MixPresetEditMenu class="p-1"
@@ -262,6 +267,6 @@
 <style>
     .ButtonTextShadow {
         text-shadow: 2px 2px 2px #00000010;
-        font-family: Monogram, monospace;
+        font-family: "Pixel Code Pro";
     }
 </style>

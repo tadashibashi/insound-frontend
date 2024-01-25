@@ -5,7 +5,7 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        'code': ["Monogram", "monospace"]
+        'code': ["Pixel Code Pro", "monospace"]
       }
     },
   },
