@@ -1,8 +1,11 @@
-import { dropCursor, type KeyBinding} from "@codemirror/view";
-import { copyLineDown, indentWithTab, undo, redo } from "@codemirror/commands";
-import { StreamLanguage } from "@codemirror/language";
+import { dropCursor, gutter, lineNumbers, highlightActiveLineGutter, highlightActiveLine, drawSelection, type KeyBinding } from "@codemirror/view";
+import { copyLineDown, indentWithTab, undo, redo, history, defaultKeymap } from "@codemirror/commands";
+import { StreamLanguage, indentOnInput, syntaxHighlighting, defaultHighlightStyle, indentUnit } from "@codemirror/language";
+import { autocompletion, completionKeymap } from "@codemirror/autocomplete";
 import { lua } from "@codemirror/legacy-modes/mode/lua";
-import { basicSetup, type EditorView } from "codemirror";
+import { EditorState } from "@codemirror/state";
+import { searchKeymap } from "@codemirror/search";
+import { EditorView } from "codemirror";
 
 export function createDefaultKeyMap(
     view: EditorView,
@@ -11,6 +14,9 @@ export function createDefaultKeyMap(
     onredo: () => void): KeyBinding[]
 {
     return [
+        ...defaultKeymap,
+        ...completionKeymap,
+        ...searchKeymap,
         indentWithTab,
         {
             key: "Mod-Shift-d",
@@ -44,11 +50,42 @@ export function createDefaultKeyMap(
     ];
 }
 
-export function createDefaultExtensions()
+export interface DefaultExtConfig {
+    indent?: number;
+    editMode?: boolean;
+}
+
+export function createDefaultExtensions(config: DefaultExtConfig)
 {
-    return [
-        basicSetup,
+    const exts = [
+        gutter({}),
+        lineNumbers(),
+        history(),
+        syntaxHighlighting(defaultHighlightStyle),
+        drawSelection(),
         dropCursor(),
+        indentOnInput(),
+        autocompletion(),
+        indentUnit.of(" ".repeat(4)),
         StreamLanguage.define(lua),
     ];
+
+    if (config.editMode ?? false)
+    {
+        exts.push(
+            highlightActiveLineGutter(),
+            highlightActiveLine(),
+            EditorView.editable.of(true),
+            EditorState.readOnly.of(false),
+        );
+    }
+    else
+    {
+        exts.push(
+            EditorView.editable.of(false),
+            EditorState.readOnly.of(true),
+        );
+    }
+
+    return exts;
 }

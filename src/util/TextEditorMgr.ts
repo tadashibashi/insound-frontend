@@ -1,6 +1,5 @@
 import { EditorView } from "codemirror";
-import { undo as editorUndo, redo as editorRedo, undoDepth, redoDepth } from "@codemirror/commands";
-import { indentUnit } from "@codemirror/language";
+import { undo, redo, undoDepth, redoDepth } from "@codemirror/commands";
 import { EditorState, type Extension } from "@codemirror/state";
 import { keymap, type KeyBinding } from "@codemirror/view";
 
@@ -13,8 +12,9 @@ export interface TextEditorConfig {
     /** No need to add indent, or keymap extensions if indicated in config */
     extensions?: Extension[];
     indent?: number;
-    keymap?: KeyBinding[];
     text?: string;
+    editMode?: boolean;
+    keymap?: KeyBinding[];
 };
 
 export class TextEditorMgr
@@ -40,8 +40,12 @@ export class TextEditorMgr
                 (text) => this.onsave.invoke(text),
                 () => this.onundo.invoke(),
                 () => this.onredo.invoke()
-            )), ...(config.extensions ?? createDefaultExtensions())];
-        this.m_extensions.push(indentUnit.of(" ".repeat(config.indent ?? 4)));
+            )),
+            ...(config.extensions ?? createDefaultExtensions({
+                indent: config.indent,
+                editMode: config.editMode,
+            }))
+        ];
 
         this.onsave = new Callback;
         this.onundo = new Callback;
@@ -71,13 +75,13 @@ export class TextEditorMgr
 
     undo()
     {
-        editorUndo(this.m_view);
+        undo(this.m_view); // editor's `undo`, not recursive
         this.onundo.invoke();
     }
 
     redo()
     {
-        editorRedo(this.m_view);
+        redo(this.m_view); // editor's `redo`, not recursive
         this.onredo.invoke();
     }
 
