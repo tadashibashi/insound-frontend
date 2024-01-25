@@ -317,6 +317,7 @@
             >
                 <MarkerControl markers={track.markers} track={track}
                     bind:looping={looping} bind:showMarkers={showMarkers}
+                    active={tabIndex === 1}
                 />
             </div>
 

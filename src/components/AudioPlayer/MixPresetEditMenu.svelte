@@ -92,7 +92,7 @@
     <DropdownMenu
         class="relative text-gray-300 group"
         items={menuItems}
-        dropdownClass="bg-gray-50 opacity-[.97] rounded-md shadow-md py-1 absolute right-0 w-[112px]"
+        dropdownClass="bg-gray-50 opacity-[.97] rounded-md shadow-md py-1 absolute right-0 w-[132px]"
         bind:isOpen={isOpen}
         disabled={disabled}
         onchoice={onchoice}
@@ -130,7 +130,7 @@
 
         <!-- Item template -->
         <button class="block" slot="item" let:item let:i on:click={() => doCallback(i)}>
-            <div class={"w-full py-1 px-4 flex justify-start items-center z-50 text-base " + (item.color) }>
+            <div class={"w-full py-2 px-4 flex justify-start items-center z-50 text-xs " + (item.color) }>
                 <Icon src={item.icon} class="inline-block mr-2" size="16" />
                 <p class="inline-block whitespace-nowrap">{item.text}</p>
             </div>
