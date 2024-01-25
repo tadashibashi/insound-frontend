@@ -61,14 +61,14 @@
 
 <div
     role="group"
-    class="group h-full flex items-center pr-4"
+    class="group h-full flex items-center pr-3"
     on:mouseenter={() => {
         hovering = true;
     }}
     on:mouseleave={() => hovering = false}
 >
     <!-- Volume icon button: mutes/unmutes volume level -->
-    <button class={"h-full flex items-center " + (show && volume > 0 ? "text-gray-100" : "")}
+    <button class="h-full flex items-center {show && volume > 0 ? "text-white" : ""}"
         aria-roledescription="This button mutes and unmutes the audio; while hovering over it, it opens the volume slider to the right"
         on:click={() => {
             if (volume > 0)
@@ -84,7 +84,7 @@
     >
         <!-- Volume icon -->
         <Icon src={volume === 0 ? SpeakerXMark : SpeakerWave}
-            size="24" mini class="mr-2" />
+            size="20" mini class="mr-2 scale-90 sm:scale-100" />
     </button>
 
     <!-- Horizontal slider -->

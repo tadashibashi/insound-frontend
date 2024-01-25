@@ -243,15 +243,15 @@
 
                     <!-- Play/Pause Button -->
                     <button
-                        class="px-3 h-6 w-6 rounded-md box-content z-50
+                        class="px-3 rounded-md box-content z-50
                             relative hover:text-white transition-transform
-                            duration-300"
+                            duration-300 scale-90 sm:scale-100"
                         on:click={onPressPlay}
                     >
                         {#if isPlaying}
-                            <Icon class="drop-shadow-sm z-50" solid src="{Pause}" />
+                            <Icon class="drop-shadow-sm z-50" size="20" solid src="{Pause}" />
                         {:else}
-                            <Icon class="drop-shadow-sm z-50" solid src="{Play}" />
+                            <Icon class="drop-shadow-sm z-50" size="20" solid src="{Play}" />
                         {/if}
                     </button>
 
@@ -265,7 +265,7 @@
                         bind:show={volumeSliderShow} />
 
                     <!-- Time -->
-                    <div class="text-[10px] visible max-sm:hidden font-bold">
+                    <div class="text-[10px] sm:text-xs visible font-semibold">
                         <p class="text-gray-100">
                             <span>{time.toString()}</span>
                             <span> / </span>
@@ -284,12 +284,12 @@
                     />
 
                     <button class="hover:text-white" on:click={() => showEditorPane = !showEditorPane}>
-                        <div class="relative flex items-center justify-center w-8">
-                            <Icon class="absolute duration-500 ease-in-out transition-all
+                        <div class="relative flex items-center justify-center w-8 scale-75 sm:scale-100">
+                            <Icon class="absolute duration-300 ease-in-out transition-all
                                     {showEditorPane ? "-rotate-180 opacity-0" : "opacity-100 rotate-180"}
                                 "
                                 src={Cog6Tooth} size="16" solid />
-                            <Icon class="absolute duration-500 ease-in-out transition-all
+                            <Icon class="absolute duration-300 ease-in-out transition-all
                                     {showEditorPane ? "-rotate-90 opacity-100" : "rotate-0 opacity-0"}
                                 "
                                 src={ChevronLeft} size="16" solid />

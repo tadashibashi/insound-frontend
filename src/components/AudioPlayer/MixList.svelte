@@ -229,7 +229,7 @@
 
         <!-- Individual Item -->
         <button slot="item" let:item let:i bind:this={itemEls[i]}
-            class={"cursor-pointer text-xs text-left block w-full h-full px-2 text-gray-400 py-[1px] border-b-4 border-t-4 " +
+            class={"cursor-pointer text-[10px] sm:text-xs text-left block w-full h-full px-2 text-gray-400 py-[1px] border-b-4 border-t-4 " +
                 (draggingIndex === i ? "bg-gray-400 hover:text-gray-50 opacity-75 hover:cursor-grabbing" : "hover:bg-gray-300 hover:text-white") + " " +
                 (dragBeforeTarget === i && draggingIndex !== i ? (draggingIndex < i ? "border-b-gray-400 border-t-transparent" : "border-t-gray-400 border-b-transparent") : (dragBeforeTarget > i && i === presets.length - 1 && draggingIndex !== i ? "border-b-gray-400 border-t-transparent" : "border-b-transparent border-t-transparent"))
             }

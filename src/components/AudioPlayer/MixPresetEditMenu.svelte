@@ -131,7 +131,7 @@
 
         <!-- Item template -->
         <button class="block" slot="item" let:item let:i on:click={() => doCallback(i)}>
-            <div class={"w-full py-2 px-4 flex justify-start items-center z-50 text-xs " + (item.color) }>
+            <div class={"w-full py-2 px-4 flex justify-start items-center z-50 text-[10px] sm:text-xs " + (item.color) }>
                 <Icon src={item.icon} class="inline-block mr-2" size="16" />
                 <p class="inline-block whitespace-nowrap">{item.text}</p>
             </div>
