@@ -11,6 +11,7 @@
 
     /** Audio console to control */
     export let audioConsole: AudioConsole;
+    export let active: boolean = true;
 
     let channelDiv: HTMLDivElement;
     let showMainShadow: boolean = false;
@@ -18,6 +19,8 @@
 
     function checkShadows()
     {
+        if (!active) return;
+
         const scrollbarVisible = checkHScrollbarVisible(channelDiv);
         showMainShadow = scrollbarVisible &&
             channelDiv.scrollLeft < channelDiv.scrollWidth -

@@ -307,7 +307,9 @@
                     {(tabIndex === 0) ? "" : "sr-only -z-50"}
                 "
             >
-                <MixConsole audioConsole={audioConsole} />
+                <MixConsole audioConsole={audioConsole}
+                    active={tabIndex === 0}
+                />
             </div>
 
             <div class="
