@@ -26,8 +26,9 @@
         | undefined = undefined;
 
     // ----- Editing options --------------------------------------------------
-    export let canedit: boolean = true;
-    export let candrag: boolean = true;
+    export let editMode: boolean = true;
+
+    $: candrag = editMode;
 
     export let transitionTime = 1;
 
@@ -201,18 +202,19 @@
     >
         <!-- Button -->
         <button type="button" bind:this={mainButtonEl} slot="button" let:open
-            class="flex justify-between items-center
+            class="flex items-center
                 pointer-events-auto
                 ButtonTextShadow shadow-inner rounded-sm
                 ps-[5px] py-[1px] min-w-[120px] h-6
                 {presets.length ? "bg-gray-100" : "bg-gray-300"}
+                {editMode ? "justify-between" : "justify-normal"}
             "
         >
             <Icon size="20" class="inline-block me-1 text-gray-200" src={AdjustmentsVertical} />
             {#if presets.length > 0 && choice}
-                <p class="px-1 overflow-hidden text-ellipsis max-w-[96px] text-gray-500 text-xs sm:text-sm sm:max-w-[160px]">{choice.name}</p>
+                <p class="px-1 overflow-hidden grow text-left text-ellipsis max-w-[96px] text-gray-500 text-xs sm:text-sm sm:max-w-[160px]">{choice.name}</p>
 
-                {#if canedit}
+                {#if editMode}
                 <MixPresetEditMenu class="p-1"
                     doDeleteMix={handleDeleteMix}
                     doEditName={handleEditName}
@@ -242,7 +244,7 @@
                 draggingIndex = i;
             }}
             on:dragend={handleDragEnd}
-            draggable={candrag && canedit}
+            draggable={candrag && editMode}
         >
             {#if choice === item}
                 <Icon src={ChevronRight} size="12" mini class="inline-block"/> {item.name} <Icon src={ChevronLeft} size="12" mini class="inline-block"/>
@@ -255,7 +257,7 @@
     </DropdownMenu>
 
     <!-- Add mix button -->
-    {#if canedit}
+    {#if editMode}
     <button class="flex transition-colors duration-300 justify-center items-center mx-2 w-[20px] h-[20px] pointer-events-auto rounded-full drop-shadow-md text-gray-50 hover:text-white hover:bg-gray-400 hover:bg-opacity-25" on:click={() => {if (!editMenuIsOpen && !mainMenuIsOpen) showAddMixModal = true}}>
         <Icon src={Plus} mini class="m-[3px]" />
     </button>
