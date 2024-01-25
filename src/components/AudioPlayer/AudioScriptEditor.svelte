@@ -92,58 +92,53 @@
             {shadowTop ? "shadow-md" : ""}
         "
     >
+        <!-- Version -->
         <div>
             <p class="text-xs text-gray-200 ps-2">
                 Scripting Engine v0.0.1
             </p>
         </div>
 
+
         {#if editMode}
-        <div class="flex items-center">
-            <!-- Undo button -->
-            <button
-                class="
-                    block mr-3 text-xs border rounded-full px-2 border-gray-200
-                    {
-                        (undoDepth > 0) ? "text-gray-400 cursor-pointer" :
-                            "text-gray-100 cursor-default"
-                    }
-                "
-                on:click={() => editor.undo()}
-            >
-                <Icon src={ArrowUturnLeft} size="14" />
-            </button>
-
-            <!-- Redo button -->
-            <button
-                class="
-                    block mr-3 text-xs border-gray-200 border rounded-full px-2
-                    {
-                        (redoDepth > 0) ?
+            <div class="flex items-center">
+                <!-- Undo button -->
+                <button class="block mr-3 px-2 text-xs rounded-full border border-gray-200
+                    { (undoDepth > 0) ?
                         "text-gray-400 cursor-pointer" :
-                        "text-gray-100 cursor-default"
-                    }
+                        "text-gray-100 cursor-default" }
+                    "
+                    on:click={() => editor.undo()}
+                >
+                    <Icon src={ArrowUturnLeft} size="14" />
+                </button>
+
+                <!-- Redo button -->
+                <button class="block mr-3 px-2 text-xs rounded-full border border-gray-200
+                    { (redoDepth > 0) ?
+                        "text-gray-400 cursor-pointer" :
+                        "text-gray-100 cursor-default" }
+                    "
+                    on:click={() => editor.redo()}
+                >
+                    <Icon src={ArrowUturnRight} size="14" />
+                </button>
+
+                <!-- Reload Script button -->
+                <button class="block mr-3 text-xs font-light text-gray-400
+                    border-gray-200 border rounded-full px-2 cursor-pointer
                 "
-                on:click={() => editor.redo()}
-            >
-                <Icon src={ArrowUturnRight} size="14" />
-            </button>
+                    on:click={() => doloadscript && doloadscript() }
+                >
+                    Reload Script
+                </button>
+            </div>
 
-            <!-- Reload Script button -->
-            <button class="
-                block mr-3 text-xs font-light text-gray-400
-                border-gray-200 border rounded-full px-2 cursor-pointer
-            "
-                on:click={() => doloadscript && doloadscript() }
-            >
-                Reload Script
-            </button>
-        </div>
         {:else}
-        <div class="flex items-center pe-2">
-            <Icon class="text-gray-200" src={LockClosed} solid size="16" />
-        </div>
-
+            <!-- Lock icon, indicates read-only -->
+            <div class="flex items-center pe-2">
+                <Icon class="text-gray-200" src={LockClosed} solid size="16" />
+            </div>
         {/if}
 
     </div>

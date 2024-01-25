@@ -1,5 +1,6 @@
 <script lang="ts">
-    import { ArrowPath, Icon, PencilSquare, Trash, ChatBubbleLeftEllipsis, Check, type IconSource } from "svelte-hero-icons";
+    import { ArrowPath, ChatBubbleLeftEllipsis, Check, Icon, PencilSquare,
+        Trash, type IconSource } from "svelte-hero-icons";
     import DropdownMenu from "../widgets/DropdownMenu.svelte";
     import EditMixNameModal from "./modals/EditMixNameModal.svelte";
     import DeleteMixModal from "./modals/DeleteMixModal.svelte";

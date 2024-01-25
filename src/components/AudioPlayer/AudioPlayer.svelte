@@ -202,7 +202,7 @@
 <!-- Outer Container -->
 <div class="bg-white border border-gray-300 rounded-md shadow-lg">
     <!-- Player Container -->
-    <div class="relative select-none min-w-[340px] shadow-md rounded-md">
+    <div class="relative select-none min-w-[340px] shadow-md rounded-t-md">
         <!-- Upper area -->
         <div on:pointerleave={() => {volumeSliderShow = false;}}>
             <Playbar
@@ -298,13 +298,16 @@
             </div>
         </div>
 
+        <!-- Editor Window -->
         <div class="transition-all origin-top
-                {showEditorPane ? "scale-y-100 opacity-100 h-[324px]" :
-                        "scale-y-0 opacity-0 h-0"}
+                { (showEditorPane) ?
+                    "scale-y-100 opacity-100 h-[324px]" :
+                    "scale-y-0 opacity-0 h-0" }
             "
         >
+            <!-- Mix Console -->
             <div class="
-                    {(tabIndex === 0) ? "" : "sr-only -z-50"}
+                    { (tabIndex === 0) ? "" : "sr-only -z-50" }
                 "
             >
                 <MixConsole audioConsole={audioConsole}
@@ -312,6 +315,7 @@
                 />
             </div>
 
+            <!-- Markers -->
             <div class="
                 {tabIndex === 1 ? "h-[324px] overflow-y-auto" :
                         "sr-only -z-50"}
@@ -323,9 +327,9 @@
                 />
             </div>
 
-            <div class="
-                    { (tabIndex === 2) ? "h-[324px] overflow-y-auto" :
-                        "sr-only -z-50" }
+            <!-- Script Editor -->
+            <div class="{ (tabIndex === 2) ? "h-[324px] overflow-y-auto" :
+                    "sr-only -z-50" }
                 "
             >
                 <AudioScriptEditor
@@ -334,23 +338,32 @@
                     doloadscript={onScriptReload}
                 />
             </div>
+
         </div>
 
     </div>
 
 
-    <!-- Tab menu for showing different parts of player -->
-    <div
-        class={"transition-opacity " + (showEditorPane ? "opacity-100" : "sr-only opacity-0")}
+    <!-- Bottom tab menu  -->
+    <div class="transition-opacity
+            { showEditorPane ? "opacity-100" : "sr-only opacity-0" }
+        "
     >
-        <div class="flex text-center cursor-pointer select-none bg-gray-100 overflow-hidden rounded-b-md min-w-[340px]">
+        <div class="flex text-center cursor-pointer select-none bg-gray-100
+                overflow-hidden rounded-b-md min-w-[340px]
+            "
+        >
             {#each tabs as tab, i ("tab-" + tab)}
-            <button class={" bg-[#fefefe] inset-0 border-r text-center w-48 border-gray-100 px-8 py-1 transition-colors  " +
-                (i === tabIndex ? "text-gray-400 font-bold bg-[#fefefe] shadow-md z-40" : "text-gray-300 bg-gray-50")}
-                on:click={() => tabIndex = i}
-            >
-                {tab}
-            </button>
+                <button class=" bg-[#fefefe] inset-0 border-r text-center w-48
+                        border-gray-100 px-8 py-1 transition-colors
+                        { i === tabIndex ?
+                        "text-gray-400 font-bold bg-[#fefefe] shadow-md z-40" :
+                        "text-gray-300 bg-gray-50" }
+                    "
+                    on:click={() => tabIndex = i}
+                >
+                    {tab}
+                </button>
             {/each}
         </div>
     </div>
