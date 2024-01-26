@@ -1,5 +1,6 @@
 type MixPreset = import("app/util/MixPreset").MixPreset;
 type UserToken = import("shared/schemas/user/UserToken").UserToken;
+type AudioChannel = import("audio/AudioChannel").AudioChannel;
 
 interface UserContext {
     logout: () => Promise<void>;
@@ -24,6 +25,7 @@ interface InputData {
     filepath: string;
     input: HTMLInputElement | undefined;
     isProblematic: boolean;
+    channel: AudioChannel | null;
 }
 
 // External controls for an AudioPlayer component
@@ -35,7 +37,7 @@ interface AudioPlayerExternalControls {
      * @param layerNames name of each audio layer
      * @param script text of lua script
      */
-    load(data: ArrayBuffer[] | ArrayBuffer, layerNames: string[], script: string): void;
+    load(data: ArrayBuffer[] | ArrayBuffer, channels: AudioChannel[], script: string): void;
 
     /**
      * Unload data from audio player

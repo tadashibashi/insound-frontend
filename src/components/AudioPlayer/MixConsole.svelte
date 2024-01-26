@@ -57,12 +57,10 @@
         on:scroll={checkShadows}
         class="overflow-y-hidden overflow-x-auto whitespace-nowrap flex-grow flex">
         {#each audioConsole.channels as chan, i (chan)}
-            {#if i > 0}
-                <ChannelStrip channel={chan} readonly={!editMode} />
+            <ChannelStrip channel={chan} readonly={!editMode} />
 
-                <!-- Channel divider -->
-                <div class="inline border-l border-l-gray-100 my-4"></div>
-            {/if}
+            <!-- Channel divider -->
+            <div class="inline border-l border-l-gray-100 my-4"></div>
         {/each}
 
     </div>
@@ -72,7 +70,7 @@
         <div class={"inline-flex w-[124px] pt-3 justify-center " +
             (showMainShadow ? "ChanShadowLeft" : "")}
         >
-            <ChannelStrip class="" channel={audioConsole.channels[0]} />
+            <ChannelStrip class="" channel={audioConsole.main} />
         </div>
 
     {/if}

@@ -8,9 +8,11 @@
     } from "svelte-hero-icons";
     import DropFilesCard from "./DropFilesCard.svelte";
     import SpinningGearIcon from "app/components/icons/SpinningGearIcon.svelte";
+    import { AudioChannel } from "audio/AudioChannel";
+    import type { MultiTrackControl } from "audio/MultiTrackControl";
 
     // ===== User callbacks ===================================================
-    export let onsubmit: (files: File[]) => Promise<any> = async() => {};
+    export let onsubmit: (files: File[], channels: AudioChannel[]) => Promise<any> = async() => {};
 
     // ===== State Variables ==================================================
 
@@ -18,6 +20,7 @@
 
     // Input rows data. Externally bindable.
     export let fileInputs: InputData[] = [createInputData()];
+    export let track: MultiTrackControl;
 
     $: submissionProblematic = fileInputs.some(input => input.isProblematic);
 
@@ -168,24 +171,38 @@
 
         isLoading = true;
 
-        setTimeout(() => {
-            try {
-                fileInputs.forEach(input => input.isProblematic = false);
+        try {
+            for (let i = 0; i < fileInputs.length - 1; ++i) // length - 1 to not include blank input
+            {
+                const input = fileInputs[i];
 
-                const files = collectFiles();
-                onsubmit(files)
-                    .then(() => {
-                        fileInputs = fileInputs;
-                        isLoading = false;
-                    })
-                    .catch(err => { throw err; });
+                input.isProblematic = false;
+
+                if (!input.channel)
+                {
+                    input.channel = new AudioChannel(track, input.layername, i + 1); // i + 1 since 0 is the main bus
+                }
+                else
+                {
+                    input.channel.index = i + 1; // i + 1 since 0 is the main bus
+                    input.channel.name = input.layername;
+                }
             }
-            catch {
-                isLoading = false;
-            }
-        }, 100);
 
+            const files = collectFiles();
+            const channels = fileInputs.map(input => input.channel as AudioChannel);
+            channels.pop(); // remove last one, since it's blank
 
+            onsubmit(files, channels)
+                .then(() => {
+                    fileInputs = fileInputs;
+                    isLoading = false;
+                })
+                .catch(err => { throw err; });
+        }
+        catch {
+            isLoading = false;
+        }
     }
 
     // ===== Helpers ==========================================================
@@ -198,7 +215,8 @@
             filepath: "",
             input: undefined,
             isProblematic: false,
-        }
+            channel: null,
+        };
     }
 
     /** Consolidate files from inputs */
@@ -556,8 +574,8 @@
     {#if fileInputs.length > 1}
     <div class={"w-full flex justify-center mt-3 " + (isDraggingOverDropzone ? "sr-only" : "")}>
         <button
-            class={"px-3 py-1 rounded-full border  transition-colors " +
-                (submissionProblematic ? "bg-gray-100 border-gray-50 text-gray-50 cursor-not-allowed" : "bg-violet-400 border-violet-500 " + (isLoading ? "" : "animate-pulse") + " text-white cursor-pointer")}
+            class="px-3 py-1 rounded-full border  transition-colors
+                {submissionProblematic ? "bg-gray-100 border-gray-50 text-gray-50 cursor-not-allowed" : "bg-violet-400 border-violet-500 " + (isLoading ? "" : "animate-pulse") + " text-white cursor-pointer"}"
             on:click={debounce(handleSubmit, 1000)}
         >
             Next

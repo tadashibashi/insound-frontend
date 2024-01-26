@@ -7,6 +7,7 @@
     import { SoundLoadError } from "audio/SoundLoadError";
     import LoadAudioPage from "./LoadAudioPage.svelte";
     import AudioOptionsPage from "./AudioOptionsPage.svelte";
+    import type { MultiTrackControl } from "audio/MultiTrackControl";
 
     enum FormState {
         LoadFiles = 0,
@@ -38,6 +39,8 @@ end
     // 1: options + audio previewer
     let formState: FormState = FormState.LoadFiles;
 
+    let track: MultiTrackControl;
+
     // ===== Error messages ===================================================
 
     let errorTitle = "";
@@ -52,7 +55,7 @@ end
 
     // ===== Event handlers ===================================================
 
-    async function onLoadAudio(files: File[])
+    async function onLoadAudio(files: File[], channels: AudioChannel[])
     {
         if (files.length === 0)
         {
@@ -84,16 +87,13 @@ end
             });
         }
 
-        const names = fileInputs.map(input => input.layername);
-         // remove last one, since it's a dummy input waiting for user input
-        names.pop();
 
         try {
             if (errInfo.length > 0)
             {
                 throw new SoundLoadError(errInfo);
             }
-            audioContext.load(buffers as ArrayBuffer[], names, defaultScript);
+            audioContext.load(buffers as ArrayBuffer[], channels, defaultScript);
 
             // success, progress the form state
             formState = FormState.AudioOptions;
@@ -155,11 +155,15 @@ end
 <LoadAudioPage
     show={formState === FormState.LoadFiles}
     onsubmit={onLoadAudio}
-    bind:fileInputs={fileInputs} />
+    bind:fileInputs={fileInputs}
+    track={track}
+/>
 
 <AudioOptionsPage
     show={formState === FormState.AudioOptions}
     defaultScript={defaultScript}
     onsubmit={ (data) => { console.log("submitted data:", data);} }
-    bind:audioContext={audioContext} />
+    bind:audioContext={audioContext}
+    bind:track={track}
+/>
 

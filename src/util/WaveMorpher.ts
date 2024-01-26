@@ -121,6 +121,7 @@ export class WaveMorpher
      */
     async loadData(track: MultiTrackControl, audioConsole: AudioConsole)
     {
+        this.unloadData();
         const channelCount = track.channelCount;
         const width = this.mWidth;
 

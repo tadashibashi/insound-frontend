@@ -20,8 +20,8 @@
         | undefined = undefined;
     export let onaddmix: ((preset: MixPreset) => void)
         | undefined = undefined;
-    export let onpatchmix: ((oldMix: AudioChannelSettings[],
-        newMix: AudioChannelSettings[]) => void) | undefined = undefined;
+    export let onpatchmix: ((oldMix: {channels: AudioChannelSettings[], main: AudioChannelSettings},
+        newMix: {channels: AudioChannelSettings[], main: AudioChannelSettings}) => void) | undefined = undefined;
     export let ondelete: ((preset: MixPreset) => void)
         | undefined = undefined;
 
@@ -145,7 +145,7 @@
     // ----- Helpers ----------------------------------------------------------
 
     // Helper to apply a mix setting to the audio console
-    function applyMix(mix: AudioChannelSettings[], transitionTime: number = 0)
+    function applyMix(mix: {main: AudioChannelSettings, channels: AudioChannelSettings[]}, transitionTime: number = 0)
     {
 
         mixConsole.applySettings(mix, transitionTime);

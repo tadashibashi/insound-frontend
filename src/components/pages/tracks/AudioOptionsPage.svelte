@@ -1,8 +1,8 @@
 <script lang="ts">
     import { getContext } from "svelte";
-    import type { MixPreset } from "audio/MixPresetMgr";
     import AudioPlayer from "app/components/AudioPlayer/AudioPlayer.svelte";
     import type { TextEditorMgr } from "app/util/TextEditorMgr";
+    import type { MultiTrackControl } from "audio/MultiTrackControl";
 
     const audio = getContext("audio");
 
@@ -11,6 +11,7 @@
 
     // ===== User callbacks ===================================================
     export let audioContext: AudioPlayerExternalControls;
+    export let track: MultiTrackControl;
 
     export let onsubmit: (data: AudioSubmissionData) => void = () => {};
 
@@ -18,7 +19,6 @@
 
     // ===== Options ==========================================================
     export let show: boolean = true;
-    let mixPresets: MixPreset[] = [];
     let showMarkers: boolean = true;
     let looping: boolean = true;
     let transitionTime: number = 1;
@@ -28,7 +28,7 @@
     {
         onsubmit({
             looping,
-            mixPresets,
+            mixPresets: track.mixPresets,
             script: textEditor.text,
             showMarkers,
             transitionTime,
@@ -49,11 +49,11 @@
             <AudioPlayer
                 audio={$audio}
                 bind:looping={looping}
-                mixPresets={mixPresets}
                 bind:showMarkers={showMarkers}
                 transitionTime={transitionTime}
                 defaultScript={defaultScript}
                 bind:context={audioContext}
+                bind:track={track}
             />
         {/if}
 

@@ -39,11 +39,10 @@
 
     let wave = new WaveMorpher(2048);
 
-    let audioConsole: AudioConsole = new AudioConsole(track);
+    let audioConsole: AudioConsole = track.console;
 
     // ===== State ============================================================
     let isPlaying = false;
-    let isAudioLoaded = false;
 
     // used to detect if user started drag seeking while audio was playing
     let wasPlayingBeforeSeek = false;
@@ -62,7 +61,7 @@
     export let looping: boolean = true;
     export let transitionTime: number = 1;
 
-    export let mixPresets: MixPreset[] = [];
+    $: mixPresets = track.mixPresets;
 
     $: if (track.isLoaded)
     {
@@ -90,44 +89,46 @@
     function onUnloadAudio()
     {
         track.unload();
-        audioConsole.clear();
         wave.unloadData();
     }
 
-    // Callback fired when audio is loaded
+    /**
+     * Load track audio
+     * @param pData      - binary file data, either 1 fsb buffer, or multiple files in an array
+     * @param channels   - audio channels correlating to file data
+     * @param scriptText - lua script to load
+     */
     function onLoadAudio(pData: ArrayBuffer | ArrayBuffer[],
-        pLayerNames: string[], scriptText: string)
+        channels: AudioChannel[], scriptText: string)
     {
         // Load audio data into track
         if (Array.isArray(pData))
         {
-            // Array of buffers means separate audio files / sounds
+            // Array of buffers contain separate audio files / sounds
             track.loadSounds(pData, {
-                script: scriptText
+                script: scriptText,
+                channels: channels,
             });
         }
         else
         {
-            // One buffer means a bank
+            // One buffer is an fsbank
             track.loadFSBank(pData, {
-                script: scriptText
+                script: scriptText,
+                channels: channels,
             });
         }
 
-        isAudioLoaded = true;
+        // Set component state and track options
         isPlaying = false;
         time.max = track.length;
-
         time.current = 0;
 
         track.looping = looping;
 
-        wave.unloadData();
-        audioConsole.clear();
-        audioConsole.addChannels(["Main", ...pLayerNames]);
-        audioConsole = audioConsole;
-
         wave.loadData(track, audioConsole);
+
+        audioConsole = audioConsole; // notify mix console component of update
     }
 
     function onPause(paused: boolean)
@@ -209,7 +210,7 @@
         <div on:pointerleave={() => {volumeSliderShow = false;}}>
             <Playbar
                 class="relative w-full z-10 rounded-t-md h-[100px] bg-gray-400"
-                active={isAudioLoaded}
+                active={track.isLoaded}
                 time={time}
                 markers={track.markers}
                 loopend={track.markers.loopEnd?.position || 0}
