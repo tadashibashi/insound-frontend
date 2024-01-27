@@ -105,7 +105,8 @@ export class WaveMorpher
     {
         if (!this.mConsole) return [];
 
-        return this.mConsole.channels.map(chan => chan.params.volume.value);
+        return [this.mConsole.main.params.volume.value,
+            ...this.mConsole.channels.map(chan => chan.params.volume.value)];
     }
 
     get waveData() { return this.mData; }
@@ -148,7 +149,12 @@ export class WaveMorpher
 
         }
 
-        audioConsole.channels.forEach(chan => chan.params.volume.addSetCallback(this.handleVolumeChange));
+        // Make sure the handleVolumeChange callback is set once
+        audioConsole.main.params.volume.removeSetCallback(this.handleVolumeChange);
+        audioConsole.main.params.volume.addSetCallback(this.handleVolumeChange);
+
+        audioConsole.channels.forEach(chan =>
+            chan.params.volume.addSetCallback(this.handleVolumeChange));
 
         this.mConsole = audioConsole;
         this.mTransformed = new Float32Array(width);
