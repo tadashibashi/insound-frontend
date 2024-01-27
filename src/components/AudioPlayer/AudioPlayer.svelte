@@ -142,10 +142,11 @@
     {
         if (!track.isPaused)
         {
-            time.current = track.position;
             wave.update(time.progress);
         }
+        
         track.spectrum.data = track.spectrum.data;
+        time.current = track.position;
     }
 
     /**
