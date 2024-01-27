@@ -170,7 +170,7 @@
         if (submissionProblematic) return;
 
         isLoading = true;
-
+        
         try {
             for (let i = 0; i < fileInputs.length - 1; ++i) // length - 1 to not include blank input
             {

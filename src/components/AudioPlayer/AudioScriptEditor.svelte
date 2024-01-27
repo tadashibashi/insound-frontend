@@ -1,13 +1,17 @@
 <script lang="ts">
+    import { StorageName } from "app/consts";
     import { TextEditorMgr } from "app/util/TextEditorMgr";
     import { onMount } from "svelte";
-    import { ArrowUturnLeft, ArrowUturnRight, Icon, LockClosed } from "svelte-hero-icons";
+    import { ArrowUturnLeft, ArrowUturnRight, EllipsisVertical, Icon, LockClosed } from "svelte-hero-icons";
 
     export let editMode: boolean = true;
 
     // Bindable text editor object, or you can provide your own
     export let editor: TextEditorMgr;
     let editorParentEl: HTMLElement;
+    let editorGroupEl: HTMLElement;
+
+    let draggingBorder = false;
 
     export let value: string = "";
 
@@ -18,6 +22,8 @@
     let scrollerEl: HTMLElement;
     let undoDepth = 0;
     let redoDepth = 0;
+
+    let editorWidth: number = Number(localStorage.getItem(StorageName.Audio_ScriptEditor_ConsoleSize) || 70);
 
     function handleCheckScroll(evt: Event)
     {
@@ -38,6 +44,30 @@
     function updateRedoDepth()
     {
         redoDepth = editor.redoDepth;
+    }
+
+    function handleMouseUp(evt: MouseEvent)
+    {
+        if (draggingBorder)
+        {
+            draggingBorder = false;
+
+            if (!isNaN(editorWidth))
+            {
+                localStorage.setItem(StorageName.Audio_ScriptEditor_ConsoleSize,
+                    editorWidth.toString());
+            }
+        }
+
+    }
+
+    function handleMouseMove(evt: MouseEvent)
+    {
+        if (!draggingBorder) return;
+
+        const groupRect = editorGroupEl.getBoundingClientRect();
+        const widthPercent = (evt.x - groupRect.left) / (groupRect.width || 1);
+        editorWidth = Math.min(Math.max(widthPercent, .2), .8) * 100.0;
     }
 
     onMount(() => {
@@ -73,6 +103,9 @@
         const tempDoLoadScript = doloadscript || (() => {});
         editor.onsave.addListener(tempDoLoadScript);
 
+        window.addEventListener("mouseup", handleMouseUp);
+        window.addEventListener("mousemove", handleMouseMove);
+
         // Teardown callbacks
         return () => {
             scrollerEl.removeEventListener("scroll", handleCheckScroll);
@@ -81,14 +114,17 @@
             editor.onundo.removeListener(updateUndoDepth);
             editor.onredo.removeListener(updateRedoDepth);
             editor.onsave.removeListener(tempDoLoadScript);
+
+            window.removeEventListener("mouseup", handleMouseUp);
+            window.removeEventListener("mousemove", handleMouseMove);
         };
     });
 
 </script>
 
-<div class =" h-[324px] flex flex-col">
-    <div class="
-            flex justify-between items-center bg-gray-50 h-[32px]
+<div class ="Grid h-[324px]">
+    <div class="OptionBar
+            flex justify-between items-center bg-gray-50 overflow-hidden py-1.5
             {shadowTop ? "shadow-md" : ""}
         "
     >
@@ -140,27 +176,50 @@
                 <Icon class="text-gray-200" src={LockClosed} solid size="16" />
             </div>
         {/if}
-
     </div>
 
-
-    <!-- Editor parent -->
-    <div bind:this={editorParentEl}
-        class="
-            flex-grow overflow-hidden relative
-            {editMode ? "" : "select-none"}
-        "
-
+    <div class="overflow-hidden relative grid
+            {draggingBorder ? "cursor-grabbing" : ""}"
+        style={`grid-template-columns: ${editorWidth}% ${100-editorWidth}%;`}
+        bind:this={editorGroupEl}
     >
-        <div class="
-            absolute w-full -bottom-2 h-2 bg-white rotate-180
-            {shadowBottom ? "shadow-md" : ""}
-        " />
+        <!-- Editor Region -->
+        <div class="overflow-hidden max-sm:col-span-2 col-span-1">
+            <!-- Text Editor -->
+            <div bind:this={editorParentEl}
+                class="h-full w-full
+                    {editMode ? "" : "select-none"}
+                "
+            >
+                <div class="
+                    absolute w-full -bottom-2 h-2 bg-white rotate-180
+                    {shadowBottom ? "shadow-md" : ""}
+                    " />
+            </div>
+        </div>
+
+        <!-- Console -->
+        <div
+            class=" bg-gray-200 h-full shadow-inner col-span-1 not-sr-only max-sm:sr-only">
+            <!-- Width drag handle -->
+            <button class="h-full w-2 bg-gray-300 hover:opacity-100 transition-opacity duration-200
+            {draggingBorder ? "opacity-100 cursor-grabbing" : "opacity-0 cursor-grab"}"
+                on:mousedown={() => draggingBorder = true}>
+                <Icon class="float-left -translate-x-[25%]" src={EllipsisVertical} size="18" />
+            </button>
+
+        </div>
     </div>
+
 </div>
 
 <style>
     .shadow-bottom {
         box-shadow: 0 -4px 3px -1px#00000010, 0 -2px 8px -4px #00000090, var(--tw-ring-shadow), 0 0 #000;
+    }
+
+    .Grid {
+        display: grid;
+        grid-template-rows: auto 1fr;
     }
 </style>
