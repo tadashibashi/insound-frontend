@@ -261,16 +261,58 @@
     /** Handle shortcuts for the marker control window */
     function handleKeyDown(evt: KeyboardEvent)
     {
-        if (!active) return;
+        if (!active || evt.repeat) return;
         if (evt.key === "Delete" || evt.key === "Backspace")
         {
             deleteMarker();
         }
-
-        if ( (evt.metaKey && evt.key === "+") || (evt.altKey && evt.code === "Quote") ) // logic pro key command
+        else if ( (evt.metaKey && evt.key === "+") || (evt.altKey && evt.code === "Quote") ) // logic pro key command
         {
             addMarker();
         }
+        else if (evt.key === "ArrowUp")
+        {
+            if (markers.length > 0)
+            {
+                if (selection === null)
+                {
+                    selection = markers.array[0] || null;
+                }
+                else
+                {
+                    const selectionIndex = markers.array.findIndex(m => m === selection);
+                    if (selectionIndex !== -1)
+                    {
+                        selection = markers.array.at(selectionIndex - 1) || null;
+                        selection && gotoMarker(selection);
+                    }
+                }
+            }
+        }
+        else if (evt.key === "ArrowDown")
+        {
+            if (markers.length > 0)
+            {
+                if (selection === null)
+                {
+                    selection = markers.array[0] || null;
+                }
+                else
+                {
+                    const selectionIndex = markers.array.findIndex(m => m === selection);
+                    if (selectionIndex !== -1)
+                    {
+                        selection = markers.array.at((selectionIndex + 1) % markers.array.length) || null;
+                        selection && gotoMarker(selection);
+                    }
+                }
+            }
+        }
+    }
+
+    function gotoMarker(marker: AudioMarker)
+    {
+        track.position = marker.position * .001;
     }
 
     onMount(() => {
