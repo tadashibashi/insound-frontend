@@ -1,5 +1,7 @@
 <script lang="ts">
+    import type { MultiTrackControl } from "app/audio/src/ts/MultiTrackControl";
     import { StorageName } from "app/consts";
+    import { ScriptConsole } from "app/util/ScriptConsole";
     import { TextEditorMgr } from "app/util/TextEditorMgr";
     import { onMount } from "svelte";
     import { ArrowUturnLeft, ArrowUturnRight, EllipsisVertical, Icon, LockClosed } from "svelte-hero-icons";
@@ -8,14 +10,16 @@
 
     // Bindable text editor object, or you can provide your own
     export let editor: TextEditorMgr;
+    export let track: MultiTrackControl;
     let editorParentEl: HTMLElement;
     let editorGroupEl: HTMLElement;
+    let scriptConsoleEl: HTMLElement;
 
     let draggingBorder = false;
 
     export let value: string = "";
 
-    export let doloadscript: (() => void) | undefined = undefined;
+    export let doloadscript: (() => boolean) | undefined = undefined;
 
     let shadowTop: boolean = false;
     let shadowBottom: boolean = false;
@@ -24,6 +28,8 @@
     let redoDepth = 0;
 
     let editorWidth: number = Number(localStorage.getItem(StorageName.Audio_ScriptEditor_ConsoleSize) || 70);
+
+    let scriptConsole: ScriptConsole;
 
     function handleCheckScroll(evt: Event)
     {
@@ -70,6 +76,11 @@
         editorWidth = Math.min(Math.max(widthPercent, .2), .8) * 100.0;
     }
 
+    function handleReloadScript()
+    {
+        doloadscript && doloadscript();
+    }
+
     onMount(() => {
         // Create the text editor object
         if (!editor)
@@ -106,6 +117,21 @@
         window.addEventListener("mouseup", handleMouseUp);
         window.addEventListener("mousemove", handleMouseMove);
 
+        scriptConsole = new ScriptConsole(scriptConsoleEl);
+
+        function doprint(level: number, name: string, message: string, extraData?: any)
+        {
+            scriptConsole.print(level, name, message, extraData);
+        }
+
+        function domovecursor(line: number, col: number)
+        {
+            editor.moveCursor(line, col);
+        }
+
+        track.doprint.addListener(doprint);
+        scriptConsole.doMoveCursor.addListener(domovecursor);
+
         // Teardown callbacks
         return () => {
             scrollerEl.removeEventListener("scroll", handleCheckScroll);
@@ -117,8 +143,12 @@
 
             window.removeEventListener("mouseup", handleMouseUp);
             window.removeEventListener("mousemove", handleMouseMove);
+
+            track.doprint.removeListener(doprint);
         };
     });
+
+    let liveScript: string = "";
 
 </script>
 
@@ -164,7 +194,7 @@
                 <button class="block mr-3 text-xs font-light text-gray-400
                     border-gray-200 border rounded-full px-2 cursor-pointer
                 "
-                    on:click={() => doloadscript && doloadscript() }
+                    on:click={handleReloadScript}
                 >
                     Reload Script
                 </button>
@@ -200,14 +230,34 @@
 
         <!-- Console -->
         <div
-            class=" bg-gray-200 h-full shadow-inner col-span-1 not-sr-only max-sm:sr-only">
+            class="relative bg-gray-100 h-full shadow-inner col-span-1 not-sr-only max-sm:sr-only overflow-hidden">
+
+            <div class="absolute p-2 w-full h-full font-mono text-xs overflow-y-auto select-text" bind:this={scriptConsoleEl}>
+
+            </div>
             <!-- Width drag handle -->
-            <button class="h-full w-2 bg-gray-300 hover:opacity-100 transition-opacity duration-200
+            <button class="absolute h-full w-2 bg-gray-300 hover:opacity-100 transition-opacity duration-200
             {draggingBorder ? "opacity-100 cursor-grabbing" : "opacity-0 cursor-grab"}"
                 on:mousedown={() => draggingBorder = true}>
                 <Icon class="float-left -translate-x-[25%]" src={EllipsisVertical} size="18" />
             </button>
+            <input class="absolute bottom-0 w-full" type="text" bind:value={liveScript}
+                on:keydown={e => {
+                    if (e.repeat) return;
 
+                    if (e.key === "Enter")
+                    {
+                        const result = track.executeScript(liveScript);
+                        console.log(result);
+                        if (result)
+                            scriptConsole.print(1, "Script", result.toString());
+                        scriptConsole.print(1, "Script", liveScript);
+
+                        liveScript = "";
+
+                    }
+                }}
+            />
         </div>
     </div>
 

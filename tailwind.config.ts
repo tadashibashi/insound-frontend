@@ -1,7 +1,7 @@
 import type { Config } from 'tailwindcss'
 
 export default {
-  content: ["./src/**/*.svelte", "./index.html"],
+  content: ["./src/**/*.svelte", "./index.html", "./src/**/*.ts"],
   theme: {
     extend: {
       fontFamily: {

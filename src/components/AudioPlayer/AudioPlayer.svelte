@@ -13,7 +13,7 @@
     import { MultiTrackControl } from "audio/MultiTrackControl";
     import MixList from "./MixList.svelte";
     import VolumeSlider from "./VolumeSlider.svelte";
-    import AudioScriptEditor from "./AudioScriptEditor.svelte";
+    import AudioScriptEditor from "./ScriptEditor/AudioScriptEditor.svelte";
     import type { TextEditorMgr } from "app/util/TextEditorMgr";
     import MarkerControl from "./MarkerControl.svelte";
     import { StorageName } from "app/consts";
@@ -144,7 +144,7 @@
         {
             wave.update(time.progress);
         }
-        
+
         track.spectrum.data = track.spectrum.data;
         time.current = track.position;
     }
@@ -165,6 +165,7 @@
             track.setPause(false, .1);
             isPlaying = true;
             wasPlayingBeforeSeek = false;
+            wave.update(cur/time.max);
         }
     }
 
@@ -191,9 +192,9 @@
         isPlaying = !newPause;
     }
 
-    function onScriptReload()
+    function onScriptReload(): boolean
     {
-        track.updateScript(textEditor.text);
+        return track.updateScript(textEditor.text);
     }
 
     function updateSeekUI(val: number)
@@ -259,10 +260,10 @@
 
                     <!-- Volume controls -->
                     <VolumeSlider
-                        initVolume={ parseFloat(localStorage.getItem(StorageName.MasterVolume) ?? "1") }
+                        initVolume={ parseFloat(localStorage.getItem(StorageName.Audio_MasterVolume) ?? "1") }
                         onchange={(val) => {
                                 audio.masterVolume = val;
-                                localStorage.setItem(StorageName.MasterVolume, audio.masterVolume.toString());
+                                localStorage.setItem(StorageName.Audio_MasterVolume, audio.masterVolume.toString());
                             }}
                         bind:show={volumeSliderShow} />
 
@@ -341,6 +342,7 @@
             >
                 <AudioScriptEditor
                     bind:editor={textEditor}
+                    track={track}
                     value={defaultScript}
                     doloadscript={onScriptReload}
                     editMode={editMode}

@@ -1,6 +1,6 @@
 import { EditorView } from "codemirror";
 import { undo, redo, undoDepth, redoDepth } from "@codemirror/commands";
-import { EditorState, type Extension } from "@codemirror/state";
+import { EditorState, type Extension, EditorSelection } from "@codemirror/state";
 import { keymap, type KeyBinding } from "@codemirror/view";
 
 import { Callback } from "audio/Callback";
@@ -71,6 +71,33 @@ export class TextEditorMgr
 
     get text(): string {
         return this.m_view.state.doc.toString();
+    }
+
+    moveCursor(line: number, targetColumn: number = 0)
+    {
+        const text = this.m_view.state.doc.toString();
+
+        // find line index
+        let index = 0;
+        for (let curLine = 0; index < text.length && curLine < line; )
+        {
+            const nextLineBreak = text.indexOf("\n", index);
+            if (nextLineBreak === -1)
+            {
+                console.log("couldn't find line break");
+                index = text.length;
+                break;
+            }
+            index = nextLineBreak + 1;
+            ++curLine;
+        }
+
+        index += targetColumn - 1;
+
+        this.m_view.dispatch({
+            scrollIntoView: true,
+            selection: { anchor: index, head: index }
+        });
     }
 
     undo()
