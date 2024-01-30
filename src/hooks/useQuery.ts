@@ -1,6 +1,3 @@
-import { useLocation } from "svelte-routing";
-import { get } from "svelte/store";
-
 /**
  * Reactively get the current query.
  * Make sure that this gets called in the component's script body and not
@@ -8,7 +5,7 @@ import { get } from "svelte/store";
  */
 export function useQuery()
 {
-    const location = get(useLocation());
+    const location = window.location;
     return (location) ? new URLSearchParams(location.search) :
         new URLSearchParams();
 }
