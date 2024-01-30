@@ -20,6 +20,7 @@
         let redirect = query.get("redirect");
         if (redirect)
         {
+            console.log("redirect =", redirect);
             redirect = decodeURI(atob(redirect));
 
             query.delete("redirect");
