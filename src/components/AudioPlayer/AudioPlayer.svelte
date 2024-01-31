@@ -34,7 +34,7 @@
 
     export let defaultScript = "";
 
-    let tabIndex = 2;
+    let tabIndex = 0;
     const tabs = ["Mixer", "Markers", "Script"];
 
     let wave = new WaveMorpher(2048);
@@ -142,11 +142,11 @@
     {
         if (!track.isPaused)
         {
+            time.current = track.position;
             wave.update(time.progress);
         }
 
         track.spectrum.data = track.spectrum.data;
-        time.current = track.position;
     }
 
     /**
