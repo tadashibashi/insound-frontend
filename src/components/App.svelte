@@ -13,6 +13,7 @@
     AudioContext.init();
 
     const query = useQuery();
+    console.log("location:", window.location.toString());
 
     onMount(() => {
 
