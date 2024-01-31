@@ -13,27 +13,32 @@
     AudioContext.init();
 
     const query = useQuery();
-    console.log("location:", window.location.toString());
 
     onMount(() => {
-
-        // Read redirect in query string, then strip it from it
+        // Read & perform redirect in query string
         let redirect = query.get("redirect");
         if (redirect)
         {
+            // get url from the redirect query param
             redirect = decodeURI(atob(redirect));
-            console.log("redirect =", redirect);
 
             query.delete("redirect");
-            if (redirect.includes('?'))
+
+            // append the rest of the query string to the redirected url
+            const queryString = query.toString();
+            if (queryString.length > 0)
             {
-                redirect += '&' + query.toString();
-            }
-            else
-            {
-                redirect += '?' + query.toString();
+                if (redirect.includes('?'))
+                {
+                    redirect += '&' + query.toString();
+                }
+                else
+                {
+                    redirect += '?' + queryString;
+                }
             }
 
+            // go to redirect
             navigate(redirect, {replace: true});
         }
     });
