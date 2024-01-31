@@ -1,10 +1,11 @@
 <script lang="ts">
     import type { MultiTrackControl } from "app/audio/src/ts/MultiTrackControl";
     import { StorageName } from "app/consts";
+    import { util } from "app/util";
     import { ScriptConsole } from "app/util/ScriptConsole";
     import { TextEditorMgr } from "app/util/TextEditorMgr";
     import { onMount } from "svelte";
-    import { ArrowUturnLeft, ArrowUturnRight, EllipsisVertical, Icon, LockClosed } from "svelte-hero-icons";
+    import { ArrowUturnLeft, ArrowUturnRight, ChevronRight, EllipsisVertical, Icon, LockClosed } from "svelte-hero-icons";
 
     export let editMode: boolean = true;
 
@@ -26,6 +27,8 @@
     let scrollerEl: HTMLElement;
     let undoDepth = 0;
     let redoDepth = 0;
+
+    export const id = "AudioScriptEditor-" + util.genRandHex(8);
 
     let editorWidth: number = Number(localStorage.getItem(StorageName.Audio_ScriptEditor_ConsoleSize) || 70);
 
@@ -124,12 +127,18 @@
             scriptConsole.print(level, name, message, extraData);
         }
 
+        function doclear()
+        {
+            scriptConsole.clear();
+        }
+
         function domovecursor(line: number, col: number)
         {
             editor.moveCursor(line, col);
         }
 
         track.doprint.addListener(doprint);
+        track.doclear.addListener(doclear);
         scriptConsole.doMoveCursor.addListener(domovecursor);
 
         // Teardown callbacks
@@ -145,10 +154,13 @@
             window.removeEventListener("mousemove", handleMouseMove);
 
             track.doprint.removeListener(doprint);
+            track.doclear.removeListener(doclear);
         };
     });
 
     let liveScript: string = "";
+
+    let showCompletions = false;
 
 </script>
 
@@ -230,38 +242,87 @@
 
         <!-- Console -->
         <div
-            class="relative bg-gray-100 h-full shadow-inner col-span-1 not-sr-only max-sm:sr-only overflow-hidden">
+            class="relative bg-gray-100 h-full shadow-inner col-span-1 not-sr-only max-sm:sr-only overflow-hidden select-text">
+            <div class="flex flex-col w-full h-full">
+                <div class="p-2 w-full h-full font-mono text-xs overflow-y-auto select-text flex-grow" bind:this={scriptConsoleEl}>
+                </div>
+                <div class="flex flex-row items-center">
+                    <Icon src={ChevronRight} size="12" class="mx-1" />
+                    <input list={id + "-console-completions"} class="select-none bg-transparent flex-grow font-code text-xs py-1" type="text" bind:value={liveScript}
+                        spellcheck="false"
+                        on:keydown={e => {
+                            if (e.repeat) return;
+                            showCompletions = false;
 
-            <div class="absolute p-2 w-full h-full font-mono text-xs overflow-y-auto select-text" bind:this={scriptConsoleEl}>
+                            if (e.key === "Enter")
+                            {
+                                const result = track.executeScript(liveScript);
+                                console.log(result);
+                                if (result)
+                                    scriptConsole.print(1, "Script", result.toString());
+                                //scriptConsole.print(1, "Script", liveScript);
+
+                                liveScript = "";
+                            }
+                            else if (e.code === "Space" && e.ctrlKey)
+                            {
+                                showCompletions = true;
+                            }
+                        }}
+                    />
+                </div>
 
             </div>
+
             <!-- Width drag handle -->
             <button class="absolute h-full w-2 bg-gray-300 hover:opacity-100 transition-opacity duration-200
             {draggingBorder ? "opacity-100 cursor-grabbing" : "opacity-0 cursor-grab"}"
                 on:mousedown={() => draggingBorder = true}>
                 <Icon class="float-left -translate-x-[25%]" src={EllipsisVertical} size="18" />
             </button>
-            <input class="absolute bottom-0 w-full" type="text" bind:value={liveScript}
-                on:keydown={e => {
-                    if (e.repeat) return;
-
-                    if (e.key === "Enter")
-                    {
-                        const result = track.executeScript(liveScript);
-                        console.log(result);
-                        if (result)
-                            scriptConsole.print(1, "Script", result.toString());
-                        scriptConsole.print(1, "Script", liveScript);
-
-                        liveScript = "";
-
-                    }
-                }}
-            />
         </div>
     </div>
 
 </div>
+
+<datalist id={(liveScript.length > 0 || showCompletions) ? id + "-console-completions" : ""}>
+    <option value="clear()"/>
+    <option value="print(x: any)"/>
+    <option value="error(x: any)"/>
+
+    {#if liveScript.startsWith("track")}
+    <option value="track.play(fadein_sec?: number): void"/>
+    <option value="track.pause(fadeout_sec?: number): void"/>
+    <option value="track.paused(value?: boolean): boolean" />
+    <option value="track.position(seconds?: number): number" />
+    <option value="track.volume(channel: number, level?: number): number" />
+    <option value="track.pan_left(channel: number, level?: number): number" />
+    <option value="track.pan_right(channel: number, level?: number): number" />
+    <option value="track.reverb_level(channel: number, level?: number): number" />
+    <option value="track.channel_count(): number" />
+    <option value="track.loop_point(start: number, end: number): {'{'}start: number, end: number{'}'}" />
+
+
+        {#if liveScript.startsWith("track.marker")}
+            <option value="track.marker.get(index: number | string): {'{'}name: string, position: number{'}'}"/>
+            <option value="track.marker.count(): number"/>
+            <option value="track.marker.add(name: string, ms: number): void"/>
+            <option value="track.marker.edit(index: number|string, name: string, ms: number): void" />
+        {:else}
+            <option value="track.marker: namespace" />
+        {/if}
+
+        {#if liveScript.startsWith("track.preset")}
+            <option value="track.preset.apply(index: number|string, seconds: number): void" />
+            <option value="track.preset.get_name(index: number): string" />
+            <option value="track.preset.count(): number" />
+        {:else}
+            <option value="track.preset: namespace" />
+        {/if}
+    {:else}
+        <option value="track: namespace" />
+    {/if}
+</datalist>
 
 <style>
     .shadow-bottom {

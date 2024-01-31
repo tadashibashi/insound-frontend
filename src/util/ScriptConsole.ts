@@ -46,7 +46,7 @@ export class ScriptConsole
                 const itEl = lastChild.lastElementChild?.firstElementChild?.firstElementChild;
                 if (!itEl) throw Error("Expected to find element with iteration text");
 
-                itEl.className = "font-bold bg-gray-400 px-1.5 mt-[2px] me-1 text-white rounded-full text-[10px] flex justify-items items-center h-[12px]";
+                itEl.className = "font-bold bg-gray-400 px-1.5 mt-[2px] me-1 text-white rounded-full text-[10px] flex justify-items items-center h-[12px] select-none cursor-default";
                 itEl.innerHTML = `<span>${iterations + 1}</span>`
 
 
@@ -58,7 +58,7 @@ export class ScriptConsole
         }
 
         const pEl = document.createElement("div");
-        pEl.className = "relative flex mx-[2px] my-[2px] rounded-md pt-[2px] pb-[1px] ";
+        pEl.className = "relative flex mx-[2px] my-[2px] rounded-md pt-[2px] pb-[1px] select-text ";
         pEl.dataset["level"] = level.toString();
         pEl.dataset["name"] = name;
         pEl.dataset["iterations"] = "1";
@@ -99,10 +99,10 @@ export class ScriptConsole
             break;
         case 4: // script error
             {
-                if (typeof extraData === "number")
+                if (typeof extraData === "number" && extraData > 0) // 0 is null
                 {
                     const link = document.createElement("div");
-                    link.className = "font-thin cursor-pointer underline text-blue-400 whitespace-nowrap";
+                    link.className = "font-thin cursor-pointer underline text-blue-400 whitespace-nowrap select-none";
                     link.addEventListener("click", () => this.doMoveCursor.invoke(extraData || 0, 0));
                     link.innerText = "line: " + extraData.toString();
                     messageContainer.appendChild(link);
