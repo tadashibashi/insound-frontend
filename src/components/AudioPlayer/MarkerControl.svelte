@@ -14,8 +14,8 @@
     /** Whether key commands and inputs should work, aka when in view/focused*/
     export let active: boolean = true;
 
-    $: loopstart = markers.loopStart;
-    $: loopend = markers.loopEnd;
+    $: loopstart = track.loopPoint.start;
+    $: loopend = track.loopPoint.end;
 
     const id = util.genRandHex(6);
 
@@ -51,30 +51,26 @@
             if (name === "LoopStart")
             {
                 // must come before loopend
-                const loopEnd = markers.loopEnd;
-                if (loopEnd && loopEnd.position <= value)
+                const loopEnd = track.loopPoint.end;
+                if (loopEnd <= value)
                 {
-                    value = loopEnd.position - .001;
+                    value = loopEnd - .001;
                 }
 
-                markers.loopStart = {
-                    name: "LoopStart",
-                    position: value,
-                };
+
+
+                track.setLoopPoint(value, loopEnd);
             }
             else // LoopEnd
             {
                 // must come after loopstart
-                const loopStart = markers.loopStart;
-                if (loopStart && loopStart.position >= value)
+                const loopStart = track.loopPoint.start;
+                if (loopStart >= value)
                 {
-                    value = loopStart.position + .001;
+                    value = loopStart + .001;
                 }
 
-                markers.loopEnd = {
-                    name: "LoopEnd",
-                    position: value,
-                };
+                track.setLoopPoint(loopStart, value);
             }
         }
 
@@ -386,8 +382,8 @@
                 <input use:setupLoopInput class="w-20 ps-2 py-[1px] rounded-md border border-gray-100 read-only:bg-transparent select-none bg-white px-1"
                     type="number"
                     data-index={"LoopStart"}
-                    data-value={loopstart?.position || 0}
-                    value={loopstart?.position || 0}
+                    data-value={loopstart}
+                    value={loopstart}
                     data-field="offset"
                     disabled={!looping}
                 />
@@ -397,8 +393,8 @@
                 <input use:setupLoopInput class="w-20 ps-2 py-[1px] rounded-md border border-gray-100 read-only:bg-transparent select-none bg-white px-1"
                     type="number"
                     data-index={"LoopEnd"}
-                    data-value={loopend?.position || 0}
-                    value={loopend?.position || 0}
+                    data-value={loopend}
+                    value={loopend}
                     data-field="offset"
                     disabled={!looping}
                 />

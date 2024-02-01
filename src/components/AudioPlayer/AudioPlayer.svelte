@@ -61,8 +61,6 @@
     export let looping: boolean = true;
     export let transitionTime: number = 1;
 
-    $: mixPresets = track.mixPresets;
-
     $: if (track.isLoaded)
     {
         track.looping = looping;
@@ -214,8 +212,9 @@
                 class="relative w-full z-10 rounded-t-md h-[100px] bg-gray-400"
                 active={track.isLoaded}
                 time={time}
+                track={track}
                 markers={track.markers}
-                loopend={track.markers.loopEnd?.position || 0}
+                loopend={track.loopPoint.end}
                 looping={looping}
                 showMarkers={showMarkers}
                 onchange={onSeeked}
@@ -279,7 +278,7 @@
 
                 <div class="flex">
                     <MixList
-                        bind:presets={mixPresets}
+                        bind:presets={track.mixPresets}
                         bind:choice={presetChoice}
                         mixConsole={audioConsole}
                         transitionTime={transitionTime}

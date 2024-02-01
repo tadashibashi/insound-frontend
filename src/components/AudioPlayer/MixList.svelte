@@ -11,7 +11,7 @@
 
     // ----- Required ---------------------------------------------------------
     export let mixConsole: AudioConsole;
-    export let presets: MixPreset[];
+    export let presets: MixPreset[] = [];
 
     // ----- Event emitters (optional) ----------------------------------------
     export let onchoice: ((preset: MixPreset, index: number) => void)
@@ -80,9 +80,7 @@
         const deleted = temp[index];
         temp.splice(index, 1);
 
-        // Update index
-        index = Math.min(index, temp.length-1);
-        choice = temp[index];
+        choice = undefined;
 
         // Commit change
         presets = temp;

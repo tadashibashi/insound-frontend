@@ -3,6 +3,7 @@
     import { onMount } from "svelte";
     import TrackMarker from "./TrackMarker.svelte";
     import type { AudioMarker, MarkerMgr } from "audio/MarkerMgr";
+    import type { MultiTrackControl } from "audio/MultiTrackControl";
 
     // ----- Attributes -------------------------------------------------------
     /** Bar height when not engaged with. Grows to  */
@@ -14,6 +15,7 @@
 
     export let showMarkers: boolean = true;
     export let markers: MarkerMgr;
+    export let track: MultiTrackControl;
 
     /** Active state: show playhead + allow movement */
     export let active: boolean = false;
@@ -21,8 +23,8 @@
     /** Time to represent in the bar */
     export let time: TimeDisplay;
     /** Current loop end in seconds */
-    $: loopend = markers.loopEnd?.position || .001;
-    $: loopstart = markers.loopStart?.position || 0;
+    $: loopend = track.loopPoint.end;
+    $: loopstart = track.loopPoint.start;
 
     export let looping: boolean = true;
 
