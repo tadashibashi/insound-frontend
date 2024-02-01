@@ -295,10 +295,10 @@
     <option value="track.pause(fadeout_sec?: number): void"/>
     <option value="track.paused(value?: boolean): boolean" />
     <option value="track.position(seconds?: number): number" />
-    <option value="track.volume(channel: number, level?: number): number" />
-    <option value="track.pan_left(channel: number, level?: number): number" />
-    <option value="track.pan_right(channel: number, level?: number): number" />
-    <option value="track.reverb_level(channel: number, level?: number): number" />
+    <option value="track.volume(channel: number, level?: number, seconds?: number): number" />
+    <option value="track.pan_left(channel: number, level?: number, seconds?: number): number" />
+    <option value="track.pan_right(channel: number, level?: number, seconds?: number): number" />
+    <option value="track.reverb_level(channel: number, level?: number, seconds?: number): number" />
     <option value="track.channel_count(): number" />
     <option value="track.loop_point(start: number, end: number): {'{'}start: number, end: number{'}'}" />
 
