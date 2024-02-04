@@ -160,7 +160,7 @@
         // Start playing audio again if it was seek interrupted
         if (wasPlayingBeforeSeek)
         {
-            track.setPause(false, .1);
+            track.setPause(false);
             isPlaying = true;
             wasPlayingBeforeSeek = false;
             wave.update(cur/time.max);

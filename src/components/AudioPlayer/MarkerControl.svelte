@@ -258,7 +258,7 @@
     function handleKeyDown(evt: KeyboardEvent)
     {
         if (!active || evt.repeat) return;
-        if (evt.key === "Delete" || evt.key === "Backspace")
+        if (evt.metaKey && (evt.key === "Delete" || evt.key === "Backspace"))
         {
             deleteMarker();
         }
@@ -324,6 +324,7 @@
         return () => {
             track.onload.removeListener(handleLoad);
             markers.oncursorchanged.removeListener(handleCursorChanged);
+
 
             if (cachedEditMode)
             {
@@ -414,8 +415,11 @@
                 <div class="text-center">Name</div>
             </div>
 
+            <div class="text-center border-r border-r-gray-300 h-full py-2 overflow-ellipsis font-light overflow-hidden">
+                <div class="inline-block text-center w-auto">Position <span class="font-mono text-[10px]">(ms)</span></div>
+            </div>
             <div class="text-center h-full px-[6vmin] py-2 overflow-ellipsis font-light overflow-hidden">
-                <div class="inline-block text-center w-auto px-2">Position <span class="font-mono text-[10px]">(ms)</span></div>
+                <div class="inline-block text-center w-auto">Transition</div>
             </div>
         </div>
 
@@ -425,16 +429,16 @@
 
             <!-- cursor -->
             <div class={"relative transition-transform h-0 border border-violet-100 w-full z-10 " + (cursor === -1 || markers.length === 0 ? "sr-only" : "")}
-                style={`transform: translateY(${cursor * 24}px);`}
+                style={`transform: translateY(${cursor * 32}px);`}
             />
 
             {#each markers.array as marker, i (marker)}
             <button
-              class={ "TableRow cursor-pointer " + (selection === marker ? "read-only:bg-violet-300 read-only:text-white" :  (i % 2 === 0 ? "bg-gray-100" : "bg-gray-50")) }
+              class={ "TableRow cursor-pointer h-8 " + (selection === marker ? "read-only:bg-violet-300 read-only:text-white" :  (i % 2 === 0 ? "bg-gray-100" : "bg-gray-50")) }
               on:mousedown={() => {track.position = marker.position * .001; selection = marker;}}
             >
                 <!-- data: marker name -->
-                <div class="px-[6vmin] border-r border-r-gray-200 overflow-ellipsis whitespace-nowrap">
+                <div class="px-[3vmin] border-r border-r-gray-200 h-full overflow-ellipsis whitespace-nowrap">
                     <input use:setupInput={handleInputChangeMarker}
                         class={"w-full h-full rounded-md read-only:cursor-pointer read-only:select-none px-2 py-1 overflow-ellipsis overflow-hidden read-only:bg-transparent text-gray-500 bg-white " +
                             (selection === marker ? "read-only:text-white text-gray-500 read-only:shadow-none shadow-inner" : "text-gray-500")}
@@ -444,16 +448,129 @@
                 </div>
 
                 <!-- data: marker position -->
-                <div class="px-[6vmin] w-auto overflow-ellipsis whitespace-nowrap">
+                <div class="px-[3vmin] border-r border-r-gray-200 h-full w-auto overflow-ellipsis whitespace-nowrap">
                     <input use:setupInput={handleInputChangeMarker}
                         type="number"
                         min="0"
                         step="1"
-                        class={"w-full inline-block rounded-md read-only:cursor-pointer read-only:select-none px-2 py-1 overflow-ellipsis overflow-hidden read-only:bg-transparent text-gray-500 bg-white " +
+                        class={"w-full h-full rounded-md read-only:cursor-pointer read-only:select-none px-2 py-1 overflow-ellipsis overflow-hidden read-only:bg-transparent text-gray-500 bg-white " +
                             (selection === marker ? "read-only:text-white text-gray-500 read-only:shadow-none shadow-inner" : "text-gray-500")}
                         value={marker.position}
                         data-index={i} data-value={marker.position} data-field="offset"
                         spellcheck="false" />
+                </div>
+
+                <!-- data: marker transition -->
+                <div class="h-full flex items-center overflow-ellipsis w-auto whitespace-nowrap text-[10px]">
+                    <label class="ms-1">
+                        <span>to </span>
+                        <select class="ms-1 bg-transparent"  on:change={evt => {
+                            const target = evt.currentTarget;
+                            if (!target) return;
+
+                            if (target.value === "")
+                            {
+                                marker.transition = undefined;
+                                return;
+                            }
+
+                            const destinationIndex = parseInt(target.value);
+                            if (isNaN(destinationIndex))
+                            {
+                                throw Error("Marker destination index if not a number!");
+                            }
+
+                            const destination = markers.array[destinationIndex];
+                            if (!destination)
+                            {
+                                throw Error("Invalid marker index provided by select menu!");
+                            }
+
+                            if (destination === marker)
+                            {
+                                throw Error("Attempted to point Marker to itself as transition destination, but this is not allowed!");
+                            }
+
+                            if (!marker.transition)
+                            {
+                                marker.transition = {
+                                    destination,
+                                    fadeIn: true,
+                                    inTime: 0,
+                                    fadeOut: true,
+                                    outTime: 1,
+                                };
+                            }
+                            else
+                            {
+                                marker.transition.destination = destination;
+                            }
+
+                            marker.transition = marker.transition;
+
+                        }}>
+
+                            <option value=""></option>
+                            {#each markers.array as optMarker, optI}
+                                <option disabled={optMarker === marker} value={optI} selected={marker.transition?.destination === optMarker}>{optMarker.name}</option>
+                            {/each}
+                        </select>
+                    </label>
+
+                    {#if marker.transition }
+                    <div class="flex flex-col text-[8px]">
+                        <div class="h-3">
+                            <label class="ms-1">
+                                <span class="w-4 inline-block">out</span>
+                                <select class="SelectButton ms-1 bg-gray-50 border border-gray-100 text-[10px]"
+                                    on:change={evt => {
+                                        if (marker.transition)
+                                        {
+                                            marker.transition.fadeOut = evt.currentTarget?.value === "fade";
+                                        }
+                                    }}
+                                >
+                                    <option value="fade" selected={marker.transition.fadeOut}>fade</option>
+                                    <option value="delay" selected={!marker.transition.fadeOut}>delay</option>
+                                </select>
+                            </label>
+
+                            <label class="ms-1">
+                                <input class="text-gray-400 text-center border border-gray-100 bg-gray-50 w-8 rounded-md leading-tight"
+                                    value={marker.transition.outTime} on:change={(evt) => marker.transition && (marker.transition.outTime = parseFloat(evt.currentTarget?.value || "0")) }
+                                />
+                                <span class="text-[8px]">s</span>
+                            </label>
+                        </div>
+
+                        <div>
+                            <label class="ms-1">
+                                <span class="w-4 inline-block">in</span>
+                                <select class="SelectButton ms-1 bg-gray-50 text-[10px] border border-gray-100"
+                                    on:change={evt => {
+                                        if (marker.transition)
+                                        {
+                                            marker.transition.fadeIn = evt.currentTarget?.value === "fade";
+                                        }
+                                    }}
+                                >
+                                    <option value="fade" selected={marker.transition.fadeIn}>fade</option>
+                                    <option value="delay" selected={!marker.transition.fadeIn}>delay</option>
+                                </select>
+                            </label>
+
+                            <label class="ms-1">
+                                <input class="text-gray-400 text-center border border-gray-100 bg-gray-50 w-8 rounded-md leading-tight"
+                                    value={marker.transition.inTime} on:change={(evt) => marker.transition && (marker.transition.inTime = parseFloat(evt.currentTarget?.value || "0")) }
+                                />
+                                <span class="text-[8px]">s</span>
+                            </label>
+                        </div>
+                    </div>
+
+
+                    {/if}
+
                 </div>
             </button>
             {/each}
@@ -477,7 +594,7 @@
 <style>
     .TableRow {
         display: grid;
-        grid-template-columns: 5fr 3fr;
+        grid-template-columns: 3fr 2fr 5fr;
         width: 100%;
         scrollbar-gutter: stable;
     }
@@ -494,5 +611,12 @@
 
     .hide-scrollbar::-webkit-scrollbar {
         opacity: 0;
+    }
+
+    .SelectButton {
+        line-height: 16px;
+        height: 16px;
+        background-color: transparent;
+        transform: scaleY(.8);
     }
 </style>

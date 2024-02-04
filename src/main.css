@@ -39,3 +39,9 @@ button:focus,
 .cm-gutter.cm-foldGutter .cm-gutterElement {
     display: none;
 }
+
+/* Seems to help with cross-platform line-height */
+select {
+    -webkit-appearance: menulist-button;
+    -moz-appearance:none;
+}
