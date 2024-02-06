@@ -3,7 +3,7 @@
     } from "@rgossiaux/svelte-headlessui";
     import DropdownMenuExposer from "./DropdownMenuExposer.svelte";
 
-    type T = $$Generic<object>;
+    type T = $$Generic<{}>;
 
     // ----- Attributes -------------------------------------------------------
     /**
@@ -32,11 +32,11 @@
     </MenuButton>
 
     <Transition
-        class="relative"
-        enter="transition ease-out duration-100"
+        class="relative z-50"
+        enter="transition-all ease-out duration-100"
         enterFrom="transform opacity-0 scale-95"
         enterTo="transform opacity-100 scale-100"
-        leave="transition ease-in duration-75"
+        leave="transition-all ease-in duration-75"
         leaveFrom="transform opacity-100 scale-100"
         leaveTo="transform opacity-0 scale-95"
     >
