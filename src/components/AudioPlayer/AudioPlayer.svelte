@@ -17,6 +17,7 @@
     import type { TextEditorMgr } from "app/util/TextEditorMgr";
     import MarkerControl from "./MarkerControl.svelte";
     import { StorageName } from "app/consts";
+    import ScriptParams from "app/components/AudioPlayer/ScriptParams.svelte";
 
     export const context: AudioPlayerExternalControls = {
         load: onLoadAudio,
@@ -276,6 +277,10 @@
                     </div>
                 </div>
 
+                <div>
+                    <ScriptParams params={track.params} />
+                </div>
+
                 <div class="flex">
                     <MixList
                         bind:presets={track.mixPresets}
@@ -286,7 +291,7 @@
                     />
 
                     <button class="hover:text-white" on:click={() => showEditorPane = !showEditorPane}>
-                        <div class="relative flex items-center justify-center w-8 scale-75 sm:scale-100">
+                        <span class="relative flex items-center justify-center w-8 scale-75 sm:scale-100">
                             <Icon class="absolute duration-300 ease-in-out transition-all
                                     {showEditorPane ? "-rotate-180 opacity-0" : "opacity-100 rotate-180"}
                                 "
@@ -295,7 +300,7 @@
                                     {showEditorPane ? "-rotate-90 opacity-100" : "rotate-0 opacity-0"}
                                 "
                                 src={ChevronLeft} size="16" solid />
-                        </div>
+                        </span>
 
                     </button>
                 </div>
