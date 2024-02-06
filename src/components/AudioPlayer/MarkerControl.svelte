@@ -461,8 +461,9 @@
                 </div>
 
                 <!-- data: marker transition -->
+
                 <div class="h-full flex items-center overflow-ellipsis w-auto whitespace-nowrap text-[10px]">
-                    <label class="ms-1">
+                    <label class="ms-1" on:mousedown={e => e.stopPropagation()}>
                         <span>to </span>
                         <select class="ms-1 bg-transparent"  on:change={evt => {
                             const target = evt.currentTarget;
@@ -520,7 +521,7 @@
                     {#if marker.transition }
                     <div class="flex flex-col text-[8px]">
                         <div class="h-3">
-                            <label class="ms-1">
+                            <label class="ms-1" on:mousedown={e => e.stopPropagation()}>
                                 <span class="w-4 inline-block">out</span>
                                 <select class="SelectButton ms-1 bg-gray-50 border border-gray-100 text-[10px]"
                                     on:change={evt => {
@@ -535,7 +536,7 @@
                                 </select>
                             </label>
 
-                            <label class="ms-1">
+                            <label class="ms-1" on:mousedown={e => e.stopPropagation()}>
                                 <input class="text-gray-400 text-center border border-gray-100 bg-gray-50 w-8 rounded-md leading-tight"
                                     value={marker.transition.outTime} on:change={(evt) => marker.transition && (marker.transition.outTime = parseFloat(evt.currentTarget?.value || "0")) }
                                 />
@@ -543,8 +544,9 @@
                             </label>
                         </div>
 
-                        <div>
-                            <label class="ms-1">
+                        <!-- svelte-ignore a11y-no-static-element-interactions -->
+                        <div on:mousedown={e => e.stopPropagation()}>
+                            <label class="ms-1" on:mousedown={e => e.stopPropagation()}>
                                 <span class="w-4 inline-block">in</span>
                                 <select class="SelectButton ms-1 bg-gray-50 text-[10px] border border-gray-100"
                                     on:change={evt => {
@@ -559,7 +561,7 @@
                                 </select>
                             </label>
 
-                            <label class="ms-1">
+                            <label class="ms-1" on:mousedown={e => e.stopPropagation()}>
                                 <input class="text-gray-400 text-center border border-gray-100 bg-gray-50 w-8 rounded-md leading-tight"
                                     value={marker.transition.inTime} on:change={(evt) => marker.transition && (marker.transition.inTime = parseFloat(evt.currentTarget?.value || "0")) }
                                 />
