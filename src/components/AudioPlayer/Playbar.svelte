@@ -206,9 +206,8 @@
         <div class="absolute z-30">
             {#each markers.array as m, i (m.name+"-"+i+"-overlay")}
                 {#if !(m.name === "LoopStart" || m.name === "LoopEnd")}
-                <TrackMarker x={m.position * .001 / time.max*(barEl?.getBoundingClientRect().width || 0)}
+                <TrackMarker x={m.position/time.max * (barEl?.getBoundingClientRect().width || 0)}
                     y={-38}
-                    time={m.position}
                     text={m.name}
                     show={ (showMarkers) ?
                         (markerDisplayList[i] ? (markerDisplayList[i] = false, true) : false) :
@@ -250,7 +249,7 @@
                     <div class="absolute w-1 h-full bg-black"
                         style={
                             `transform: translateX(-50%);
-                            left: ${(position*.001)/time.max * 100}%;
+                            left: ${position/time.max * 100}%;
                             `
                         }/>
                 {/each}
@@ -259,13 +258,13 @@
                     <div class="absolute w-1 h-full bg-amber-200"
                         style={
                             `transform: translateX(-50%);
-                            left: ${(loopstart*.001)/time.max*100}%;
+                            left: ${loopstart/time.max*100}%;
                             `
                         }/>
                     <div class="absolute w-1 h-full bg-amber-200"
                         style={
                             `transform: translateX(-50%);
-                            left: ${(loopend*.001)/time.max*100}%;
+                            left: ${loopend/time.max*100}%;
                             `
                         }/>
                 {/if}

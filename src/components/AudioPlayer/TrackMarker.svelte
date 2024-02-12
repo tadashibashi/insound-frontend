@@ -1,7 +1,5 @@
 <script lang="ts">
-
     export let text: string = "";
-    export let time: number = 0;
     export let delayHide: number = 2000;
     export let show: boolean = false;
     export let clickable: boolean = false;
@@ -19,7 +17,6 @@
 
     let hideTimeout: ReturnType<typeof setTimeout> | null = null;
     let isShowing: boolean = false;
-
     let isHovering: boolean = false;
 
     $:
@@ -120,16 +117,6 @@
                 border-right: 8px solid transparent;`
             }
         />
-<!--         <div class="absolute w-full bg-gray-300 z-10"
-            style={
-                `transform: translateX(${bubbleXOffset}px);`
-                }>
-            <p class="TextShadow text-white ml-3 shadow-md">
-                <span>{toDigitalTime(time)}</span>
-
-            </p>
-        </div> -->
-
     </div>
 
 </div>

@@ -161,7 +161,7 @@
                     // set the track position to match the selected marker
                     if (marker === selection)
                     {
-                        track.position = newOffset * .001;
+                        track.position = newOffset;
                     }
                 break;
                 }
@@ -232,12 +232,12 @@
         cursor = newCursor;
     }
 
-    /** Grab marker from current position and name it by number of markers */
+    /** Create marker from current position, named by marker count */
     function addMarker()
     {
         const marker = markers.push({
             name: "Marker " + (markers.length + 1),
-            position: track.position * 1000,
+            position: track.position,
         });
 
         selection = marker;
@@ -308,7 +308,7 @@
 
     function gotoMarker(marker: AudioMarker)
     {
-        track.position = marker.position * .001;
+        track.position = marker.position;
     }
 
     onMount(() => {
@@ -416,7 +416,7 @@
             </div>
 
             <div class="text-center border-r border-r-gray-300 h-full py-2 overflow-ellipsis font-light overflow-hidden">
-                <div class="inline-block text-center w-auto">Position <span class="font-mono text-[10px]">(ms)</span></div>
+                <div class="inline-block text-center w-auto">Position <span class="font-mono text-[10px]">(s)</span></div>
             </div>
             <div class="text-center h-full px-[6vmin] py-2 overflow-ellipsis font-light overflow-hidden">
                 <div class="inline-block text-center w-auto">Transition</div>
@@ -435,7 +435,7 @@
             {#each markers.array as marker, i (marker)}
             <button
               class={ "TableRow cursor-pointer h-8 " + (selection === marker ? "read-only:bg-violet-300 read-only:text-white" :  (i % 2 === 0 ? "bg-gray-100" : "bg-gray-50")) }
-              on:mousedown={() => {track.position = marker.position * .001; selection = marker;}}
+              on:mousedown={() => {track.position = marker.position; selection = marker;}}
             >
                 <!-- data: marker name -->
                 <div class="px-[3vmin] border-r border-r-gray-200 h-full overflow-ellipsis whitespace-nowrap">
