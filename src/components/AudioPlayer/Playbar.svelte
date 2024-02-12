@@ -2,7 +2,7 @@
     import type { TimeDisplay } from "app/util/TimeDisplay";
     import { onMount } from "svelte";
     import TrackMarker from "./TrackMarker.svelte";
-    import type { AudioMarker, MarkerMgr } from "audio/MarkerMgr";
+    import type { AudioMarker, AudioMarkerMgr } from "audio/AudioMarkerMgr";
     import type { MultiTrackControl } from "audio/MultiTrackControl";
 
     // ----- Attributes -------------------------------------------------------
@@ -14,7 +14,7 @@
     export let bgColor: string = "#ddd";
 
     export let showMarkers: boolean = true;
-    export let markers: MarkerMgr;
+    export let markers: AudioMarkerMgr;
     export let track: MultiTrackControl;
 
     /** Active state: show playhead + allow movement */
@@ -151,7 +151,7 @@
 
     function handleMarker(marker: AudioMarker)
     {
-        const index = markers.findIndex(marker);
+        const index = markers.findIndexOf(marker);
         if (index !== -1)
         {
             markerDisplayList[index] = true;

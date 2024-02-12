@@ -3,9 +3,9 @@
     import { onMount } from "svelte";
     import Switch from "app/components/widgets/Switch.svelte";
     import { util } from "app/util";
-    import type { AudioMarker, MarkerMgr } from "audio/MarkerMgr";
+    import type { AudioMarker, AudioMarkerMgr } from "audio/AudioMarkerMgr";
 
-    export let markers: MarkerMgr;
+    export let markers: AudioMarkerMgr;
     export let track: MultiTrackControl;
     export let looping: boolean = true;
     export let showMarkers: boolean = true;
@@ -155,7 +155,7 @@
                     if (isNaN(newOffset))
                         newOffset = 0;
 
-                    markers.updatePositionByIndex(index, newOffset);
+                    markers.editPositionByIndex(index, newOffset);
                     node.value = marker.position.toString();
 
                     // set the track position to match the selected marker
